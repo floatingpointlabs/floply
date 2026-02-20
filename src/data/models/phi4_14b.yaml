@@ -1,0 +1,14 @@
+name: "Phi-4 14B"
+slug: "phi4_14b"
+family: "transformer"
+parameter_count: 14000000000
+architecture:
+  num_layers: 40
+  d_model: 5120
+  num_heads: 40
+  num_kv_heads: 10       # Grouped Query Attention
+  ffn_intermediate: 17920
+  ffn_type: "swiglu"
+  vocab_size: 100352
+source: "https://huggingface.co/microsoft/phi-4"
+notes: "Microsoft Phi-4 14B."

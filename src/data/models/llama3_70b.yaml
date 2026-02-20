@@ -1,0 +1,14 @@
+name: "LLaMA 3 70B"
+slug: "llama3_70b"
+family: "transformer"
+parameter_count: 70600000000
+architecture:
+  num_layers: 80
+  d_model: 8192
+  num_heads: 64
+  num_kv_heads: 8        # Grouped Query Attention
+  ffn_intermediate: 28672
+  ffn_type: "swiglu"
+  vocab_size: 128256
+source: "https://huggingface.co/meta-llama/Meta-Llama-3-70B"
+notes: "Meta LLaMA 3 70B. GQA with 8 KV heads."

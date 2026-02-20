@@ -1,0 +1,14 @@
+name: "Qwen 2.5 72B"
+slug: "qwen25_72b"
+family: "transformer"
+parameter_count: 72700000000
+architecture:
+  num_layers: 80
+  d_model: 8192
+  num_heads: 64
+  num_kv_heads: 8        # Grouped Query Attention
+  ffn_intermediate: 29568
+  ffn_type: "swiglu"
+  vocab_size: 152064
+source: "https://huggingface.co/Qwen/Qwen2.5-72B"
+notes: "Alibaba Qwen 2.5 72B."

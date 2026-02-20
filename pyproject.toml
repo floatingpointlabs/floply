@@ -1,0 +1,49 @@
+[tool.poetry]
+name = "floply"
+version = "0.1.0"
+description = ""
+authors = ["Nilh0use <nils@woodsideai.com>"]
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.14"
+pydantic = ">=2.0,<2.12"
+pyyaml = "^6.0.3"
+
+
+[tool.poetry.group.common.dependencies]
+numpy = "2.2.6"
+pypdf = "5.3.0"
+plotly = "^6.5.0"
+pandas = "2.2.3"
+pyright = "^1.1.404"
+python-dotenv = "^1.1.1"
+streamlit = "^1.40.0"
+openpyxl = "^3.1.0"
+
+[tool.poetry.group.dev.dependencies]
+isort = "^5.12.0"
+ipykernel = "^7.1.0"
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+
+[tool.pyright]
+pythonVersion = "3.12"
+venvPath = "."
+venv = ".venv"
+include = ["."]
+exclude = [
+    ".venv",
+    "**/__pycache__",
+    "**/lambda-layers",
+]
+reportUnusedImport = "warning"
+reportDuplicateImport = "warning"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

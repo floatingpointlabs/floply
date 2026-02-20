@@ -1,0 +1,14 @@
+name: "Mistral 7B"
+slug: "mistral_7b"
+family: "transformer"
+parameter_count: 7240000000
+architecture:
+  num_layers: 32
+  d_model: 4096
+  num_heads: 32
+  num_kv_heads: 8        # Grouped Query Attention
+  ffn_intermediate: 14336
+  ffn_type: "swiglu"
+  vocab_size: 32000
+source: "https://huggingface.co/mistralai/Mistral-7B-v0.1"
+notes: "Mistral 7B v0.1. Sliding window attention."
