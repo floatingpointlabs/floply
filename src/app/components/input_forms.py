@@ -6,7 +6,6 @@ from src.cost_modelling.gpu_specs import list_available_instances
 from src.cost_modelling.model_loader import load_models
 from src.app.config import (
     INSTANCE_DISPLAY_NAMES,
-    COMMON_MODEL_SIZES,
     COMMON_DATASET_SIZES,
     HELP_TEXT,
 )

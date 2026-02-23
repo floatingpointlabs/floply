@@ -4,13 +4,11 @@ This module implements the FLOPs-based cost estimation model for training
 machine learning models on AWS GPU instances.
 """
 
-from typing import TYPE_CHECKING, Optional, Dict, Any
+from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field, ConfigDict
 
 from src.cost_modelling.gpu_specs import get_gpu_instance, get_storage_cost
 
-if TYPE_CHECKING:
-    from src.cost_modelling.model_loader import ModelDefinition
 
 
 class ModelConfig(BaseModel):
