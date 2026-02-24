@@ -22,6 +22,7 @@ WORKDIR /app
 
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/src /app/src
+COPY --from=builder /app/.streamlit/config.toml /app/.streamlit/config.toml
 
 ENV PATH="/app/.venv/bin:$PATH"
 
