@@ -48,24 +48,27 @@ def list_available_instances() -> list[str]:
     return list(AWS_GPU_INSTANCES.keys())
 
 
-def get_cheapest_instance(min_memory_per_gpu: int = 0) -> str:
-    valid = [
-        (name, spec)
-        for name, spec in AWS_GPU_INSTANCES.items()
-        if spec["memory_per_gpu"] >= min_memory_per_gpu
-    ]
-    if not valid:
-        raise ValueError(f"No instances with at least {min_memory_per_gpu}GB per GPU")
-    return min(valid, key=lambda x: x[1]["hourly_cost"])[0]
+def peak_flops_for_precision(instance_spec: dict, mixed_precision: str) -> float:
+    """Return effective peak FLOPs/s for the given instance and numeric precision.
 
+    Sources:
+    - A100 fp16/bf16: 312 TFLOPS (NVIDIA datasheet, without sparsity)
+    - A100 tf32: 156 TFLOPS (0.5× fp16)
+    - A100 fp32: 19.5 TFLOPS (NVIDIA datasheet)
+    - A100 int8: 624 TOPS (2× fp16 tensor cores)
+    - H100 fp16/bf16: 989 TFLOPS; fp8: ~1979 TFLOPS (2× fp16)
+    - V100 fp16: 125 TFLOPS; int8: limited support (~0.9× fp16)
+    """
+    fp16 = instance_spec["peak_flops_fp16"]
+    fp32 = instance_spec["peak_flops_fp32"]
+    gpu  = instance_spec["gpu"]
+    return {
+        "fp4":  fp16 * (2.0 if gpu in ("A100", "H100") else 1.0),
+        "int8": fp16 * (2.0 if gpu in ("A100", "H100") else 0.9),
+        "fp8":  fp16 * (2.0 if gpu == "H100" else 1.0),
+        "bf16": fp16,
+        "fp16": fp16,
+        "tf32": fp16 * 0.5,
+        "fp32": fp32,
+    }.get(mixed_precision, fp16)
 
-def get_most_efficient_instance() -> str:
-    """Return the instance with the highest effective FLOPs per dollar."""
-    return max(
-        AWS_GPU_INSTANCES.keys(),
-        key=lambda x: (
-            AWS_GPU_INSTANCES[x]["peak_flops_fp16"]
-            * AWS_GPU_INSTANCES[x]["gpu_count"]
-            * AWS_GPU_INSTANCES[x]["typical_mfu"]
-        ) / AWS_GPU_INSTANCES[x]["hourly_cost"],
-    )

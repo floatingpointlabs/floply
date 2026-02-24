@@ -153,6 +153,54 @@ def _chinchilla_banner(training_config: dict) -> None:
             )
 
 
+_UNIT_MULTIPLIERS = {
+    "K": 1_000,
+    "M": 1_000_000,
+    "B": 1_000_000_000,
+    "T": 1_000_000_000_000,
+}
+
+
+def _scaled_number_input(
+    label: str,
+    units: list[str],
+    default_value: float,
+    default_unit: str,
+    min_value: float = 0.001,
+    max_value: float = 9_999.0,
+    help: str = "",
+    key: str | None = None,
+) -> int | None:
+    """Render a float input + unit selectbox that returns a plain integer.
+
+    Example: value=7.0, unit="B"  →  7,000,000,000
+    """
+    val_col, unit_col = st.columns([3, 1])
+    with val_col:
+        value = st.number_input(
+            label,
+            min_value=min_value,
+            max_value=max_value,
+            value=default_value,
+            step=0.1,
+            format="%.3f",
+            help=help,
+            key=f"{key}_val" if key else None,
+        )
+    with unit_col:
+        unit = st.selectbox(
+            " ",
+            options=units,
+            index=units.index(default_unit),
+            key=f"{key}_unit" if key else None,
+        )
+    if value is None:
+        return None
+    result = int(value * _UNIT_MULTIPLIERS[unit])
+    st.caption(f"{result:,}")
+    return result
+
+
 def _fmt_tokens(n: int) -> str:
     """Format a large integer as a human-readable token/parameter count."""
     if n >= 1_000_000_000_000:
@@ -164,31 +212,6 @@ def _fmt_tokens(n: int) -> str:
     if n >= 1_000:
         return f"{n / 1_000:.1f}K"
     return str(n)
-
-
-def _peak_flops_for_precision(instance_spec: dict, mixed_precision: str) -> float:
-    """Return effective peak FLOPs/s for the given precision on the given instance.
-
-    Sources:
-    - A100 fp16/bf16: 312 TFLOPS (NVIDIA datasheet, without sparsity)
-    - A100 tf32: 156 TFLOPS (0.5× fp16)
-    - A100 fp32: 19.5 TFLOPS (NVIDIA datasheet)
-    - A100 int8: 624 TOPS (2× fp16 tensor cores)
-    - H100 fp16/bf16: 989 TFLOPS; fp8: ~1979 TFLOPS (2× fp16)
-    - V100 fp16: 125 TFLOPS; int8: limited support (~0.9× fp16)
-    """
-    fp16 = instance_spec["peak_flops_fp16"]
-    fp32 = instance_spec["peak_flops_fp32"]
-    gpu  = instance_spec["gpu"]
-    return {
-        "fp4":  fp16 * (2.0 if gpu in ("A100", "H100") else 1.0),
-        "int8": fp16 * (2.0 if gpu in ("A100", "H100") else 0.9),
-        "fp8":  fp16 * (2.0 if gpu == "H100" else 1.0),
-        "bf16": fp16,
-        "fp16": fp16,
-        "tf32": fp16 * 0.5,
-        "fp32": fp32,
-    }.get(mixed_precision, fp16)
 
 
 def _display(val: Any) -> str:

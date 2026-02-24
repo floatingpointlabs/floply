@@ -1,172 +1,10 @@
 """Core cost calculation engine for ML training estimation.
 
 This module implements the FLOPs-based cost estimation model for training
-machine learning models on AWS GPU instances.
+machine learning models on GPU instances.
 """
 
-from typing import Optional, Dict, Any
-from pydantic import BaseModel, Field, ConfigDict
-
-from src.cost_modelling.gpu_specs import get_gpu_instance, get_storage_cost
-
-
-
-class ModelConfig(BaseModel):
-    """Configuration for the ML model being trained."""
-
-    model_config = ConfigDict(frozen=False, arbitrary_types_allowed=True)
-
-    parameter_count: int = Field(
-        ...,
-        description="Total number of model parameters",
-        gt=0,
-    )
-    architecture: str = Field(
-        default="transformer",
-        description="Model architecture family (transformer, cnn, rnn, vit, diffusion)",
-    )
-    # Optional: populated when user selects a known model from src/models/*.yaml.
-    # When set, effective_parameter_count will use active params for MoE models.
-    model_definition: Optional[Any] = Field(
-        default=None,
-        description="Rich architecture metadata loaded from a YAML model definition",
-        exclude=True,  # not serialised — runtime only
-    )
-
-    @property
-    def effective_parameter_count(self) -> int:
-        """Active parameters used for FLOPs calculation.
-        
-        For standard models this equals parameter_count.
-        For MoE models (e.g. DeepSeek V3) this returns the active parameter
-        count per forward pass, as defined in the YAML model definition.
-        """
-        if self.model_definition is not None:
-            return self.model_definition.effective_parameter_count
-        return self.parameter_count
-
-    def to_human_readable(self) -> str:
-        if self.parameter_count >= 1e9:
-            return f"{self.parameter_count / 1e9:.1f}B"
-        elif self.parameter_count >= 1e6:
-            return f"{self.parameter_count / 1e6:.0f}M"
-        return f"{self.parameter_count:,}"
-
-
-class TrainingConfig(BaseModel):
-    """Configuration for the training run."""
-    
-    model_config = ConfigDict(frozen=False)
-    
-    training_tokens: int = Field(
-        ...,
-        description="Number of training tokens/samples",
-        gt=0
-    )
-    batch_size: int = Field(
-        default=1024,
-        description="Total batch size across all GPUs",
-        gt=0
-    )
-    gradient_accumulation_steps: int = Field(
-        default=1,
-        description="Number of gradient accumulation steps",
-        ge=1
-    )
-    epochs: float = Field(
-        default=1.0,
-        description="Number of passes through the training dataset. Total tokens seen = training_tokens × epochs.",
-        gt=0
-    )
-    gradient_checkpointing: bool = Field(
-        default=False,
-        description=(
-            "Whether gradient (activation) checkpointing is enabled. "
-            "Recomputes activations during the backward pass to save memory, "
-            "increasing FLOPs from ~6ND to ~8ND (~33% more compute). "
-            "Typically required for models that don't fit in GPU memory without it."
-        )
-    )
-    mixed_precision: str = Field(
-        default="fp16",
-        description="Mixed precision mode (fp16, bf16, fp32)"
-    )
-    instance_type: str = Field(
-        default="p4d.24xlarge",
-        description="AWS EC2 instance type"
-    )
-    num_instances: int = Field(
-        default=1,
-        description="Number of GPU instances",
-        ge=1
-    )
-    mfu_override: Optional[float] = Field(
-        default=None,
-        description="Override Model FLOPs Utilization (0.0-1.0)",
-        ge=0.0,
-        le=1.0
-    )
-    
-    @property
-    def total_gpus(self) -> int:
-        """Calculate total number of GPUs."""
-        instance = get_gpu_instance(self.instance_type)
-        return instance["gpu_count"] * self.num_instances
-    
-    @property
-    def effective_batch_size(self) -> int:
-        """Calculate effective batch size after gradient accumulation."""
-        return self.batch_size * self.gradient_accumulation_steps
-
-
-class CostBreakdown(BaseModel):
-    """Detailed cost breakdown for a training run."""
-    
-    model_config = ConfigDict(frozen=False)
-    
-    # Compute metrics
-    total_flops: float = Field(description="Total FLOPs required")
-    gpu_hours: float = Field(description="Total GPU-hours needed")
-    wall_clock_hours: float = Field(description="Wall-clock time in hours")
-    wall_clock_days: float = Field(description="Wall-clock time in days")
-    
-    # Cost components
-    compute_cost: float = Field(description="GPU compute cost in USD")
-    storage_cost: float = Field(default=0.0, description="Data storage cost in USD")
-    data_transfer_cost: float = Field(default=0.0, description="Data transfer cost in USD")
-    total_cost: float = Field(description="Total cost in USD")
-    
-    # Instance details
-    instance_type: str = Field(description="AWS instance type used")
-    num_instances: int = Field(description="Number of instances")
-    total_gpus: int = Field(description="Total number of GPUs")
-    gpu_type: str = Field(description="GPU model name")
-    
-    # Efficiency metrics
-    mfu: float = Field(description="Model FLOPs Utilization (0.0-1.0)")
-    cost_per_tflop: float = Field(description="Cost per TFLOP in USD")
-    cost_per_million_params: float = Field(description="Cost per million parameters")
-    cost_per_billion_tokens: float = Field(description="Cost per billion tokens")
-    
-    # Training details
-    model_params: int = Field(description="Number of model parameters")
-    training_tokens: int = Field(description="Number of training tokens")
-    
-    def to_summary_dict(self) -> Dict[str, Any]:
-        """Convert to a summary dictionary for display."""
-        return {
-            "Total Cost": f"${self.total_cost:,.2f}",
-            "Compute Cost": f"${self.compute_cost:,.2f}",
-            "Duration": f"{self.wall_clock_days:.1f} days ({self.wall_clock_hours:.1f} hours)",
-            "GPU Hours": f"{self.gpu_hours:,.0f}",
-            "Instance": f"{self.num_instances}x {self.instance_type}",
-            "Total GPUs": self.total_gpus,
-            "GPU Type": self.gpu_type,
-            "Model Size": f"{self.model_params / 1e9:.2f}B parameters" if self.model_params >= 1e9 else f"{self.model_params / 1e6:.0f}M parameters",
-            "Training Data": f"{self.training_tokens / 1e9:.1f}B tokens" if self.training_tokens >= 1e9 else f"{self.training_tokens / 1e6:.0f}M tokens",
-            "MFU": f"{self.mfu * 100:.1f}%",
-            "Total FLOPs": f"{self.total_flops:.2e}",
-        }
+from src.cost_modelling.gpu_specs import get_storage_cost
 
 
 def calculate_training_flops(
@@ -229,109 +67,231 @@ def calculate_training_flops(
     return total_flops
 
 
-def estimate_gpu_hours(
+def estimate_compute_cost(
     total_flops: float,
-    instance_type: str,
-    num_instances: int = 1,
-    mfu_override: Optional[float] = None
-) -> tuple[float, float]:
-    """Estimate GPU-hours and wall-clock hours for training.
-    
+    peak_flops_per_gpu: float,
+    mfu: float,
+    total_gpus: int,
+    num_instances: int,
+    hourly_cost: float,
+) -> tuple[float, float, float, float]:
+    """Estimate wall-clock time, GPU-hours, and compute cost for a training run.
+
     Args:
-        total_flops: Total FLOPs required
-        instance_type: AWS instance type
-        num_instances: Number of instances
-        mfu_override: Override for Model FLOPs Utilization
-        
+        total_flops: Total FLOPs required for the run
+        peak_flops_per_gpu: Effective peak FLOPs/s per GPU for the chosen precision
+        mfu: Model FLOPs Utilization (0.0–1.0)
+        total_gpus: Total number of GPUs across all instances
+        num_instances: Number of instances (for cost calculation)
+        hourly_cost: Per-instance hourly cost in USD
+
     Returns:
-        Tuple of (gpu_hours, wall_clock_hours)
+        Tuple of (wall_clock_hours, gpu_hours, compute_cost, wall_clock_days)
     """
-    instance = get_gpu_instance(instance_type)
-    
-    # Get MFU (Model FLOPs Utilization)
-    mfu = mfu_override if mfu_override is not None else instance["typical_mfu"]
-    
-    # Calculate effective throughput per GPU
-    peak_flops_per_gpu = instance["peak_flops_fp16"]
-    effective_flops_per_gpu = peak_flops_per_gpu * mfu
-    
-    # Calculate total effective throughput
-    total_gpus = instance["gpu_count"] * num_instances
-    total_effective_flops = effective_flops_per_gpu * total_gpus
-    
-    # Calculate time
-    wall_clock_hours = total_flops / total_effective_flops / 3600  # Convert seconds to hours
+    effective_cluster_flops = peak_flops_per_gpu * mfu * total_gpus
+    wall_clock_seconds = total_flops / effective_cluster_flops
+    wall_clock_hours = wall_clock_seconds / 3600
     gpu_hours = wall_clock_hours * total_gpus
-    
-    return gpu_hours, wall_clock_hours
+    compute_cost = wall_clock_hours * hourly_cost * num_instances
+    wall_clock_days = wall_clock_hours / 24
+    return wall_clock_hours, gpu_hours, compute_cost, wall_clock_days
 
 
-def calculate_single_run_cost(
-    model_config: ModelConfig,
-    training_config: TrainingConfig
-) -> CostBreakdown:
-    """Calculate the cost of a single training run.
-    
+# Memory bytes per parameter by training regime:
+# QLoRA: 4-bit quantized base (0.5 bytes) + fp16/fp32 adapter optimizer states
+# LoRA:  fp16 frozen base (2 bytes) + fp16/fp32 adapter optimizer states
+# Full / Pre-training: fp16 weights + fp32 Adam states (m+v) + fp32 master copy ≈ 16 bytes
+BYTES_PER_PARAM_QLORA_BASE = 0.5
+BYTES_PER_PARAM_LORA_BASE  = 2
+BYTES_PER_PARAM_TRAINABLE  = 16   # fp16 weights + fp32 Adam states + gradient buffer
+BYTES_PER_PARAM_FULL_FT    = 16   # same as TRAINABLE for full fine-tuning / pre-training
+
+# Activation memory per token per layer (bf16 transformer):
+# 4 tensors (QKV projections, attention scores, MLP intermediate, residual) × 2 bytes (bf16)
+ACTIVATION_BYTES_PER_TOKEN_PER_LAYER = 4 * 2
+
+
+def estimate_gpu_memory_gb(
+    effective_params: int,
+    trainable_params: int,
+    ft_method: str | None,
+    total_gpus: int,
+    rl_multiplier: int,
+    d_model: int,
+    num_layers: int,
+    seq_len: int,
+    batch_size: int,
+    gradient_checkpointing: bool,
+) -> tuple[float, float, float]:
+    """Estimate GPU memory requirements for a training run.
+
     Args:
-        model_config: Model configuration
-        training_config: Training configuration
-        
-    Returns:
-        Detailed cost breakdown
-    """
-    # Use effective_parameter_count so MoE models (e.g. DeepSeek V3) use
-    # active params per forward pass rather than total parameter count.
-    total_flops = calculate_training_flops(
-        parameter_count=model_config.effective_parameter_count,
-        training_tokens=training_config.training_tokens,
-        architecture=model_config.architecture,
-        epochs=training_config.epochs,
-        gradient_checkpointing=training_config.gradient_checkpointing,
-    )
-    
-    # Estimate GPU hours
-    gpu_hours, wall_clock_hours = estimate_gpu_hours(
-        total_flops=total_flops,
-        instance_type=training_config.instance_type,
-        num_instances=training_config.num_instances,
-        mfu_override=training_config.mfu_override
-    )
-    
-    # Get instance details
-    instance = get_gpu_instance(training_config.instance_type)
-    
-    # Calculate compute cost
-    compute_cost = wall_clock_hours * instance["hourly_cost"] * training_config.num_instances
-    
-    # Calculate derived metrics
-    total_gpus = training_config.total_gpus
-    mfu = training_config.mfu_override if training_config.mfu_override is not None else instance["typical_mfu"]
-    
-    cost_per_tflop = compute_cost / (total_flops / 1e12) if total_flops > 0 else 0
-    cost_per_million_params = compute_cost / (model_config.parameter_count / 1e6) if model_config.parameter_count > 0 else 0
-    cost_per_billion_tokens = compute_cost / (training_config.training_tokens / 1e9) if training_config.training_tokens > 0 else 0
-    
-    total_tokens_seen = int(training_config.training_tokens * training_config.epochs)
+        effective_params: Total (or active, for MoE) model parameter count
+        trainable_params: Parameters that receive gradient updates
+        ft_method: "QLoRA", "LoRA", "Full Fine-Tuning", or None (pre-training)
+        total_gpus: Total GPUs (memory is distributed across them)
+        rl_multiplier: Extra model copies for RL (2 for DPO, 4 for PPO)
+        d_model: Hidden dimension (0 to skip activation estimate)
+        num_layers: Number of transformer layers (0 to skip activation estimate)
+        seq_len: Sequence length in tokens (0 to skip activation estimate)
+        batch_size: Global batch size
+        gradient_checkpointing: Whether activation recomputation is enabled
 
-    return CostBreakdown(
-        total_flops=total_flops,
-        gpu_hours=gpu_hours,
-        wall_clock_hours=wall_clock_hours,
-        wall_clock_days=wall_clock_hours / 24,
-        compute_cost=compute_cost,
-        storage_cost=0.0,
-        data_transfer_cost=0.0,
-        total_cost=compute_cost,
-        instance_type=training_config.instance_type,
-        num_instances=training_config.num_instances,
-        total_gpus=total_gpus,
-        gpu_type=instance["gpu"],
-        mfu=mfu,
-        cost_per_tflop=cost_per_tflop,
-        cost_per_million_params=cost_per_million_params,
-        cost_per_billion_tokens=cost_per_billion_tokens,
-        model_params=model_config.parameter_count,
-        training_tokens=total_tokens_seen,
+    Returns:
+        Tuple of (weights_gb, activation_gb, memory_per_gpu_gb)
+    """
+    if ft_method == "QLoRA":
+        model_memory_bytes = (
+            effective_params * BYTES_PER_PARAM_QLORA_BASE
+            + trainable_params * BYTES_PER_PARAM_TRAINABLE
+        )
+    elif ft_method == "LoRA":
+        model_memory_bytes = (
+            effective_params * BYTES_PER_PARAM_LORA_BASE
+            + trainable_params * BYTES_PER_PARAM_TRAINABLE
+        )
+    else:
+        model_memory_bytes = effective_params * BYTES_PER_PARAM_FULL_FT
+
+    model_memory_bytes *= rl_multiplier
+    weights_gb = model_memory_bytes / total_gpus / 1e9
+
+    if d_model and num_layers and seq_len:
+        if gradient_checkpointing:
+            # With checkpointing, only one layer of activations is live at a time
+            activation_bytes = (
+                batch_size * seq_len * d_model * ACTIVATION_BYTES_PER_TOKEN_PER_LAYER
+            )
+        else:
+            activation_bytes = (
+                batch_size * seq_len * d_model * num_layers
+                * ACTIVATION_BYTES_PER_TOKEN_PER_LAYER
+            )
+    else:
+        activation_bytes = 0
+
+    activation_gb = activation_bytes / total_gpus / 1e9
+    memory_per_gpu_gb = weights_gb + activation_gb
+    return weights_gb, activation_gb, memory_per_gpu_gb
+
+
+def calculate_lora_trainable_params(
+    ft_method: str,
+    base_params: int,
+    target_modules: list[str],
+    d_model: int,
+    num_layers: int,
+    lora_rank: int,
+    architecture: dict,
+) -> int | None:
+    """Calculate the number of trainable parameters for a fine-tuning run.
+
+    For Full Fine-Tuning returns base_params.
+
+    For LoRA / QLoRA with a known architecture dict (non-empty), uses per-module
+    dimensions to account for GQA and non-square projection matrices.
+
+    For custom models (architecture={}), falls back to the uniform approximation:
+        2 × rank × d_model × num_modules × num_layers
+
+    Returns None when required inputs (target_modules, d_model, num_layers,
+    lora_rank) are missing or zero.
+    """
+    if ft_method == "Full Fine-Tuning":
+        return base_params
+
+    if not (target_modules and d_model and num_layers and lora_rank):
+        return None
+
+    if architecture:
+        _d        = architecture.get("d_model", d_model)
+        _nh       = architecture.get("num_heads", 0)
+        _nkv      = architecture.get("num_kv_heads", _nh)
+        _head_dim = _d // _nh if _nh else _d
+        _kv_dim   = _nkv * _head_dim
+        _ffn      = architecture.get("ffn_intermediate", _d * 4)
+        module_dims = {
+            "q_proj":    (_d, _d),
+            "k_proj":    (_d, _kv_dim),
+            "v_proj":    (_d, _kv_dim),
+            "o_proj":    (_d, _d),
+            "up_proj":   (_d, _ffn),
+            "down_proj": (_ffn, _d),
+        }
+        return sum(
+            lora_rank * (in_d + out_d)
+            for mod in target_modules
+            for in_d, out_d in [module_dims.get(mod, (_d, _d))]
+        ) * num_layers
+    else:
+        # Uniform d_model approximation for custom models
+        return len(target_modules) * 2 * lora_rank * d_model * num_layers
+
+
+# Bytes per parameter in a mixed-precision checkpoint:
+# fp16 weights = 2 bytes
+# fp32 Adam first moment (m) = 4 bytes
+# fp32 Adam second moment (v) = 4 bytes
+# fp32 master weight copy = 4 bytes
+# Total = 14 bytes/param
+BYTES_PER_PARAM_CHECKPOINT = 14
+
+
+def calculate_checkpoint_storage_tb(
+    checkpoint_params: int,
+    num_checkpoints: int,
+    num_training_runs: int,
+    num_hp_trials: int,
+    num_ablations: int,
+) -> float:
+    """Calculate total S3 storage required for model checkpoints in TB.
+
+    Full training runs save num_checkpoints each; HP trials and ablations
+    save one final checkpoint each.
+
+    Args:
+        checkpoint_params: Parameters saved per checkpoint (full model or LoRA adapters)
+        num_checkpoints: Checkpoints saved per full training run
+        num_training_runs: Number of full training runs
+        num_hp_trials: Number of hyperparameter tuning trials
+        num_ablations: Number of ablation studies
+
+    Returns:
+        Total checkpoint storage in terabytes
+    """
+    total_bytes = (
+        checkpoint_params * BYTES_PER_PARAM_CHECKPOINT * num_checkpoints * num_training_runs
+        + checkpoint_params * BYTES_PER_PARAM_CHECKPOINT * num_hp_trials
+        + checkpoint_params * BYTES_PER_PARAM_CHECKPOINT * num_ablations
+    )
+    return total_bytes / 1e12
+
+
+def calculate_project_compute_cost(
+    single_run_cost: float,
+    num_training_runs: int,
+    num_hp_trials: int,
+    hp_fraction: float,
+    num_ablations: int,
+    ablation_fraction: float,
+) -> float:
+    """Calculate total GPU compute cost across all training runs, HP trials, and ablations.
+
+    Args:
+        single_run_cost: Compute cost of one full training run in USD
+        num_training_runs: Number of full training runs
+        num_hp_trials: Number of hyperparameter tuning trials
+        hp_fraction: Fraction of a full run's cost per HP trial
+        num_ablations: Number of ablation studies
+        ablation_fraction: Fraction of a full run's cost per ablation
+
+    Returns:
+        Total compute cost in USD
+    """
+    return (
+        single_run_cost * num_training_runs
+        + single_run_cost * hp_fraction * num_hp_trials
+        + single_run_cost * ablation_fraction * num_ablations
     )
 
 
@@ -352,69 +312,3 @@ def calculate_storage_cost(
     """
     cost_per_tb_month = get_storage_cost(storage_class)
     return dataset_size_tb * cost_per_tb_month * storage_duration_months
-
-
-def calculate_project_cost(
-    single_run_cost: CostBreakdown,
-    num_training_runs: int = 1,
-    num_hyperparameter_trials: int = 0,
-    num_ablations: int = 0,
-    dataset_size_tb: float = 0.0,
-    storage_months: float = 3.0,
-    dev_instance_hours: float = 0.0,
-    dev_instance_type: str = "p4d.24xlarge"
-) -> Dict[str, Any]:
-    """Calculate total project cost including multiple runs and overhead.
-    
-    Args:
-        single_run_cost: Cost breakdown for a single training run
-        num_training_runs: Number of full training runs
-        num_hyperparameter_trials: Number of hyperparameter tuning trials
-        num_ablations: Number of ablation studies
-        dataset_size_tb: Dataset size in TB
-        storage_months: How long to store data
-        dev_instance_hours: Development/debugging instance hours
-        dev_instance_type: Instance type for dev work
-        
-    Returns:
-        Dictionary with project-level cost breakdown
-    """
-    # Base training costs
-    base_training_cost = single_run_cost.compute_cost * num_training_runs
-    
-    # Hyperparameter tuning (typically shorter runs, assume 30% of full training)
-    hyperparameter_cost = single_run_cost.compute_cost * 0.3 * num_hyperparameter_trials
-    
-    # Ablation studies (assume 50% of full training on average)
-    ablation_cost = single_run_cost.compute_cost * 0.5 * num_ablations
-    
-    # Storage costs
-    storage_cost = calculate_storage_cost(dataset_size_tb, storage_months)
-    
-    # Development/debugging costs
-    dev_instance = get_gpu_instance(dev_instance_type)
-    dev_cost = dev_instance_hours * dev_instance["hourly_cost"]
-    
-    # Total costs
-    total_compute_cost = base_training_cost + hyperparameter_cost + ablation_cost + dev_cost
-    total_cost = total_compute_cost + storage_cost
-    
-    return {
-        "total_cost": total_cost,
-        "compute_cost": total_compute_cost,
-        "base_training_cost": base_training_cost,
-        "hyperparameter_cost": hyperparameter_cost,
-        "ablation_cost": ablation_cost,
-        "dev_cost": dev_cost,
-        "storage_cost": storage_cost,
-        "num_training_runs": num_training_runs,
-        "num_hyperparameter_trials": num_hyperparameter_trials,
-        "num_ablations": num_ablations,
-        "dataset_size_tb": dataset_size_tb,
-        "storage_months": storage_months,
-        "total_gpu_hours": (
-            single_run_cost.gpu_hours * num_training_runs +
-            single_run_cost.gpu_hours * 0.3 * num_hyperparameter_trials +
-            single_run_cost.gpu_hours * 0.5 * num_ablations
-        ),
-    }

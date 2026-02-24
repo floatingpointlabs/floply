@@ -2,9 +2,8 @@
 from typing import Dict, Any
 import streamlit as st
 from src.app.config import INSTANCE_DISPLAY_NAMES
-from src.app.helpers import _peak_flops_for_precision
-from src.cost_modelling.calculator import calculate_training_flops
-from src.cost_modelling.gpu_specs import list_available_instances, get_gpu_instance
+from src.cost_modelling.calculator import calculate_training_flops, estimate_compute_cost, estimate_gpu_memory_gb
+from src.cost_modelling.gpu_specs import list_available_instances, get_gpu_instance, peak_flops_for_precision
 
 
 def render_compute_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
@@ -111,13 +110,14 @@ def render_compute_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
             epochs=epochs,
             gradient_checkpointing=gradient_checkpointing,
         )
-        peak_flops = _peak_flops_for_precision(instance_spec, mixed_precision)
-        effective_cluster_flops = peak_flops * mfu_override * total_gpus
-        wall_clock_seconds = total_flops / effective_cluster_flops
-        wall_clock_hours = wall_clock_seconds / 3600
-        gpu_hours = wall_clock_hours * total_gpus
-        compute_cost = wall_clock_hours * instance_spec["hourly_cost"] * num_instances
-        wall_clock_days = wall_clock_hours / 24
+        wall_clock_hours, gpu_hours, compute_cost, wall_clock_days = estimate_compute_cost(
+            total_flops=total_flops,
+            peak_flops_per_gpu=peak_flops_for_precision(instance_spec, mixed_precision),
+            mfu=mfu_override,
+            total_gpus=total_gpus,
+            num_instances=num_instances,
+            hourly_cost=instance_spec["hourly_cost"],
+        )
 
         training_config["Epochs"] = epochs
         training_config["Batch Size"] = batch_size
@@ -134,35 +134,19 @@ def render_compute_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
         training_config["Wall-clock Days"] = wall_clock_days
         training_config["Compute Cost (USD)"] = compute_cost
 
-        # GPU memory estimate — differentiates Full FT / LoRA / QLoRA
-        ft_method = training_config.get("Fine-Tuning Method")
-        trainable_params = training_config.get("Trainable Parameters", effective_params)
-        if ft_method == "QLoRA":
-            model_memory_bytes = effective_params * 0.5 + trainable_params * 16
-        elif ft_method == "LoRA":
-            model_memory_bytes = effective_params * 2 + trainable_params * 16
-        else:
-            model_memory_bytes = effective_params * 16
-        # Apply RL memory multiplier (e.g. PPO needs ~2× for reference + policy model)
-        rl_multiplier = training_config.get("Memory Multiplier", 1)
-        model_memory_bytes *= rl_multiplier
-        weights_gb = model_memory_bytes / total_gpus / 1e9
+        weights_gb, activation_gb, memory_per_gpu_gb = estimate_gpu_memory_gb(
+            effective_params=effective_params,
+            trainable_params=training_config.get("Trainable Parameters", effective_params),
+            ft_method=training_config.get("Fine-Tuning Method"),
+            total_gpus=total_gpus,
+            rl_multiplier=training_config.get("Memory Multiplier", 1),
+            d_model=training_config.get("d_model") or 0,
+            num_layers=training_config.get("num_layers") or 0,
+            seq_len=training_config.get("Tokens per sample") or 0,
+            batch_size=batch_size,
+            gradient_checkpointing=gradient_checkpointing,
+        )
 
-        # Activation memory (recomputation-aware)
-        act_d_model    = training_config.get("d_model") or 0
-        act_num_layers = training_config.get("num_layers") or 0
-        seq_len        = training_config.get("Tokens per sample") or 0
-        if act_d_model and act_num_layers and seq_len:
-            # Factor 4: QKV projections + attn scores + MLP intermediate (bf16 = 2 bytes each)
-            if gradient_checkpointing:
-                activation_bytes = batch_size * seq_len * act_d_model * 4 * 2
-            else:
-                activation_bytes = batch_size * seq_len * act_d_model * act_num_layers * 4 * 2
-        else:
-            activation_bytes = 0
-        activation_gb = activation_bytes / total_gpus / 1e9
-
-        memory_per_gpu_gb = weights_gb + activation_gb
         vram_per_gpu = instance_spec["memory_per_gpu"]
         headroom_gb = vram_per_gpu - memory_per_gpu_gb
 

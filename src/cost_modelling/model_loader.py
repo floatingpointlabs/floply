@@ -6,7 +6,7 @@ requires only dropping a new .yaml file into src/models/ — no Python changes n
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import yaml
 
@@ -67,9 +67,3 @@ def load_models() -> list[ModelDefinition]:
     return sorted(models, key=lambda m: m.parameter_count)
 
 
-def get_model(slug: str) -> Optional[ModelDefinition]:
-    """Get a model definition by slug. Returns None if not found."""
-    for model in load_models():
-        if model.slug == slug:
-            return model
-    return None

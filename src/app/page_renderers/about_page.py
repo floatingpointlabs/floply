@@ -27,15 +27,15 @@ and dataset have been defined.
         st.markdown("""
 ### Text
 ```
-tokens_per_sample = words × 1.3   # BPE subword average
-bytes_per_sample  = tokens × 4    # raw UTF-8 (~4 bytes / token)
+tokens_per_sample = words x 1.3   # BPE subword average
+bytes_per_sample  = tokens x 4    # raw UTF-8 (~4 bytes / token)
 ```
 The 1.3 factor is the empirical BPE inflation ratio for English text.
 
 ### Image (ViT-style patch tokenisation)
 ```
 tokens_per_sample = (resolution ÷ patch_size)²
-bytes_per_sample  = resolution² × 3 ÷ 10   # JPEG ~10:1 compression
+bytes_per_sample  = resolution² x 3 ÷ 10   # JPEG ~10:1 compression
 ```
 Typical values: 224px image with 16px patches → 196 tokens.
 
@@ -45,18 +45,18 @@ Three tokeniser styles are supported:
 | Style | Rate | Notes |
 |---|---|---|
 | Whisper | 50 tok/sec | mel-spectrogram frames |
-| EnCodec 24kHz | 75 tok/sec × codebooks | residual vector quantisation |
-| SoundStream | 50 tok/sec × codebooks | residual vector quantisation |
+| EnCodec 24kHz | 75 tok/sec x codebooks | residual vector quantisation |
+| SoundStream | 50 tok/sec x codebooks | residual vector quantisation |
 
-Raw storage is always estimated as `clip_duration × 32,000 bytes` (16 kHz mono 16-bit PCM).
+Raw storage is always estimated as `clip_duration x 32,000 bytes` (16 kHz mono 16-bit PCM).
 
 ### Video
 ```
-tokens_per_sample = tokens_per_frame × num_frames
+tokens_per_sample = tokens_per_frame x num_frames
 tokens_per_frame  = (resolution ÷ patch_size)²
-num_frames        = clip_duration × sampled_fps
-bytes_per_frame   = resolution² × 3 ÷ 10   # JPEG per extracted frame
-bytes_per_sample  = bytes_per_frame × num_frames
+num_frames        = clip_duration x sampled_fps
+bytes_per_frame   = resolution² x 3 ÷ 10   # JPEG per extracted frame
+bytes_per_sample  = bytes_per_frame x num_frames
 ```
 Storage is modelled as JPEG-encoded extracted frames, matching how most
 ML video datasets (Kinetics, Something-Something, etc.) are stored on disk.
@@ -70,14 +70,14 @@ The banner adapts its thresholds to the training method in use.
 ---
 
 ### Pre-Training
-Uses **Hoffmann et al. 2022** (Chinchilla): **D\* ≈ 20 × N**.
+Uses **Hoffmann et al. 2022** (Chinchilla): **D\* ≈ 20 x N**.
 
 | tok / param | Classification |
 |---|---|
 | < 1 | Dataset critically undersized — will likely diverge |
-| 1 – 9 | Undertrained — below Chinchilla-optimal |
-| 10 – 30 | **Chinchilla-optimal** — best compute efficiency |
-| 31 – 200 | Inference-optimal — LLaMA / Mistral over-train strategy |
+| 1 - 9 | Undertrained — below Chinchilla-optimal |
+| 10 - 30 | **Chinchilla-optimal** — best compute efficiency |
+| 31 - 200 | Inference-optimal — LLaMA / Mistral over-train strategy |
 | > 200 | Heavily over-trained — diminishing returns |
 
 ---
@@ -89,9 +89,9 @@ Chinchilla does *not* apply here — the relevant risk is catastrophic forgettin
 | tok / base_param | Classification |
 |---|---|
 | < 0.1 | Too small — unlikely to shift behaviour meaningfully |
-| 0.1 – 1 | Likely undertrained for stable adaptation |
-| 1 – 5 | **Good range** — standard SFT sweet spot |
-| 5 – 20 | Generous — watch for catastrophic forgetting |
+| 0.1 - 1 | Likely undertrained for stable adaptation |
+| 1 - 5 | **Good range** — standard SFT sweet spot |
+| 5 - 20 | Generous — watch for catastrophic forgetting |
 | > 20 | Risk of forgetting base capabilities; consider LoRA instead |
 
 ---
@@ -103,8 +103,8 @@ the **adapter size** (trainable params only), not the full model.
 | tok / adapter_param | Classification |
 |---|---|
 | < 10 | Possibly too little data — adapter may underfit |
-| 10 – 100 | **Good range** — standard for task adaptation |
-| 100 – 1000 | Large dataset; consider increasing LoRA rank for more capacity |
+| 10 - 100 | **Good range** — standard for task adaptation |
+| 100 - 1000 | Large dataset; consider increasing LoRA rank for more capacity |
 | > 1000 | Adapter is the bottleneck — consider full fine-tuning or much higher rank |
 
 The banner always shows tok/adapter_param *and* tok/base_param so you can see
@@ -112,22 +112,22 @@ both perspectives at once.
         """)
 
     # ── 4. Training FLOPs ──────────────────────────────────────────────────────
-    with st.expander("Training FLOPs — C = 6 × N × D"):
+    with st.expander("Training FLOPs — C = 6 x N x D"):
         st.markdown("""
 ### Base formula (Kaplan et al. 2020)
 ```
-C = 6 × N × D
+C = 6 x N x D
 ```
 - **C** — total floating-point operations
 - **N** — number of *trainable* parameters
-- **D** — total training tokens (dataset tokens × epochs)
+- **D** — total training tokens (dataset tokens x epochs)
 - **6** — accounts for forward pass (2N) + backward pass (4N)
 
 ### Gradient checkpointing
 When gradient checkpointing is enabled, recomputed activations add a ≈ 33%
 overhead to the forward pass:
 ```
-C_checkpointed ≈ 6 × N × D × 1.33
+C_checkpointed ≈ 6 x N x D x 1.33
 ```
 
 ### Fine-tuning with LoRA / QLoRA
@@ -145,7 +145,7 @@ computed per-module using the actual architecture dimensions, correctly handling
 ```python
 MODULE_DIMS = {
     "q_proj":    (d_model, d_model),
-    "k_proj":    (d_model, kv_dim),   # kv_dim = num_kv_heads × head_dim
+    "k_proj":    (d_model, kv_dim),   # kv_dim = num_kv_heads x head_dim
     "v_proj":    (d_model, kv_dim),
     "o_proj":    (d_model, d_model),
     "up_proj":   (d_model, ffn_intermediate),
@@ -153,13 +153,13 @@ MODULE_DIMS = {
 }
 
 trainable_params = (
-    Σ [lora_rank × (in_dim + out_dim) for each selected module]
-) × num_layers
+    Σ [lora_rank x (in_dim + out_dim) for each selected module]
+) x num_layers
 ```
 
 For **custom models**, the approximate uniform formula is used with a disclaimer:
 ```
-trainable_params ≈ num_modules × 2 × rank × d_model × num_layers
+trainable_params ≈ num_modules x 2 x rank x d_model x num_layers
 ```
 
 ### LoRA vs QLoRA — memory difference
@@ -168,9 +168,9 @@ frozen base model weights are stored:
 
 | Method | Base model dtype | Memory formula |
 |---|---|---|
-| Full Fine-Tuning | fp32/bf16 (16 bytes/param) | params × 16 |
-| LoRA | bf16 (2 bytes/param) | base × 2 + adapters × 16 |
-| QLoRA | int4 (0.5 bytes/param) | base × 0.5 + adapters × 16 |
+| Full Fine-Tuning | fp32/bf16 (16 bytes/param) | params x 16 |
+| LoRA | bf16 (2 bytes/param) | base x 2 + adapters x 16 |
+| QLoRA | int4 (0.5 bytes/param) | base x 0.5 + adapters x 16 |
         """)
 
     # ── 6. GPU Time & Cost ─────────────────────────────────────────────────────
@@ -179,11 +179,11 @@ frozen base model weights are stored:
 ### Effective cluster throughput
 ```
 peak_flops       = f(instance_type, mixed_precision)   # see table below
-cluster_flops/s  = peak_flops × MFU × total_GPUs
+cluster_flops/s  = peak_flops x MFU x total_GPUs
 wall_clock_s     = total_flops ÷ cluster_flops/s
 wall_clock_hours = wall_clock_s ÷ 3600
-gpu_hours        = wall_clock_hours × total_GPUs
-compute_cost     = wall_clock_hours × instance_hourly_rate × num_instances
+gpu_hours        = wall_clock_hours x total_GPUs
+compute_cost     = wall_clock_hours x instance_hourly_rate x num_instances
 ```
 
 ### Precision multipliers (vs FP16 baseline)
@@ -191,24 +191,24 @@ Each GPU family has different hardware acceleration for different number formats
 
 | Precision | A100 | H100 | V100 |
 |---|---|---|---|
-| fp4 | 2× fp16 | 2× fp16 | 1× fp16 |
-| int8 | 2× fp16 | 2× fp16 | 0.9× fp16 |
-| fp8 | 1× fp16 | **2× fp16** | 1× fp16 |
-| bf16 / fp16 | 1× (baseline) | 1× (baseline) | 1× (baseline) |
-| tf32 | 0.5× fp16 | 0.5× fp16 | — |
+| fp4 | 2x fp16 | 2x fp16 | 1x fp16 |
+| int8 | 2x fp16 | 2x fp16 | 0.9x fp16 |
+| fp8 | 1x fp16 | **2x fp16** | 1x fp16 |
+| bf16 / fp16 | 1x (baseline) | 1x (baseline) | 1x (baseline) |
+| tf32 | 0.5x fp16 | 0.5x fp16 | — |
 | fp32 | uses fp32 spec | uses fp32 spec | uses fp32 spec |
 
 H100 is the only GPU with hardware fp8 acceleration.
 
 ### Model FLOPs Utilization (MFU)
-MFU is user-adjustable (5–100%, default 30%). Real-world MFU depends on:
+MFU is user-adjustable (5-100%, default 30%). Real-world MFU depends on:
 - Model architecture and batch size (larger batches → higher MFU)
 - Communication overhead in multi-node training
 - Data loading / pipeline bubbles
 - Framework overhead (PyTorch vs JAX vs Triton kernels)
 
 A conservative 30% is recommended for initial estimates. Production LLM training
-on well-tuned infrastructure typically achieves 40–55%.
+on well-tuned infrastructure typically achieves 40-55%.
         """)
 
     # ── 7. GPU Memory Estimate ─────────────────────────────────────────────────
@@ -217,28 +217,28 @@ on well-tuned infrastructure typically achieves 40–55%.
 ### Weight memory
 ```
 # QLoRA:
-model_memory = base_params × 0.5 + adapter_params × 16   # int4 base
+model_memory = base_params x 0.5 + adapter_params x 16   # int4 base
 
 # LoRA:
-model_memory = base_params × 2   + adapter_params × 16   # bf16 base
+model_memory = base_params x 2   + adapter_params x 16   # bf16 base
 
 # Full fine-tuning / pre-training:
-model_memory = params × 16                                 # fp32 weights + grads + Adam states
+model_memory = params x 16                                 # fp32 weights + grads + Adam states
 ```
 
 ### RL memory multiplier
-- **DPO** — policy + frozen reference model → **2×** memory
-- **PPO** — actor + reference + reward model + critic → **4×** memory
+- **DPO** — policy + frozen reference model → **2x** memory
+- **PPO** — actor + reference + reward model + critic → **4x** memory
 
 The multiplier is applied to `model_memory` before dividing across GPUs.
 
 ### Activation memory
 ```
 # Without gradient checkpointing:
-activation_bytes = batch_size × seq_len × d_model × num_layers × 4 × 2
+activation_bytes = batch_size x seq_len x d_model x num_layers x 4 x 2
 
 # With gradient checkpointing (only 1 layer stored at a time):
-activation_bytes = batch_size × seq_len × d_model × 4 × 2
+activation_bytes = batch_size x seq_len x d_model x 4 x 2
 ```
 The factor of 4 accounts for QKV projections, attention scores, and MLP
 intermediate activations. The factor of 2 is for bf16 (2 bytes per element).
@@ -255,8 +255,8 @@ The memory metric shows a breakdown: `wts X GB + act Y GB`.
         st.markdown("""
 ### Dataset storage
 ```
-dataset_size_TB      = bytes_per_sample × num_samples ÷ 1e12
-dataset_storage_cost = S3_price_per_TB_month × dataset_size_TB × storage_months
+dataset_size_TB      = bytes_per_sample x num_samples ÷ 1e12
+dataset_storage_cost = S3_price_per_TB_month x dataset_size_TB x storage_months
 ```
 
 ### Checkpoint storage
@@ -265,9 +265,9 @@ Each checkpoint stores all trainable parameters in mixed precision (14 bytes/par
 
 ```
 checkpoint_size_TB = (
-    params × 14 × checkpoints_per_run × full_runs    # full training runs
-  + params × 14 × 1 × hp_trials                      # 1 final ckpt per HP trial
-  + params × 14 × 1 × ablations                      # 1 final ckpt per ablation
+    params x 14 x checkpoints_per_run x full_runs    # full training runs
+  + params x 14 x 1 x hp_trials                      # 1 final ckpt per HP trial
+  + params x 14 x 1 x ablations                      # 1 final ckpt per ablation
 ) ÷ 1e12
 ```
 
@@ -284,12 +284,12 @@ model cheaper tiers (Infrequent Access, Glacier) for archival use cases.
         st.markdown("""
 ### Compute cost rollup
 ```
-single_run_cost  = wall_clock_hours × hourly_rate × num_instances
+single_run_cost  = wall_clock_hours x hourly_rate x num_instances
 
 total_compute_cost = (
-    single_run_cost × num_full_runs
-  + single_run_cost × hp_run_fraction × num_hp_trials
-  + single_run_cost × ablation_fraction × num_ablations
+    single_run_cost x num_full_runs
+  + single_run_cost x hp_run_fraction x num_hp_trials
+  + single_run_cost x ablation_fraction x num_ablations
 )
 ```
 
@@ -323,7 +323,7 @@ Multi-node scaling is modelled as linear (no communication overhead penalty).
 |---|---|
 | FLOPs formula | `C = 6ND` applies cleanly to dense transformers. MoE models require a sparsity correction. |
 | Scaling | Linear across GPUs and nodes — no modelling of NCCL / EFA communication overhead. |
-| Pricing | On-demand only. Spot instances can be 60–90% cheaper; Reserved instances 30–40% cheaper. |
+| Pricing | On-demand only. Spot instances can be 60-90% cheaper; Reserved instances 30-40% cheaper. |
 | Cloud | AWS only. GCP (TPUs/A3), Azure (NDv4/NDv5), CoreWeave not modelled. |
 | Optimizer | Adam (16 bytes/param for weights + grads + 2 moment estimates). Lion / Adafactor would reduce memory. |
 | Startup overhead | Assumes steady-state training; ignores instance spin-up, dataset prefetch, and compilation time. |

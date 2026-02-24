@@ -1,6 +1,10 @@
 import streamlit as st
 from typing import Dict, Any
-from src.cost_modelling.calculator import calculate_storage_cost
+from src.cost_modelling.calculator import (
+    calculate_storage_cost,
+    calculate_checkpoint_storage_tb,
+    calculate_project_compute_cost,
+)
 
 def render_eval_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
     """Render the eval dimensions form.
@@ -87,17 +91,22 @@ def render_eval_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
                 "Parameter Count",
                 training_config.get("Base Model Params", 0),
             )
-        checkpoint_size_tb = (
-            checkpoint_params * 14 * num_checkpoints * num_training_runs  # full runs (multiple ckpts each)
-            + checkpoint_params * 14 * 1 * num_hp_trials                  # 1 final ckpt per HP trial
-            + checkpoint_params * 14 * 1 * num_ablations                  # 1 final ckpt per ablation
-        ) / 1e12
+        checkpoint_size_tb = calculate_checkpoint_storage_tb(
+            checkpoint_params=checkpoint_params,
+            num_checkpoints=num_checkpoints,
+            num_training_runs=num_training_runs,
+            num_hp_trials=num_hp_trials,
+            num_ablations=num_ablations,
+        )
 
         single_run_cost = training_config["Compute Cost (USD)"]
-        total_compute_cost = (
-            single_run_cost * num_training_runs
-            + single_run_cost * hp_fraction * num_hp_trials
-            + single_run_cost * ablation_fraction * num_ablations
+        total_compute_cost = calculate_project_compute_cost(
+            single_run_cost=single_run_cost,
+            num_training_runs=num_training_runs,
+            num_hp_trials=num_hp_trials,
+            hp_fraction=hp_fraction,
+            num_ablations=num_ablations,
+            ablation_fraction=ablation_fraction,
         )
         dataset_storage_cost = calculate_storage_cost(
             training_config.get("Dataset Size (TB)", 0),
