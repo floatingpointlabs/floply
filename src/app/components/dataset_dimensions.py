@@ -17,10 +17,6 @@ from src.cost_modelling.dataset import (
     WHISPER_TOKENS_PER_SECOND,
 )
 
-MIN_VALUE = 1
-MAX_VALUE = 1000000000000
-STEP = 10
-
 def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
     """Render the dataset dimensions form.
 

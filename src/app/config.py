@@ -4,13 +4,26 @@ import streamlit as st
 
 # Page configuration
 PAGE_TITLE = "Floply"
-PAGE_ICON = "💰"
 LAYOUT = "wide"
 
-# App theme colors
-PRIMARY_COLOR = "#FF4B4B"
-BACKGROUND_COLOR = "#FFFFFF"
-SECONDARY_BACKGROUND_COLOR = "#F0F2F6"
+# Chinchilla scaling-law optimal ratio (Hoffmann et al. 2022)
+# Compute-optimal pre-training requires ~20 tokens per parameter.
+CHINCHILLA_OPTIMAL_RATIO = 20
+
+# Chart colour palette (Plotly hex strings)
+CHART_COLORS = {
+    "compute":    "#4C78A8",
+    "storage":    "#72B7B2",
+    "checkpoint": "#F58518",
+    "warning":    "#E45756",
+    "success":    "#54A24B",
+}
+
+# Model architecture options (used across training config and solver pages)
+ARCHITECTURE_OPTIONS = ["Transformer", "CNN", "RNN", "ViT", "Diffusion"]
+
+# Mixed-precision training format options (ordered fastest/smallest → most precise)
+MIXED_PRECISION_OPTIONS = ["fp4", "int8", "fp8", "bf16", "fp16", "tf32", "fp32"]
 
 # Instance type display names
 INSTANCE_DISPLAY_NAMES = {
@@ -21,44 +34,134 @@ INSTANCE_DISPLAY_NAMES = {
     "p3dn.24xlarge": "p3dn.24xlarge (8x V100 32GB) - $31.22/hr",
 }
 
-# Common model sizes (parameters)
+# Common model sizes (parameters) — used for reference tables and quick-select UIs
 COMMON_MODEL_SIZES = {
-    "100M": 100_000_000,
-    "350M": 350_000_000,
-    "1B": 1_000_000_000,
-    "3B": 3_000_000_000,
-    "7B": 7_000_000_000,
-    "13B": 13_000_000_000,
-    "30B": 30_000_000_000,
-    "70B": 70_000_000_000,
+    "100M":  100_000_000,
+    "350M":  350_000_000,
+    "1B":    1_000_000_000,
+    "3B":    3_000_000_000,
+    "7B":    7_000_000_000,
+    "13B":   13_000_000_000,
+    "30B":   30_000_000_000,
+    "70B":   70_000_000_000,
+    "175B":  175_000_000_000,
+    "540B":  540_000_000_000,
 }
 
-# Common dataset sizes (tokens)
-COMMON_DATASET_SIZES = {
-    "1B tokens": 1_000_000_000,
-    "10B tokens": 10_000_000_000,
-    "50B tokens": 50_000_000_000,
-    "100B tokens": 100_000_000_000,
-    "200B tokens": 200_000_000_000,
-    "500B tokens": 500_000_000_000,
-    "1T tokens": 1_000_000_000_000,
-    "2T tokens": 2_000_000_000_000,
-}
+# Scaling-law tier definitions used by the Minimum Data Calculator.
+# Each tier describes a token-per-param (or tok/adapter_param) range:
+#   ratio_min / ratio_max  — the zone boundaries
+#   ratio_min_chart        — log-scale chart lower bound (must be > 0)
+#   color                  — Plotly bar colour (key into CHART_COLORS)
+#   label                  — human range string
+#   meaning                — one-line explanation
+PRE_TRAINING_TIERS = [
+    {
+        "tier": "Hard floor",
+        "ratio_min": 0, "ratio_max": 1, "ratio_min_chart": 0.1,
+        "color": CHART_COLORS["warning"],
+        "label": "< 1 tok/param",
+        "meaning": "Fewer tokens than parameters — training will likely diverge or severely underfit.",
+    },
+    {
+        "tier": "Practical minimum",
+        "ratio_min": 1, "ratio_max": 10, "ratio_min_chart": 1,
+        "color": CHART_COLORS["checkpoint"],
+        "label": "1–10 tok/param",
+        "meaning": "Usable but significantly undertrained — expect poor generalisation and high loss.",
+    },
+    {
+        "tier": "Compute-optimal",
+        "ratio_min": 10, "ratio_max": 30, "ratio_min_chart": 10,
+        "color": CHART_COLORS["success"],
+        "label": "10–30 tok/param",
+        "meaning": "Chinchilla-optimal zone (Hoffmann et al. 2022) — best loss per FLOP.",
+    },
+    {
+        "tier": "Inference-optimal",
+        "ratio_min": 30, "ratio_max": 200, "ratio_min_chart": 30,
+        "color": CHART_COLORS["storage"],
+        "label": "30–200 tok/param",
+        "meaning": "Training smaller models longer reduces inference cost — the LLaMA / Mistral strategy.",
+    },
+]
 
-# Help text
-HELP_TEXT = {
-    "parameter_count": "Number of trainable parameters in the model",
-    "training_tokens": (
-        "Number of tokens in the dataset (per epoch). Total tokens seen = this × Epochs. "
-        "For long-context models (>8K tokens), actual FLOPs may be 10–30% higher due to "
-        "attention scaling — adjust MFU downward to compensate."
-    ),
-    "batch_size": "Total batch size across all GPUs",
-    "mfu": "Model FLOPs Utilization - percentage of theoretical peak performance achieved",
-    "gradient_accumulation": "Number of forward/backward passes before updating weights",
-    "num_instances": "Number of GPU instances to use (scales training speed)",
-    "gradient_checkpointing": "Recomputes activations to save memory, increasing FLOPs by ~33%",
+FULL_FT_TIERS = [
+    {
+        "tier": "Too small",
+        "ratio_min": 0, "ratio_max": 0.5, "ratio_min_chart": 0.05,
+        "color": CHART_COLORS["warning"],
+        "label": "< 0.5 tok/param",
+        "meaning": "Likely insufficient for meaningful task adaptation — model may not converge on the target task.",
+    },
+    {
+        "tier": "Minimum viable",
+        "ratio_min": 0.5, "ratio_max": 1, "ratio_min_chart": 0.5,
+        "color": CHART_COLORS["checkpoint"],
+        "label": "0.5–1 tok/param",
+        "meaning": "Lower bound for stable full-parameter fine-tuning — expect some instability.",
+    },
+    {
+        "tier": "Sweet spot",
+        "ratio_min": 1, "ratio_max": 5, "ratio_min_chart": 1,
+        "color": CHART_COLORS["success"],
+        "label": "1–5 tok/param",
+        "meaning": "Standard supervised fine-tuning range for large models — stable and effective.",
+    },
+    {
+        "tier": "Forgetting risk",
+        "ratio_min": 5, "ratio_max": 20, "ratio_min_chart": 5,
+        "color": CHART_COLORS["storage"],
+        "label": "5–20 tok/param",
+        "meaning": "Generous dataset — effective, but monitor for catastrophic forgetting of base model capabilities.",
+    },
+]
+
+LORA_TIERS = [
+    {
+        "tier": "Too small",
+        "ratio_min": 0, "ratio_max": 10, "ratio_min_chart": 1,
+        "color": CHART_COLORS["warning"],
+        "label": "< 10 tok/adapter_param",
+        "meaning": "Adapter likely won't converge reliably — insufficient signal for low-rank matrices.",
+    },
+    {
+        "tier": "Minimum viable",
+        "ratio_min": 10, "ratio_max": 50, "ratio_min_chart": 10,
+        "color": CHART_COLORS["checkpoint"],
+        "label": "10–50 tok/adapter_param",
+        "meaning": "Lower bound of the convergence zone — reliable but not yet in the ideal range.",
+    },
+    {
+        "tier": "Sweet spot",
+        "ratio_min": 50, "ratio_max": 100, "ratio_min_chart": 50,
+        "color": CHART_COLORS["success"],
+        "label": "50–100 tok/adapter_param",
+        "meaning": "Practical sweet spot for task adaptation — strong convergence with low forgetting risk.",
+    },
+    {
+        "tier": "Consider full FT",
+        "ratio_min": 100, "ratio_max": 1000, "ratio_min_chart": 100,
+        "color": CHART_COLORS["storage"],
+        "label": "100–1000 tok/adapter_param",
+        "meaning": "Large dataset relative to adapter size — consider increasing LoRA rank or switching to full fine-tuning.",
+    },
+]
+
+
+_TAB_CSS = """
+<style>
+.stTabs [data-baseweb="tab-list"] {
+    justify-content: center;
+    gap: 16px;
 }
+.stTabs [data-baseweb="tab"] {
+    white-space: normal;
+    text-align: center;
+}
+</style>
+"""
+
 
 
 def configure_page():

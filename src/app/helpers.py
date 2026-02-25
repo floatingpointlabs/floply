@@ -1,6 +1,7 @@
 import streamlit as st
 from typing import Any
 from src.cost_modelling.model_loader import load_models
+from src.app.config import CHINCHILLA_OPTIMAL_RATIO
 
 
 @st.cache_data
@@ -33,19 +34,19 @@ def _chinchilla_banner(training_config: dict) -> None:
         if num_params <= 0:
             return
         ratio = total_tokens / num_params
-        optimal_tokens = num_params * 20
+        optimal_tokens = num_params * CHINCHILLA_OPTIMAL_RATIO
 
         if ratio < 1:
             st.error(
                 f"**Dataset critically undersized.** "
                 f"{ratio:.2f} tok/param — fewer tokens than parameters. "
                 f"Chinchilla-optimal requires **{_fmt_tokens(optimal_tokens)} tokens** "
-                f"(20x N). Training will likely diverge or severely underfit."
+                f"({CHINCHILLA_OPTIMAL_RATIO}x N). Training will likely diverge or severely underfit."
             )
         elif ratio < 10:
             st.warning(
                 f"**Undertrained (below Chinchilla-optimal).** "
-                f"{ratio:.1f} tok/param. Need ≥ 20 tok/param for compute efficiency — "
+                f"{ratio:.1f} tok/param. Need ≥ {CHINCHILLA_OPTIMAL_RATIO} tok/param for compute efficiency — "
                 f"at least **{_fmt_tokens(optimal_tokens)} tokens**. "
                 f"Consider more data or a smaller model."
             )
@@ -212,6 +213,97 @@ def _fmt_tokens(n: int) -> str:
     if n >= 1_000:
         return f"{n / 1_000:.1f}K"
     return str(n)
+
+
+# Approximate bytes per token for dataset size estimates (UTF-8 text, ~4 bytes/token)
+_BYTES_PER_TOKEN = 4
+
+
+def _fmt_bytes(n_tokens: int) -> str:
+    """Format a token count as an estimated raw dataset size (bytes)."""
+    n_bytes = n_tokens * _BYTES_PER_TOKEN
+    if n_bytes >= 1e12:
+        return f"{n_bytes / 1e12:.2f} TB"
+    if n_bytes >= 1e9:
+        return f"{n_bytes / 1e9:.2f} GB"
+    if n_bytes >= 1e6:
+        return f"{n_bytes / 1e6:.2f} MB"
+    return f"{n_bytes / 1e3:.1f} KB"
+
+
+def _fmt_samples(n: int) -> str:
+    """Format a sample count as a human-readable string."""
+    if n >= 1_000_000_000:
+        return f"{n / 1_000_000_000:.2f}B"
+    if n >= 1_000_000:
+        return f"{n / 1_000_000:.2f}M"
+    if n >= 1_000:
+        return f"{n / 1_000:.1f}K"
+    return str(n)
+
+
+def _format_wall_clock_time(wall_clock_days: float) -> str:
+    """Format a wall-clock duration (in days) into a human-readable string."""
+    wall_clock_hours = wall_clock_days * 24
+    if wall_clock_days >= 1:
+        return f"{wall_clock_days:.2f} days"
+    elif wall_clock_days >= 1 / 24:
+        return f"{wall_clock_hours:.2f} hrs"
+    else:
+        return f"{wall_clock_hours * 60:.1f} min"
+
+
+def _format_gpu_hours(gpu_hours: float) -> str:
+    """Format a GPU-hours count into a human-readable string."""
+    if gpu_hours >= 1_000_000:
+        return f"{gpu_hours / 1_000_000:.2f}M"
+    elif gpu_hours >= 1_000:
+        return f"{gpu_hours / 1_000:.1f}K"
+    else:
+        return f"{gpu_hours:.1f}"
+
+
+def _render_chinchilla_assessment(ratio: float, optimal_tokens: int, fix_hint: str = "") -> None:
+    """Render a pre-training Chinchilla scaling-law assessment banner.
+
+    Applies the Hoffmann et al. 2022 (Chinchilla) thresholds for compute-optimal
+    pre-training. Used by solver pages that already know the N/D ratio.
+
+    Args:
+        ratio: Tokens-per-parameter ratio (total_tokens_seen / N).
+        optimal_tokens: Chinchilla-optimal token count (N × CHINCHILLA_OPTIMAL_RATIO).
+        fix_hint: Context-specific suggestion appended to warning/error messages
+                  (e.g. "Use a smaller model or increase your dataset.").
+    """
+    _suffix = f" {fix_hint}" if fix_hint else ""
+    if ratio < 1:
+        st.error(
+            f"**Extremely data-sparse.** {ratio:.2f} tok/param — fewer tokens than parameters."
+            + _suffix
+        )
+    elif ratio < 10:
+        st.warning(
+            f"**Undertrained vs. Chinchilla-optimal.** {ratio:.1f} tok/param. "
+            f"For compute-efficient training aim for ≥ {CHINCHILLA_OPTIMAL_RATIO} tok/param "
+            f"(**{_fmt_tokens(optimal_tokens)} tokens**)."
+            + _suffix
+        )
+    elif ratio <= 30:
+        st.success(
+            f"**Chinchilla-optimal.** {ratio:.1f} tok/param — within the 10–30× compute-optimal zone "
+            f"(Hoffmann et al. 2022). This is a well-balanced configuration."
+        )
+    elif ratio <= 200:
+        st.info(
+            f"**Inference-optimal (over-trained vs. Chinchilla).** {ratio:.1f} tok/param. "
+            f"Training smaller models longer reduces inference cost — the LLaMA / Mistral strategy."
+        )
+    else:
+        st.warning(
+            f"**Heavily over-trained relative to model size.** {ratio:.0f} tok/param (> 200×). "
+            f"Diminishing returns; consider scaling the model up."
+            + _suffix
+        )
 
 
 def _display(val: Any) -> str:

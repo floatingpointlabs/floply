@@ -7,6 +7,8 @@ library independent of the Streamlit UI.
 from src.cost_modelling.calculator import (
     calculate_training_flops,
     estimate_compute_cost,
+    solve_for_parameter_count,
+    solve_for_training_tokens,
     estimate_gpu_memory_gb,
     calculate_lora_trainable_params,
     calculate_checkpoint_storage_tb,
@@ -50,6 +52,8 @@ __all__ = [
     # calculator
     "calculate_training_flops",
     "estimate_compute_cost",
+    "solve_for_parameter_count",
+    "solve_for_training_tokens",
     "estimate_gpu_memory_gb",
     "calculate_lora_trainable_params",
     "calculate_checkpoint_storage_tb",

@@ -7,6 +7,21 @@ machine learning models on GPU instances.
 from src.cost_modelling.gpu_specs import get_storage_cost
 
 
+def _get_flops_multiplier(architecture: str, gradient_checkpointing: bool) -> float:
+    """Return the FLOPs multiplier for a given architecture and checkpointing setting."""
+    base_multipliers = {
+        "transformer": 6.0,
+        "cnn": 4.0,
+        "rnn": 8.0,
+        "vit": 6.0,
+        "diffusion": 6.5,
+    }
+    multiplier = base_multipliers.get(architecture.lower(), 6.0)
+    if gradient_checkpointing:
+        multiplier += 2.0
+    return multiplier
+
+
 def calculate_training_flops(
     parameter_count: int,
     training_tokens: int,
@@ -16,17 +31,17 @@ def calculate_training_flops(
 ) -> float:
     """Calculate total FLOPs required for training.
     
-    Uses the standard formula: C = 6 × N × D  (Kaplan et al. 2020,
+    Uses the standard formula: C = 6 x N x D  (Kaplan et al. 2020,
     "Scaling Laws for Neural Language Models", https://arxiv.org/abs/2001.08361)
 
     where:
     - N = number of parameters
-    - D = total tokens seen = training_tokens × epochs
+    - D = total tokens seen = training_tokens x epochs
     - 6 = forward pass (2N) + backward pass (4N) per token
 
     With gradient checkpointing enabled, the forward pass is recomputed during
     the backward pass, increasing the multiplier from 6 to ~8:
-    - C = 8 × N × D  (see Bahdanau, "The FLOPs Calculus of Language Model Training")
+    - C = 8 x N x D  (see Bahdanau, "The FLOPs Calculus of Language Model Training")
 
     Note on embedding parameters: strictly, N should count only non-embedding
     parameters (Kaplan et al.), as embedding lookups are memory reads with
@@ -43,24 +58,7 @@ def calculate_training_flops(
     Returns:
         Total FLOPs required
     """
-    # Architecture-specific base multipliers (forward + backward, no checkpointing)
-    # Transformer (6×) is sourced from Kaplan et al. 2020 / Chinchilla 2022.
-    # CNN and RNN multipliers are rough approximations; results may vary by architecture.
-    base_multipliers = {
-        "transformer": 6.0,
-        "cnn": 4.0,
-        "rnn": 8.0,
-        "vit": 6.0,       # Vision Transformer — same derivation as decoder transformer
-        "diffusion": 6.5,  # Slightly higher due to noise-prediction overhead
-    }
-
-    multiplier = base_multipliers.get(architecture.lower(), 6.0)
-
-    # Gradient checkpointing recomputes activations in the backward pass,
-    # adding an extra ~forward pass worth of FLOPs: 2N → multiplier increases by 2
-    if gradient_checkpointing:
-        multiplier += 2.0
-
+    multiplier = _get_flops_multiplier(architecture, gradient_checkpointing)
     total_tokens = training_tokens * epochs
     total_flops = multiplier * parameter_count * total_tokens
     
@@ -80,7 +78,7 @@ def estimate_compute_cost(
     Args:
         total_flops: Total FLOPs required for the run
         peak_flops_per_gpu: Effective peak FLOPs/s per GPU for the chosen precision
-        mfu: Model FLOPs Utilization (0.0–1.0)
+        mfu: Model FLOPs Utilization (0.0-1.0)
         total_gpus: Total number of GPUs across all instances
         num_instances: Number of instances (for cost calculation)
         hourly_cost: Per-instance hourly cost in USD
@@ -97,6 +95,100 @@ def estimate_compute_cost(
     return wall_clock_hours, gpu_hours, compute_cost, wall_clock_days
 
 
+def solve_for_parameter_count(
+    compute_budget_usd: float,
+    training_tokens: int,
+    peak_flops_per_gpu: float,
+    mfu: float,
+    total_gpus: int,
+    num_instances: int,
+    hourly_cost: float,
+    architecture: str = "transformer",
+    epochs: float = 1.0,
+    gradient_checkpointing: bool = False,
+) -> int:
+    """Solve for the maximum model parameter count affordable within a compute budget.
+
+    Inverts the training cost formula:
+        cost = (multiplier × N × D) / (peak_flops × MFU × GPUs × 3600) × hourly_rate × instances
+
+    to solve for N:
+        N = cost × peak_flops × MFU × GPUs × 3600 / (multiplier × D × hourly_rate × instances)
+
+    Args:
+        compute_budget_usd: Maximum compute budget in USD
+        training_tokens: Number of tokens in the dataset (per epoch)
+        peak_flops_per_gpu: Effective peak FLOPs/s per GPU for the chosen precision
+        mfu: Model FLOPs Utilization (0.0–1.0)
+        total_gpus: Total number of GPUs across all instances
+        num_instances: Number of instances
+        hourly_cost: Per-instance hourly cost in USD
+        architecture: Model architecture type
+        epochs: Number of passes through the dataset
+        gradient_checkpointing: Whether activation checkpointing is enabled
+
+    Returns:
+        Maximum parameter count affordable with the given budget
+    """
+    multiplier = _get_flops_multiplier(architecture, gradient_checkpointing)
+    total_tokens = training_tokens * epochs
+    effective_cluster_flops = peak_flops_per_gpu * mfu * total_gpus
+
+    if total_tokens <= 0 or hourly_cost <= 0 or num_instances <= 0:
+        return 0
+
+    parameter_count = (
+        compute_budget_usd * effective_cluster_flops * 3600
+        / (multiplier * total_tokens * hourly_cost * num_instances)
+    )
+    return max(0, int(parameter_count))
+
+
+def solve_for_training_tokens(
+    compute_budget_usd: float,
+    parameter_count: int,
+    peak_flops_per_gpu: float,
+    mfu: float,
+    total_gpus: int,
+    num_instances: int,
+    hourly_cost: float,
+    architecture: str = "transformer",
+    epochs: float = 1.0,
+    gradient_checkpointing: bool = False,
+) -> int:
+    """Solve for the maximum training token count affordable within a compute budget.
+
+    Inverts the training cost formula to solve for D (total tokens seen), then
+    returns per-epoch tokens = D / epochs.
+
+    Args:
+        compute_budget_usd: Maximum compute budget in USD
+        parameter_count: Number of model parameters
+        peak_flops_per_gpu: Effective peak FLOPs/s per GPU for the chosen precision
+        mfu: Model FLOPs Utilization (0.0–1.0)
+        total_gpus: Total number of GPUs across all instances
+        num_instances: Number of instances
+        hourly_cost: Per-instance hourly cost in USD
+        architecture: Model architecture type
+        epochs: Number of passes through the dataset
+        gradient_checkpointing: Whether activation checkpointing is enabled
+
+    Returns:
+        Maximum per-epoch training tokens affordable with the given budget
+    """
+    multiplier = _get_flops_multiplier(architecture, gradient_checkpointing)
+    effective_cluster_flops = peak_flops_per_gpu * mfu * total_gpus
+
+    if parameter_count <= 0 or hourly_cost <= 0 or num_instances <= 0:
+        return 0
+
+    total_tokens = (
+        compute_budget_usd * effective_cluster_flops * 3600
+        / (multiplier * parameter_count * hourly_cost * num_instances)
+    )
+    return max(0, int(total_tokens / max(epochs, 1.0)))
+
+
 # Memory bytes per parameter by training regime:
 # QLoRA: 4-bit quantized base (0.5 bytes) + fp16/fp32 adapter optimizer states
 # LoRA:  fp16 frozen base (2 bytes) + fp16/fp32 adapter optimizer states
@@ -107,7 +199,7 @@ BYTES_PER_PARAM_TRAINABLE  = 16   # fp16 weights + fp32 Adam states + gradient b
 BYTES_PER_PARAM_FULL_FT    = 16   # same as TRAINABLE for full fine-tuning / pre-training
 
 # Activation memory per token per layer (bf16 transformer):
-# 4 tensors (QKV projections, attention scores, MLP intermediate, residual) × 2 bytes (bf16)
+# 4 tensors (QKV projections, attention scores, MLP intermediate, residual) x 2 bytes (bf16)
 ACTIVATION_BYTES_PER_TOKEN_PER_LAYER = 4 * 2
 
 
@@ -192,7 +284,7 @@ def calculate_lora_trainable_params(
     dimensions to account for GQA and non-square projection matrices.
 
     For custom models (architecture={}), falls back to the uniform approximation:
-        2 × rank × d_model × num_modules × num_layers
+        2 x rank x d_model x num_modules x num_layers
 
     Returns None when required inputs (target_modules, d_model, num_layers,
     lora_rank) are missing or zero.

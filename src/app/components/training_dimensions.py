@@ -1,5 +1,6 @@
 import streamlit as st
 from typing import Dict, Any, Tuple
+from src.app.config import ARCHITECTURE_OPTIONS
 from src.app.helpers import _cached_models, _fmt_tokens, _scaled_number_input
 from src.cost_modelling.calculator import calculate_lora_trainable_params
 
@@ -49,7 +50,7 @@ def render_pre_training_dimensions(training_config: Dict[str, Any]) -> Dict[str,
     with st.expander("Pre-Training Configuration", expanded=True):
         pre_col1, pre_col2 = st.columns(2)
         with pre_col1:
-            model_type = st.selectbox("Model Type", options=["Transformer", "CNN", "RNN", "ViT", "Diffusion"], index=0)
+            model_type = st.selectbox("Model Type", options=ARCHITECTURE_OPTIONS, index=0)
         with pre_col2:
             parameter_count = _scaled_number_input(
                 "Parameter Count",
