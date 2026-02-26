@@ -1,5 +1,6 @@
 import os
 import streamlit as st
+from streamlit.components.v1 import html
 
 from src.app.config import configure_page, PAGE_TITLE, _TAB_CSS
 from src.app.page_renderers.about_page import render_about_page
@@ -14,8 +15,10 @@ def configure_analytics():
     website_id = os.environ.get("UMAMI_WEBSITE_ID")
 
     if umami_url and website_id:
-        st.html(
-            f'<script async defer src="{umami_url}" data-website-id="{website_id}"></script>'
+        html(
+            f'<script async defer src="{umami_url}" data-website-id="{website_id}"></script>',
+            height=0,
+            width=0,
         )
 
 
