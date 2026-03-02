@@ -23,7 +23,7 @@ def render_estimate_summary_numbers(training_config: Dict[str, Any]) -> None:
     st.subheader("Summary")
 
     # Row 1 — time
-    t1, t2, t3 = st.columns(3)
+    t1, t2, t3, t4 = st.columns(4)
     with t1:
         st.metric(
             label="Wall-clock Time (1 run)",
