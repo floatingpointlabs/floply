@@ -31,8 +31,7 @@ from src.cost_modelling.dataset import (
 
 def render_min_dataset_size_page() -> None:
     st.markdown(
-        "<p style='text-align:center;color:#888;'>Based on Chinchilla scaling laws — "
-        "what is the minimum data needed to effectively train a model of this size?</p>",
+        "<p style='text-align:center;color:#888;'>How much data do I need?</p>",
         unsafe_allow_html=True,
     )
 

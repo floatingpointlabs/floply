@@ -4,8 +4,8 @@ from streamlit.components.v1 import html
 
 from src.app.config import configure_page, PAGE_TITLE, _TAB_CSS
 from src.app.page_renderers.about_page import render_about_page
-from src.app.page_renderers.cost_estimator_page import render_estimate_page
-from src.app.page_renderers.model_size_page import render_model_size_page
+from src.app.page_renderers.cost_estimator_page import render_create_a_training_budget_page
+from src.app.page_renderers.model_size_page import render_budget_optimizer_page
 from src.app.page_renderers.min_dataset_size_page import render_min_dataset_size_page
 
 
@@ -33,19 +33,19 @@ def main():
 
     tab1, tab2, tab3, tab4 = st.tabs(
         [
-            "Create A Training Budget",
-            "Minimum Data Calculator",
             "Budget Optimizer",
+            "Minimum Data Calculator",
+            "Create A Training Budget",
             "About",
         ]
     )
 
     with tab1:
-        render_estimate_page()
+        render_budget_optimizer_page()
     with tab2:
         render_min_dataset_size_page()
     with tab3:
-        render_model_size_page()
+        render_create_a_training_budget_page()
     with tab4:
         render_about_page()
 

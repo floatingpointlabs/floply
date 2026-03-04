@@ -291,7 +291,7 @@ def _render_chinchilla_assessment(ratio: float, optimal_tokens: int, fix_hint: s
     elif ratio <= 30:
         st.success(
             f"**Chinchilla-optimal.** {ratio:.1f} tok/param — within the 10–30× compute-optimal zone "
-            f"(Hoffmann et al. 2022). This is a well-balanced configuration."
+            f"This is a well-balanced configuration."
         )
     elif ratio <= 200:
         st.info(

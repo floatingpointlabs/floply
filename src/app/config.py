@@ -10,6 +10,10 @@ LAYOUT = "wide"
 # Compute-optimal pre-training requires ~20 tokens per parameter.
 CHINCHILLA_OPTIMAL_RATIO = 20
 
+# LoRA efficiency optimal token-to-adapter-param ratio.
+# Empirical sweet spot: ~50 tokens per trainable adapter parameter.
+LORA_OPTIMAL_RATIO = 50
+
 # Chart colour palette (Plotly hex strings)
 CHART_COLORS = {
     "compute":    "#4C78A8",
