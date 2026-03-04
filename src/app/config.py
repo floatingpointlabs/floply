@@ -172,6 +172,7 @@ def configure_page():
     """Configure Streamlit page settings."""
     st.set_page_config(
         page_title=PAGE_TITLE,
+        page_icon="🧮",
         layout=LAYOUT,
         initial_sidebar_state="expanded",
         menu_items={
