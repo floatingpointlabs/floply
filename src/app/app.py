@@ -9,6 +9,11 @@ from src.app.page_renderers.cost_estimator_page import (
 )
 from src.app.page_renderers.model_size_page import render_budget_optimizer_page
 from src.app.page_renderers.min_dataset_size_page import render_min_dataset_size_page
+from src.app.query_params import (
+    load_from_query_params,
+    sync_to_query_params,
+    clear_state,
+)
 
 
 @st.cache_resource
@@ -25,6 +30,8 @@ def configure_analytics():
 
 
 def main():
+    load_from_query_params()
+
     configure_page()
     configure_analytics()
 
@@ -32,14 +39,37 @@ def main():
     st.markdown(
         f"<h1 style='text-align: center;'>{PAGE_TITLE}</h1>", unsafe_allow_html=True
     )
+    if st.button("Clear", help="Reset all settings and clear the shared URL"):
+        clear_state()
+        # This is genuinely stupid. Streamlit's html() runs in a sandboxed iframe
+        # that blocks programmatic top-level navigation, so window.parent.location
+        # .replace() doesn't work directly. Instead we have to escape the sandbox
+        # by injecting a <script> tag into the parent document's <head> via
+        # same-origin DOM access, so it runs outside the sandbox. All of this just
+        # to reload the page without query params.
+        html(
+            "<script>"
+            "var s=window.parent.document.createElement('script');"
+            "s.textContent='window.location.replace(window.location.pathname)';"
+            "window.parent.document.head.appendChild(s);"
+            "</script>",
+            height=0,
+        )
 
-    tab1, tab2, tab3, tab4 = st.tabs(
-        [
-            "Budget Optimizer",
-            "Minimum Data Calculator",
-            "Create A Training Budget",
-            "About",
-        ]
+    _TAB_LABELS = [
+        "Budget Optimizer",
+        "Minimum Data Calculator",
+        "Create A Training Budget",
+        "About",
+    ]
+    _stored_tab = st.session_state.get("active_tab")
+    _default_tab = _stored_tab if _stored_tab in _TAB_LABELS else None
+
+    tab1, tab2, tab3, tab4 = st.tabs(  # type: ignore[call-overload]
+        _TAB_LABELS,
+        key="active_tab",  # type: ignore[call-overload]
+        on_change="rerun",  # type: ignore[call-overload]
+        default=_default_tab,
     )
 
     with tab1:
@@ -50,6 +80,8 @@ def main():
         render_create_a_training_budget_page()
     with tab4:
         render_about_page()
+
+    sync_to_query_params()
 
 
 if __name__ == "__main__":

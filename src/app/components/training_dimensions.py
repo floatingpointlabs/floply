@@ -6,36 +6,46 @@ from src.cost_modelling.calculator import calculate_lora_trainable_params
 
 
 def render_training_dimensions(
-    training_config: Dict[str, Any],
+    training_config: Dict[str, Any], key_prefix: str = ""
 ) -> Tuple[Dict[str, Any], bool]:
     """Render the compute dimensions form.
     Args:
         training_config: The training configuration dictionary.
+        key_prefix: Optional prefix for widget keys (enables URL param persistence).
     Returns:
         The training configuration dictionary with the compute dimensions added.
     """
+
+    def _key(name: str) -> str | None:
+        return f"{key_prefix}_{name}" if key_prefix else None
+
     training_type = st.selectbox(
         "Training Type",
         options=["Pre-Training", "Fine-Tuning", "Pre-training + Fine-Tuning"],
         index=None,
+        key=_key("training_type"),
     )
     training_config["Training Type"] = training_type
 
     if training_type:
         match training_type:
             case "Pre-Training":
-                training_config = render_pre_training_dimensions(training_config)
+                training_config = render_pre_training_dimensions(
+                    training_config, key_prefix
+                )
 
             case "Fine-Tuning":
                 training_config = render_fine_tuning_dimensions(
-                    training_config, pre_training=False
+                    training_config, pre_training=False, key_prefix=key_prefix
                 )
 
             case "Pre-training + Fine-Tuning":
-                training_config = render_pre_training_dimensions(training_config)
+                training_config = render_pre_training_dimensions(
+                    training_config, key_prefix
+                )
                 if "Parameter Count" in training_config:
                     training_config = render_fine_tuning_dimensions(
-                        training_config, pre_training=True
+                        training_config, pre_training=True, key_prefix=key_prefix
                     )
                 else:
                     st.warning("Enter a parameter count for pre-training to continue.")
@@ -47,18 +57,28 @@ def render_training_dimensions(
     return training_config, can_compute
 
 
-def render_pre_training_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
+def render_pre_training_dimensions(
+    training_config: Dict[str, Any], key_prefix: str = ""
+) -> Dict[str, Any]:
     """Render the pre-training dimensions form.
     Args:
         training_config: The training configuration dictionary.
+        key_prefix: Optional prefix for widget keys (enables URL param persistence).
     Returns:
         The training configuration dictionary with the pre-training dimensions added.
     """
+
+    def _key(name: str) -> str | None:
+        return f"{key_prefix}_{name}" if key_prefix else None
+
     with st.expander("Pre-Training Configuration", expanded=True):
         pre_col1, pre_col2 = st.columns(2)
         with pre_col1:
             model_type = st.selectbox(
-                "Model Type", options=ARCHITECTURE_OPTIONS, index=0
+                "Model Type",
+                options=ARCHITECTURE_OPTIONS,
+                index=0,
+                key=_key("model_type"),
             )
         with pre_col2:
             parameter_count = _scaled_number_input(
@@ -67,7 +87,11 @@ def render_pre_training_dimensions(training_config: Dict[str, Any]) -> Dict[str,
                 default_value=7.0,
                 default_unit="B",
                 help="Total number of model parameters.",
-                key="pre_parameter_count",
+                key=(
+                    f"{key_prefix}_pre_parameter_count"
+                    if key_prefix
+                    else "pre_parameter_count"
+                ),
             )
         pre_col3, pre_col4 = st.columns(2)
         with pre_col3:
@@ -78,6 +102,7 @@ def render_pre_training_dimensions(training_config: Dict[str, Any]) -> Dict[str,
                 value=4096,
                 step=64,
                 help="Used for activation memory estimation. Leave at default if unknown.",
+                key=_key("pre_d_model"),
             )
         with pre_col4:
             pre_num_layers = st.number_input(
@@ -87,6 +112,7 @@ def render_pre_training_dimensions(training_config: Dict[str, Any]) -> Dict[str,
                 value=32,
                 step=1,
                 help="Used for activation memory estimation. Leave at default if unknown.",
+                key=_key("pre_num_layers"),
             )
         if model_type and parameter_count:
             with pre_col1:
@@ -101,16 +127,27 @@ def render_pre_training_dimensions(training_config: Dict[str, Any]) -> Dict[str,
 
 
 def render_fine_tuning_dimensions(
-    training_config: Dict[str, Any], pre_training: bool = False
+    training_config: Dict[str, Any],
+    pre_training: bool = False,
+    key_prefix: str = "",
 ) -> Dict[str, Any]:
     """Render the fine-tuning dimensions form.
     Args:
         training_config: The training configuration dictionary.
+        pre_training: If True, use pre-training params instead of a base model selector.
+        key_prefix: Optional prefix for widget keys (enables URL param persistence).
     Returns:
         The training configuration dictionary with the fine-tuning dimensions added.
     """
+
+    def _key(name: str) -> str | None:
+        return f"{key_prefix}_{name}" if key_prefix else None
+
     fine_tuning_type = st.selectbox(
-        "Fine-Tuning Type", options=["Supervised", "RL"], index=None
+        "Fine-Tuning Type",
+        options=["Supervised", "RL"],
+        index=None,
+        key=_key("ft_type"),
     )
     training_config["Fine-Tuning Type"] = fine_tuning_type
     if fine_tuning_type:
@@ -134,6 +171,7 @@ def render_fine_tuning_dimensions(
                         options=preset_options,
                         index=None,
                         help="Select a known model to auto-fill architecture params, or choose Custom.",
+                        key=_key("base_model"),
                     )
 
                 selected_model = None
@@ -153,7 +191,11 @@ def render_fine_tuning_dimensions(
                             units=["M", "B", "T"],
                             default_value=7.0,
                             default_unit="B",
-                            key="ft_parameter_count",
+                            key=(
+                                f"{key_prefix}_ft_parameter_count"
+                                if key_prefix
+                                else "ft_parameter_count"
+                            ),
                         )
                         d_model = st.number_input(
                             "Hidden Dimension (d_model)",
@@ -161,6 +203,7 @@ def render_fine_tuning_dimensions(
                             max_value=65536,
                             value=4096,
                             step=64,
+                            key=_key("ft_d_model"),
                         )
                         num_layers = st.number_input(
                             "Number of Layers",
@@ -168,6 +211,7 @@ def render_fine_tuning_dimensions(
                             max_value=256,
                             value=32,
                             step=1,
+                            key=_key("ft_num_layers"),
                         )
 
             if pre_training or base_model_name:
@@ -183,6 +227,7 @@ def render_fine_tuning_dimensions(
                             "Full: all parameters updated. "
                             "LoRA/QLoRA: only small low-rank adapter matrices are trained."
                         ),
+                        key=_key("ft_method"),
                     )
 
                 training_config["Fine-Tuning Method"] = ft_method
@@ -197,6 +242,7 @@ def render_fine_tuning_dimensions(
                             value=16,
                             step=1,
                             help="Higher rank = more expressive adapters but more parameters.",
+                            key=_key("lora_rank"),
                         )
                         target_modules = st.multiselect(
                             "Target Modules",
@@ -210,6 +256,7 @@ def render_fine_tuning_dimensions(
                             ],
                             default=["q_proj", "k_proj", "v_proj", "o_proj"],
                             help="Which weight matrices to attach LoRA adapters to.",
+                            key=_key("target_modules"),
                         )
                         training_config["LoRA Rank"] = lora_rank
                         training_config["Target Modules"] = target_modules
@@ -229,6 +276,7 @@ def render_fine_tuning_dimensions(
                             "DPO: policy + frozen reference (2× memory). "
                             "PPO: actor + reference + reward model + critic (4× memory)."
                         ),
+                        key=_key("rl_algo"),
                     )
                     training_config["RL Algorithm"] = rl_algorithm
 

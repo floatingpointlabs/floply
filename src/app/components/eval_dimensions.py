@@ -7,13 +7,19 @@ from src.cost_modelling.calculator import (
 )
 
 
-def render_eval_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
+def render_eval_dimensions(
+    training_config: Dict[str, Any], key_prefix: str = ""
+) -> Dict[str, Any]:
     """Render the eval dimensions form.
     Args:
         training_config: The training configuration dictionary.
+        key_prefix: Optional prefix for widget keys (enables URL param persistence).
     Returns:
         The training configuration dictionary with the eval dimensions added.
     """
+
+    def _key(name: str) -> str | None:
+        return f"{key_prefix}_{name}" if key_prefix else None
 
     with st.expander("Experiment & Evaluation", expanded=True):
         exp_col1, exp_col2, exp_col3 = st.columns(3)
@@ -26,6 +32,7 @@ def render_eval_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
                 value=1,
                 step=1,
                 help="Number of complete training runs from scratch.",
+                key=_key("training_runs"),
             )
             num_checkpoints = st.number_input(
                 "Checkpoints per Run",
@@ -34,6 +41,7 @@ def render_eval_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
                 value=5,
                 step=1,
                 help="Number of model checkpoints saved to S3 per training run.",
+                key=_key("checkpoints"),
             )
 
         with exp_col2:
@@ -44,6 +52,7 @@ def render_eval_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
                 value=0,
                 step=1,
                 help="Number of hyperparameter search trials.",
+                key=_key("hp_trials"),
             )
             hp_fraction = st.number_input(
                 "HP Trial Length",
@@ -53,6 +62,7 @@ def render_eval_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
                 step=0.05,
                 format="%.2f",
                 help="Typical HP trial is ~30% of a full run's cost.",
+                key=_key("hp_fraction"),
             )
 
         with exp_col3:
@@ -63,6 +73,7 @@ def render_eval_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
                 value=0,
                 step=1,
                 help="Number of ablation experiments.",
+                key=_key("ablations"),
             )
             ablation_fraction = st.number_input(
                 "Ablation Length",
@@ -72,6 +83,7 @@ def render_eval_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
                 step=0.05,
                 format="%.2f",
                 help="Typical ablation is ~50% of a full run's cost.",
+                key=_key("ablation_fraction"),
             )
 
         storage_class = st.selectbox(
@@ -79,6 +91,7 @@ def render_eval_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
             options=["standard", "intelligent_tiering", "standard_ia", "glacier"],
             index=0,
             help="S3 storage class for dataset and checkpoints.",
+            key=_key("storage_class"),
         )
         training_config["S3 Storage Class"] = storage_class
 

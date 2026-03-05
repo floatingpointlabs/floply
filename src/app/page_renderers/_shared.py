@@ -42,20 +42,20 @@ def _render_standard_training_page(output_fn: Callable, subtitle: str = "") -> N
 
     training_config: dict = {}
 
-    training_config = render_dataset_dimensions(training_config)
+    training_config = render_dataset_dimensions(training_config, key_prefix="ce")
 
     if TRAINING_FLAG in training_config:
-        training_config, can_compute = render_training_dimensions(training_config)
+        training_config, can_compute = render_training_dimensions(training_config, key_prefix="ce")
 
     try:
         if can_compute:
             _chinchilla_banner(training_config)
-            training_config = render_compute_dimensions(training_config)
+            training_config = render_compute_dimensions(training_config, key_prefix="ce")
     except UnboundLocalError:
         st.write("Select a modality & enter a dataset size to continue.")
 
     if EVAL_FLAG in training_config:
-        training_config = render_eval_dimensions(training_config)
+        training_config = render_eval_dimensions(training_config, key_prefix="ce")
 
     if COST_FLAG in training_config:
         output_fn(training_config)

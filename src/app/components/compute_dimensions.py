@@ -169,20 +169,26 @@ def render_hardware_config(
     return training_config
 
 
-def render_compute_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
+def render_compute_dimensions(
+    training_config: Dict[str, Any], key_prefix: str = ""
+) -> Dict[str, Any]:
     """Render the full compute dimensions form including batch config and FLOPs calculation.
 
     Args:
         training_config: The training configuration dictionary.
+        key_prefix: Optional prefix for widget keys (enables URL param persistence).
 
     Returns:
         training_config updated with compute dimensions, cost, time, and memory estimates.
     """
+    def _key(name: str) -> str | None:
+        return f"{key_prefix}_{name}" if key_prefix else None
+
     with st.expander("Compute Config", expanded=True):
         cc_col1, cc_col2, cc_col3 = st.columns(3)
 
         # Shared hardware widgets (epochs + grad_ckpt in col1, cluster in col2, MFU in col3)
-        hw = _render_hardware_widgets(cc_col1, cc_col2, cc_col3, key_prefix=None)
+        hw = _render_hardware_widgets(cc_col1, cc_col2, cc_col3, key_prefix=key_prefix or None)
 
         # Batch config — appended to col1 after the shared widgets
         with cc_col1:
@@ -193,6 +199,7 @@ def render_compute_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
                 value=1024,
                 step=128,
                 help="Total batch size across all GPUs.",
+                key=_key("batch_size"),
             )
             gradient_accumulation_steps = st.number_input(
                 "Gradient Accumulation Steps",
@@ -201,6 +208,7 @@ def render_compute_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
                 value=1,
                 step=1,
                 help="Forward/backward passes before a weight update. Effective batch = batch × steps.",
+                key=_key("grad_acc"),
             )
             effective_batch = batch_size * gradient_accumulation_steps
             st.caption(f"Effective batch size: {effective_batch:,}")

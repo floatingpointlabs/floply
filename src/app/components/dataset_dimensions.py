@@ -18,7 +18,9 @@ from src.cost_modelling.dataset import (
 )
 
 
-def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
+def render_dataset_dimensions(
+    training_config: Dict[str, Any], key_prefix: str = ""
+) -> Dict[str, Any]:
     """Render the dataset dimensions form.
 
     Token calculation:
@@ -35,9 +37,13 @@ def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
 
     Args:
         training_config: The training configuration dictionary.
+        key_prefix: Optional prefix for widget keys (enables URL param persistence).
     Returns:
         The training configuration dictionary with the dataset dimensions added.
     """
+
+    def _key(name: str) -> str | None:
+        return f"{key_prefix}_{name}" if key_prefix else None
 
     with st.expander("Dataset Dimensions", expanded=True):
 
@@ -47,6 +53,7 @@ def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
                 "Select Modality",
                 options=["Text", "Image", "Audio", "Video"],
                 index=None,
+                key=_key("modality"),
             )
 
         with ds_col2:
@@ -56,7 +63,7 @@ def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
                 default_value=100.0,
                 default_unit="M",
                 help="Total number of samples in the dataset.",
-                key="dataset_size",
+                key=f"{key_prefix}_dataset_size" if key_prefix else "dataset_size",
             )
 
         with ds_col3:
@@ -69,6 +76,7 @@ def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
                         value=400,
                         step=50,
                         help="Average number of words per training example. 1 word ≈ 1.3 BPE tokens.",
+                        key=_key("avg_words"),
                     )
                     tokens_per_sample = tokens_per_text_sample(avg_seq_len_words)
                     bytes_per_sample = bytes_per_text_sample(tokens_per_sample)
@@ -78,12 +86,14 @@ def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
                         options=[224, 336, 512, 1024],
                         index=0,
                         help="Square image side length in pixels.",
+                        key=_key("resolution"),
                     )
                     patch_size = st.selectbox(
                         "Patch size (px)",
                         options=[14, 16, 32],
                         index=1,
                         help="ViT patch size. Smaller patches = more tokens per image.",
+                        key=_key("patch_size"),
                     )
                     tokens_per_sample = tokens_per_image_sample(resolution, patch_size)
                     bytes_per_sample = bytes_per_image_sample(resolution)
@@ -95,6 +105,7 @@ def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
                         value=30.0,
                         step=5.0,
                         help="Average audio clip length.",
+                        key=_key("clip_duration"),
                     )
                     audio_tokenizer = st.selectbox(
                         "Tokenizer Style",
@@ -104,6 +115,7 @@ def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
                             "SoundStream (50 tok/sec x codebooks)",
                         ],
                         help="Whisper produces mel-spectrogram tokens. EnCodec/SoundStream use residual vector quantization codebooks.",
+                        key=_key("audio_tok"),
                     )
                     if "EnCodec" in audio_tokenizer or "SoundStream" in audio_tokenizer:
                         num_codebooks = st.number_input(
@@ -113,6 +125,7 @@ def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
                             value=8,
                             step=1,
                             help="Number of RVQ codebook levels.",
+                            key=_key("codebooks"),
                         )
                         base_rate = (
                             ENCODEC_TOKENS_PER_SECOND
@@ -134,6 +147,7 @@ def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
                         max_value=3600.0,
                         value=10.0,
                         step=1.0,
+                        key=_key("vid_duration"),
                     )
                     sampled_fps = st.number_input(
                         "Sampled FPS",
@@ -142,16 +156,19 @@ def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
                         value=1,
                         step=1,
                         help="Frames sampled per second (not source FPS). Lower = fewer tokens.",
+                        key=_key("fps"),
                     )
                     vid_resolution = st.selectbox(
                         "Frame resolution (px)",
                         options=[224, 336, 512],
                         index=0,
+                        key=_key("vid_resolution"),
                     )
                     vid_patch_size = st.selectbox(
                         "Patch size (px)",
                         options=[14, 16, 32],
                         index=1,
+                        key=_key("vid_patch_size"),
                     )
                     tokens_per_sample = tokens_per_video_sample(
                         vid_duration, sampled_fps, vid_resolution, vid_patch_size
@@ -196,6 +213,7 @@ def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
                 value=3,
                 step=1,
                 help="How long the dataset will be stored in S3.",
+                key=_key("storage_months"),
             )
 
             training_config["Modality"] = data_type

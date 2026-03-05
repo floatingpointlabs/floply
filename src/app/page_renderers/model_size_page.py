@@ -474,6 +474,13 @@ def render_budget_optimizer_page():
     )
 
     if st.session_state.get("ms_setup_sig") != setup_sig:
+        # Detect whether this is the very first render after restoring from a
+        # shared URL.  In that case the URL already carries the correct slider
+        # positions and schedule values, so we must not overwrite them with
+        # freshly-derived defaults.
+        _restoring_from_url = st.session_state.get(
+            "ms_setup_sig"
+        ) is None and st.session_state.get("_qp_has_state")
         st.session_state["ms_setup_sig"] = setup_sig
         defaults = _derive_schedule_defaults(
             compute_budget=compute_budget,
@@ -482,16 +489,17 @@ def render_budget_optimizer_page():
             ft_method=ft_method,
             quick_n=quick_n,
         )
-        st.session_state["ms_epochs"] = defaults["epochs"]
-        st.session_state["ms_hp_trials"] = defaults["hp_trials"]
-        st.session_state["ms_hp_fraction_pct"] = defaults["hp_fraction_pct"]
-        st.session_state["ms_storage_months"] = defaults["storage_months"]
-        st.session_state["ms_storage_class"] = defaults["storage_class"]
-        # Reset trade-off sliders and instance override so they default to the new optimal point.
-        st.session_state.pop("ms_dataset_slider", None)
-        st.session_state.pop("ms_model_slider", None)
-        st.session_state.pop("ms_rank_slider", None)
-        st.session_state.pop("ms_num_instances", None)
+        if not _restoring_from_url:
+            st.session_state["ms_epochs"] = defaults["epochs"]
+            st.session_state["ms_hp_trials"] = defaults["hp_trials"]
+            st.session_state["ms_hp_fraction_pct"] = defaults["hp_fraction_pct"]
+            st.session_state["ms_storage_months"] = defaults["storage_months"]
+            st.session_state["ms_storage_class"] = defaults["storage_class"]
+            # Reset trade-off sliders and instance override so they default to the new optimal point.
+            st.session_state.pop("ms_dataset_slider", None)
+            st.session_state.pop("ms_model_slider", None)
+            st.session_state.pop("ms_rank_slider", None)
+            st.session_state.pop("ms_num_instances", None)
 
     # ── 4. Bind schedule variables from session state & run full solve ───────
     # The cascade above wrote defaults into session state before any widgets render.
