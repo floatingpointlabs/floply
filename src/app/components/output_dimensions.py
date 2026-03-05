@@ -122,7 +122,7 @@ def render_cost_summary_charts(training_config: Dict[str, Any]) -> None:
             margin=dict(t=10, b=10, l=10, r=10),
             height=280,
         )
-        st.plotly_chart(fig_donut, use_container_width=True)
+        st.plotly_chart(fig_donut, width="stretch")
 
     with chart_col2:
         st.subheader("Compute Cost by Run Type")
@@ -176,7 +176,7 @@ def render_cost_summary_charts(training_config: Dict[str, Any]) -> None:
             margin=dict(t=30, b=10, l=10, r=10),
             height=280,
         )
-        st.plotly_chart(fig_bar, use_container_width=True)
+        st.plotly_chart(fig_bar, width="stretch")
 
 
 def render_final_display(training_config: Dict[str, Any]) -> None:
@@ -332,7 +332,7 @@ def render_final_display(training_config: Dict[str, Any]) -> None:
 
     st.dataframe(
         df,
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
         column_config={
             "Category": st.column_config.TextColumn("Category", width="small"),
@@ -433,4 +433,4 @@ def _render_nearest_model_sizes(parameter_count: int) -> None:
         )
 
     df = pd.DataFrame(rows)
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.dataframe(df, width="stretch", hide_index=True)

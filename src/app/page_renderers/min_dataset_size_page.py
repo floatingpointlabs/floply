@@ -309,7 +309,7 @@ def _render_tier_chart(tiers: list, effective_count: int) -> None:
         margin=dict(t=10, b=10, l=10, r=10),
         height=230,
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 def _render_reverse_calculator(tiers: list, effective_count: int) -> None:

@@ -1136,7 +1136,7 @@ def render_budget_optimizer_page():
         margin=dict(t=30, b=10, l=10, r=10),
         height=380,
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     # ── 8. Training Schedule & Storage expander ───────────────────────────────
     # Widgets read from (and write back to) session state via key=.
