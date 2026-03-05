@@ -65,5 +65,3 @@ def load_models() -> list[ModelDefinition]:
         )
 
     return sorted(models, key=lambda m: m.parameter_count)
-
-

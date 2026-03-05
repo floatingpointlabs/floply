@@ -30,7 +30,7 @@ def calculate_training_flops(
     gradient_checkpointing: bool = False,
 ) -> float:
     """Calculate total FLOPs required for training.
-    
+
     Uses the standard formula: C = 6 x N x D  (Kaplan et al. 2020,
     "Scaling Laws for Neural Language Models", https://arxiv.org/abs/2001.08361)
 
@@ -47,21 +47,21 @@ def calculate_training_flops(
     parameters (Kaplan et al.), as embedding lookups are memory reads with
     negligible FLOPs. For typical models the embedding table is < 5% of total
     parameters so the effect on the estimate is minor.
-    
+
     Args:
         parameter_count: Total number of model parameters
         training_tokens: Number of tokens in the dataset (per epoch)
         architecture: Model architecture type
         epochs: Number of passes through the dataset (default 1.0)
         gradient_checkpointing: Whether activation checkpointing is enabled
-        
+
     Returns:
         Total FLOPs required
     """
     multiplier = _get_flops_multiplier(architecture, gradient_checkpointing)
     total_tokens = training_tokens * epochs
     total_flops = multiplier * parameter_count * total_tokens
-    
+
     return total_flops
 
 
@@ -138,7 +138,9 @@ def solve_for_parameter_count(
         return 0
 
     parameter_count = (
-        compute_budget_usd * effective_cluster_flops * 3600
+        compute_budget_usd
+        * effective_cluster_flops
+        * 3600
         / (multiplier * total_tokens * hourly_cost * num_instances)
     )
     return max(0, int(parameter_count))
@@ -183,7 +185,9 @@ def solve_for_training_tokens(
         return 0
 
     total_tokens = (
-        compute_budget_usd * effective_cluster_flops * 3600
+        compute_budget_usd
+        * effective_cluster_flops
+        * 3600
         / (multiplier * parameter_count * hourly_cost * num_instances)
     )
     return max(0, int(total_tokens / max(epochs, 1.0)))
@@ -194,9 +198,9 @@ def solve_for_training_tokens(
 # LoRA:  fp16 frozen base (2 bytes) + fp16/fp32 adapter optimizer states
 # Full / Pre-training: fp16 weights + fp32 Adam states (m+v) + fp32 master copy ≈ 16 bytes
 BYTES_PER_PARAM_QLORA_BASE = 0.5
-BYTES_PER_PARAM_LORA_BASE  = 2
-BYTES_PER_PARAM_TRAINABLE  = 16   # fp16 weights + fp32 Adam states + gradient buffer
-BYTES_PER_PARAM_FULL_FT    = 16   # same as TRAINABLE for full fine-tuning / pre-training
+BYTES_PER_PARAM_LORA_BASE = 2
+BYTES_PER_PARAM_TRAINABLE = 16  # fp16 weights + fp32 Adam states + gradient buffer
+BYTES_PER_PARAM_FULL_FT = 16  # same as TRAINABLE for full fine-tuning / pre-training
 
 # Activation memory per token per layer (bf16 transformer):
 # 4 tensors (QKV projections, attention scores, MLP intermediate, residual) x 2 bytes (bf16)
@@ -256,7 +260,10 @@ def estimate_gpu_memory_gb(
             )
         else:
             activation_bytes = (
-                batch_size * seq_len * d_model * num_layers
+                batch_size
+                * seq_len
+                * d_model
+                * num_layers
                 * ACTIVATION_BYTES_PER_TOKEN_PER_LAYER
             )
     else:
@@ -296,25 +303,28 @@ def calculate_lora_trainable_params(
         return None
 
     if architecture:
-        _d        = architecture.get("d_model", d_model)
-        _nh       = architecture.get("num_heads", 0)
-        _nkv      = architecture.get("num_kv_heads", _nh)
+        _d = architecture.get("d_model", d_model)
+        _nh = architecture.get("num_heads", 0)
+        _nkv = architecture.get("num_kv_heads", _nh)
         _head_dim = _d // _nh if _nh else _d
-        _kv_dim   = _nkv * _head_dim
-        _ffn      = architecture.get("ffn_intermediate", _d * 4)
+        _kv_dim = _nkv * _head_dim
+        _ffn = architecture.get("ffn_intermediate", _d * 4)
         module_dims = {
-            "q_proj":    (_d, _d),
-            "k_proj":    (_d, _kv_dim),
-            "v_proj":    (_d, _kv_dim),
-            "o_proj":    (_d, _d),
-            "up_proj":   (_d, _ffn),
+            "q_proj": (_d, _d),
+            "k_proj": (_d, _kv_dim),
+            "v_proj": (_d, _kv_dim),
+            "o_proj": (_d, _d),
+            "up_proj": (_d, _ffn),
             "down_proj": (_ffn, _d),
         }
-        return sum(
-            lora_rank * (in_d + out_d)
-            for mod in target_modules
-            for in_d, out_d in [module_dims.get(mod, (_d, _d))]
-        ) * num_layers
+        return (
+            sum(
+                lora_rank * (in_d + out_d)
+                for mod in target_modules
+                for in_d, out_d in [module_dims.get(mod, (_d, _d))]
+            )
+            * num_layers
+        )
     else:
         # Uniform d_model approximation for custom models
         return len(target_modules) * 2 * lora_rank * d_model * num_layers
@@ -352,7 +362,10 @@ def calculate_checkpoint_storage_tb(
         Total checkpoint storage in terabytes
     """
     total_bytes = (
-        checkpoint_params * BYTES_PER_PARAM_CHECKPOINT * num_checkpoints * num_training_runs
+        checkpoint_params
+        * BYTES_PER_PARAM_CHECKPOINT
+        * num_checkpoints
+        * num_training_runs
         + checkpoint_params * BYTES_PER_PARAM_CHECKPOINT * num_hp_trials
         + checkpoint_params * BYTES_PER_PARAM_CHECKPOINT * num_ablations
     )
@@ -390,15 +403,15 @@ def calculate_project_compute_cost(
 def calculate_storage_cost(
     dataset_size_tb: float,
     storage_duration_months: float = 1.0,
-    storage_class: str = "standard"
+    storage_class: str = "standard",
 ) -> float:
     """Calculate S3 storage cost for training data.
-    
+
     Args:
         dataset_size_tb: Dataset size in terabytes
         storage_duration_months: How long to store the data
         storage_class: S3 storage class
-        
+
     Returns:
         Total storage cost in USD
     """

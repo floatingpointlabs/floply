@@ -61,14 +61,13 @@ def peak_flops_for_precision(instance_spec: dict, mixed_precision: str) -> float
     """
     fp16 = instance_spec["peak_flops_fp16"]
     fp32 = instance_spec["peak_flops_fp32"]
-    gpu  = instance_spec["gpu"]
+    gpu = instance_spec["gpu"]
     return {
-        "fp4":  fp16 * (2.0 if gpu in ("A100", "H100") else 1.0),
+        "fp4": fp16 * (2.0 if gpu in ("A100", "H100") else 1.0),
         "int8": fp16 * (2.0 if gpu in ("A100", "H100") else 0.9),
-        "fp8":  fp16 * (2.0 if gpu == "H100" else 1.0),
+        "fp8": fp16 * (2.0 if gpu == "H100" else 1.0),
         "bf16": fp16,
         "fp16": fp16,
         "tf32": fp16 * 0.5,
         "fp32": fp32,
     }.get(mixed_precision, fp16)
-

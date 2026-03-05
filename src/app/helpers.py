@@ -20,9 +20,9 @@ def _chinchilla_banner(training_config: dict) -> None:
     Thresholds vary by training method — see inline comments.
     """
     total_tokens = training_config.get("Total tokens", 0)
-    ft_method    = training_config.get("Fine-Tuning Method")          # None for pre-training
-    base_params  = training_config.get("Base Model Params", 0)
-    pre_params   = training_config.get("Parameter Count", 0)
+    ft_method = training_config.get("Fine-Tuning Method")  # None for pre-training
+    base_params = training_config.get("Base Model Params", 0)
+    pre_params = training_config.get("Parameter Count", 0)
     adapter_params = training_config.get("Trainable Parameters", 0)
 
     if total_tokens <= 0:
@@ -114,10 +114,10 @@ def _chinchilla_banner(training_config: dict) -> None:
         num_adapter_params = int(adapter_params)
         if num_adapter_params <= 0 or base_params <= 0:
             return
-        ratio_adapter  = total_tokens / num_adapter_params
-        ratio_base     = total_tokens / int(base_params)
-        pct_trainable  = num_adapter_params / int(base_params) * 100
-        method_label   = ft_method  # "LoRA" or "QLoRA"
+        ratio_adapter = total_tokens / num_adapter_params
+        ratio_base = total_tokens / int(base_params)
+        pct_trainable = num_adapter_params / int(base_params) * 100
+        method_label = ft_method  # "LoRA" or "QLoRA"
 
         # LoRA data thresholds are relative to adapter params, not base params.
         # ~10–100 tok/adapter_param is the practical sweet spot for task adaptation.
@@ -263,7 +263,9 @@ def _format_gpu_hours(gpu_hours: float) -> str:
         return f"{gpu_hours:.1f}"
 
 
-def _render_chinchilla_assessment(ratio: float, optimal_tokens: int, fix_hint: str = "") -> None:
+def _render_chinchilla_assessment(
+    ratio: float, optimal_tokens: int, fix_hint: str = ""
+) -> None:
     """Render a pre-training Chinchilla scaling-law assessment banner.
 
     Applies the Hoffmann et al. 2022 (Chinchilla) thresholds for compute-optimal
@@ -285,8 +287,7 @@ def _render_chinchilla_assessment(ratio: float, optimal_tokens: int, fix_hint: s
         st.warning(
             f"**Undertrained vs. Chinchilla-optimal.** {ratio:.1f} tok/param. "
             f"For compute-efficient training aim for ≥ {CHINCHILLA_OPTIMAL_RATIO} tok/param "
-            f"(**{_fmt_tokens(optimal_tokens)} tokens**)."
-            + _suffix
+            f"(**{_fmt_tokens(optimal_tokens)} tokens**)." + _suffix
         )
     elif ratio <= 30:
         st.success(
@@ -301,8 +302,7 @@ def _render_chinchilla_assessment(ratio: float, optimal_tokens: int, fix_hint: s
     else:
         st.warning(
             f"**Heavily over-trained relative to model size.** {ratio:.0f} tok/param (> 200×). "
-            f"Diminishing returns; consider scaling the model up."
-            + _suffix
+            f"Diminishing returns; consider scaling the model up." + _suffix
         )
 
 

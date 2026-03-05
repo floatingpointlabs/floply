@@ -6,6 +6,7 @@ from src.cost_modelling.calculator import (
     calculate_project_compute_cost,
 )
 
+
 def render_eval_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
     """Render the eval dimensions form.
     Args:
@@ -81,7 +82,6 @@ def render_eval_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
         )
         training_config["S3 Storage Class"] = storage_class
 
-
         # Checkpoint size depends on training method
         ft_method = training_config.get("Fine-Tuning Method")
         if ft_method in ("LoRA", "QLoRA"):
@@ -131,7 +131,9 @@ def render_eval_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
         training_config["S3 Storage Class"] = storage_class
         training_config["Total Compute Cost (USD)"] = round(total_compute_cost, 2)
         training_config["Dataset Storage Cost (USD)"] = round(dataset_storage_cost, 2)
-        training_config["Checkpoint Storage Cost (USD)"] = round(checkpoint_storage_cost, 2)
+        training_config["Checkpoint Storage Cost (USD)"] = round(
+            checkpoint_storage_cost, 2
+        )
         training_config["Total Project Cost (USD)"] = round(
             total_compute_cost + dataset_storage_cost + checkpoint_storage_cost, 2
         )

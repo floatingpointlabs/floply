@@ -75,7 +75,7 @@ def render_cost_summary_charts(training_config: Dict[str, Any]) -> None:
     """Render cost distribution donut and compute-by-run-type stacked bar."""
     total_compute = training_config["Total Compute Cost (USD)"]
     dataset_store = training_config["Dataset Storage Cost (USD)"]
-    ckpt_store    = training_config["Checkpoint Storage Cost (USD)"]
+    ckpt_store = training_config["Checkpoint Storage Cost (USD)"]
     total_project = training_config["Total Project Cost (USD)"]
 
     chart_col1, chart_col2 = st.columns(2, gap="large")
@@ -90,22 +90,28 @@ def render_cost_summary_charts(training_config: Dict[str, Any]) -> None:
             CHART_COLORS["checkpoint"],
         ]
 
-        fig_donut = go.Figure(go.Pie(
-            labels=donut_labels,
-            values=donut_values,
-            hole=0.55,
-            marker=dict(colors=donut_colors, line=dict(color="#0e1117", width=2)),
-            textinfo="label+percent",
-            hovertemplate="%{label}<br>$%{value:,.2f}<br>%{percent}<extra></extra>",
-        ))
+        fig_donut = go.Figure(
+            go.Pie(
+                labels=donut_labels,
+                values=donut_values,
+                hole=0.55,
+                marker=dict(colors=donut_colors, line=dict(color="#0e1117", width=2)),
+                textinfo="label+percent",
+                hovertemplate="%{label}<br>$%{value:,.2f}<br>%{percent}<extra></extra>",
+            )
+        )
         fig_donut.add_annotation(
             text=f"${total_project:,.0f}",
-            x=0.5, y=0.52, showarrow=False,
+            x=0.5,
+            y=0.52,
+            showarrow=False,
             font=dict(size=20, color="white", family="sans-serif"),
         )
         fig_donut.add_annotation(
             text="total",
-            x=0.5, y=0.42, showarrow=False,
+            x=0.5,
+            y=0.42,
+            showarrow=False,
             font=dict(size=12, color="#aaaaaa", family="sans-serif"),
         )
         fig_donut.update_layout(
@@ -121,17 +127,17 @@ def render_cost_summary_charts(training_config: Dict[str, Any]) -> None:
     with chart_col2:
         st.subheader("Compute Cost by Run Type")
         single_run_cost = training_config.get("Compute Cost (USD)", 0)
-        num_full  = training_config.get("Full Training Runs", 1)
-        num_hp    = training_config.get("HP Tuning Trials", 0)
-        hp_frac   = training_config.get("HP Run Fraction", 0)
-        num_abl   = training_config.get("Ablation Studies", 0)
-        abl_frac  = training_config.get("Ablation Run Fraction", 0)
+        num_full = training_config.get("Full Training Runs", 1)
+        num_hp = training_config.get("HP Tuning Trials", 0)
+        hp_frac = training_config.get("HP Run Fraction", 0)
+        num_abl = training_config.get("Ablation Studies", 0)
+        abl_frac = training_config.get("Ablation Run Fraction", 0)
 
         full_cost = single_run_cost * num_full
-        hp_cost   = single_run_cost * hp_frac * num_hp
-        abl_cost  = single_run_cost * abl_frac * num_abl
+        hp_cost = single_run_cost * hp_frac * num_hp
+        abl_cost = single_run_cost * abl_frac * num_abl
 
-        bar_cats   = ["Full Runs", "HP Trials", "Ablations"]
+        bar_cats = ["Full Runs", "HP Trials", "Ablations"]
         bar_values = [full_cost, hp_cost, abl_cost]
         bar_colors = [
             CHART_COLORS["compute"],
@@ -141,21 +147,25 @@ def render_cost_summary_charts(training_config: Dict[str, Any]) -> None:
 
         fig_bar = go.Figure()
         for cat, val, col in zip(bar_cats, bar_values, bar_colors):
-            fig_bar.add_trace(go.Bar(
-                name=cat,
-                x=["Compute"],
-                y=[val],
-                marker_color=col,
-                text=f"${val:,.0f}",
-                textposition="inside",
-                hovertemplate=f"{cat}<br>${val:,.2f}<extra></extra>",
-            ))
+            fig_bar.add_trace(
+                go.Bar(
+                    name=cat,
+                    x=["Compute"],
+                    y=[val],
+                    marker_color=col,
+                    text=f"${val:,.0f}",
+                    textposition="inside",
+                    hovertemplate=f"{cat}<br>${val:,.2f}<extra></extra>",
+                )
+            )
         fig_bar.update_layout(
             barmode="stack",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
             font=dict(color="white"),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            legend=dict(
+                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+            ),
             xaxis=dict(showticklabels=False, showgrid=False, zeroline=False),
             yaxis=dict(
                 title="USD",
@@ -176,22 +186,59 @@ def render_final_display(training_config: Dict[str, Any]) -> None:
     summary_rows = [
         # Dataset
         ("Dataset", "Modality", training_config.get("Modality", "-")),
-        ("Dataset", "Dataset Size (samples)", training_config.get("Total tokens", 0) // max(training_config.get("Tokens per sample", 1), 1)),
+        (
+            "Dataset",
+            "Dataset Size (samples)",
+            training_config.get("Total tokens", 0)
+            // max(training_config.get("Tokens per sample", 1), 1),
+        ),
         ("Dataset", "Tokens per Sample", training_config.get("Tokens per sample", "-")),
         ("Dataset", "Total Tokens", training_config.get("Total tokens", "-")),
         ("Dataset", "Estimated Size", training_config.get("Dataset Size (TB)", "-")),
-        ("Dataset", "Storage Duration", f"{training_config.get('Storage Duration (months)', '-')} months"),
+        (
+            "Dataset",
+            "Storage Duration",
+            f"{training_config.get('Storage Duration (months)', '-')} months",
+        ),
         # Model
         ("Model", "Training Type", training_config.get("Training Type", "-")),
-        ("Model", "Model Type / Base", training_config.get("Model Type", training_config.get("Base Model", "-"))),
-        ("Model", "Parameter Count", training_config.get("Parameter Count", training_config.get("Base Model Params", "-"))),
-        ("Model", "Fine-Tuning Method", training_config.get("Fine-Tuning Method", "N/A")),
-        ("Model", "Trainable Parameters", training_config.get("Trainable Parameters", training_config.get("Parameter Count", "-"))),
+        (
+            "Model",
+            "Model Type / Base",
+            training_config.get("Model Type", training_config.get("Base Model", "-")),
+        ),
+        (
+            "Model",
+            "Parameter Count",
+            training_config.get(
+                "Parameter Count", training_config.get("Base Model Params", "-")
+            ),
+        ),
+        (
+            "Model",
+            "Fine-Tuning Method",
+            training_config.get("Fine-Tuning Method", "N/A"),
+        ),
+        (
+            "Model",
+            "Trainable Parameters",
+            training_config.get(
+                "Trainable Parameters", training_config.get("Parameter Count", "-")
+            ),
+        ),
         # Training
         ("Training", "Epochs", training_config.get("Epochs", "-")),
         ("Training", "Batch Size", training_config.get("Batch Size", "-")),
-        ("Training", "Effective Batch Size", training_config.get("Effective Batch Size", "-")),
-        ("Training", "Gradient Checkpointing", training_config.get("Gradient Checkpointing", "-")),
+        (
+            "Training",
+            "Effective Batch Size",
+            training_config.get("Effective Batch Size", "-"),
+        ),
+        (
+            "Training",
+            "Gradient Checkpointing",
+            training_config.get("Gradient Checkpointing", "-"),
+        ),
         ("Training", "Mixed Precision", training_config.get("Mixed Precision", "-")),
         # Compute
         ("Compute", "Instance Type", training_config.get("Instance Type", "-")),
@@ -199,27 +246,89 @@ def render_final_display(training_config: Dict[str, Any]) -> None:
         ("Compute", "Total GPUs", training_config.get("Total GPUs", "-")),
         ("Compute", "MFU", f"{training_config.get('MFU', 0):.0%}"),
         ("Compute", "GPU-hours (1 run)", training_config.get("GPU-hours", "-")),
-        ("Compute", "Wall-clock (1 run)", f"{training_config.get('Wall-clock Days', 0):.2f} days"),
+        (
+            "Compute",
+            "Wall-clock (1 run)",
+            f"{training_config.get('Wall-clock Days', 0):.2f} days",
+        ),
         ("Compute", "Total FLOPs", training_config.get("Total FLOPs", "-")),
-        ("Compute", "Est. Memory / GPU", f"{training_config.get('Est. Memory per GPU (GB)', 0):.1f} GB"),
+        (
+            "Compute",
+            "Est. Memory / GPU",
+            f"{training_config.get('Est. Memory per GPU (GB)', 0):.1f} GB",
+        ),
         # Experiment
-        ("Experiment", "Full Training Runs", training_config.get("Full Training Runs", "-")),
-        ("Experiment", "HP Tuning Trials", training_config.get("HP Tuning Trials", "-")),
-        ("Experiment", "HP Run Fraction", f"{training_config.get('HP Run Fraction', 0):.0%}"),
-        ("Experiment", "Ablation Studies", training_config.get("Ablation Studies", "-")),
-        ("Experiment", "Ablation Run Fraction", f"{training_config.get('Ablation Run Fraction', 0):.0%}"),
-        ("Experiment", "Checkpoints per Run", training_config.get("Num Checkpoints", "-")),
-        ("Experiment", "Checkpoint Storage", f"{training_config.get('Checkpoint Storage (TB)', 0):.4f} TB"),
-        ("Experiment", "S3 Storage Class", training_config.get("S3 Storage Class", "-")),
-        ("Experiment", "Dataset Storage Cost", f"${training_config.get('Dataset Storage Cost (USD)', 0):,.2f}"),
-        ("Experiment", "Total Experiment Runs", training_config.get("Total Experiment Runs", "-")),
-        ("Experiment", "Checkpoint Storage Cost", f"${training_config.get('Checkpoint Storage Cost (USD)', 0):,.2f}"),
-        ("Experiment", "Total Compute Cost", f"${training_config.get('Total Compute Cost (USD)', 0):,.2f}"),
-        ("Experiment", "Total Project Cost", f"${training_config.get('Total Project Cost (USD)', 0):,.2f}"),
+        (
+            "Experiment",
+            "Full Training Runs",
+            training_config.get("Full Training Runs", "-"),
+        ),
+        (
+            "Experiment",
+            "HP Tuning Trials",
+            training_config.get("HP Tuning Trials", "-"),
+        ),
+        (
+            "Experiment",
+            "HP Run Fraction",
+            f"{training_config.get('HP Run Fraction', 0):.0%}",
+        ),
+        (
+            "Experiment",
+            "Ablation Studies",
+            training_config.get("Ablation Studies", "-"),
+        ),
+        (
+            "Experiment",
+            "Ablation Run Fraction",
+            f"{training_config.get('Ablation Run Fraction', 0):.0%}",
+        ),
+        (
+            "Experiment",
+            "Checkpoints per Run",
+            training_config.get("Num Checkpoints", "-"),
+        ),
+        (
+            "Experiment",
+            "Checkpoint Storage",
+            f"{training_config.get('Checkpoint Storage (TB)', 0):.4f} TB",
+        ),
+        (
+            "Experiment",
+            "S3 Storage Class",
+            training_config.get("S3 Storage Class", "-"),
+        ),
+        (
+            "Experiment",
+            "Dataset Storage Cost",
+            f"${training_config.get('Dataset Storage Cost (USD)', 0):,.2f}",
+        ),
+        (
+            "Experiment",
+            "Total Experiment Runs",
+            training_config.get("Total Experiment Runs", "-"),
+        ),
+        (
+            "Experiment",
+            "Checkpoint Storage Cost",
+            f"${training_config.get('Checkpoint Storage Cost (USD)', 0):,.2f}",
+        ),
+        (
+            "Experiment",
+            "Total Compute Cost",
+            f"${training_config.get('Total Compute Cost (USD)', 0):,.2f}",
+        ),
+        (
+            "Experiment",
+            "Total Project Cost",
+            f"${training_config.get('Total Project Cost (USD)', 0):,.2f}",
+        ),
     ]
 
     df = pd.DataFrame(summary_rows, columns=["Category", "Parameter", "Value"])
-    df["Value"] = df["Value"].apply(lambda v: _display(v) if not isinstance(v, str) else v)
+    df["Value"] = df["Value"].apply(
+        lambda v: _display(v) if not isinstance(v, str) else v
+    )
 
     st.dataframe(
         df,
@@ -231,7 +340,6 @@ def render_final_display(training_config: Dict[str, Any]) -> None:
             "Value": st.column_config.TextColumn("Value", width="medium"),
         },
     )
-
 
 
 def render_model_size_results(training_config: Dict[str, Any]) -> None:
@@ -247,7 +355,9 @@ def render_model_size_results(training_config: Dict[str, Any]) -> None:
     st.subheader("Max Model Size")
 
     if parameter_count <= 0:
-        st.error("Could not solve — check that budget, tokens, and hardware are all set.")
+        st.error(
+            "Could not solve — check that budget, tokens, and hardware are all set."
+        )
         return
 
     m1, m2, m3, m4 = st.columns(4)
@@ -288,7 +398,6 @@ def render_model_size_results(training_config: Dict[str, Any]) -> None:
     _render_nearest_model_sizes(parameter_count)
 
 
-
 def _render_nearest_model_sizes(parameter_count: int) -> None:
     """Show a reference table of where the solved parameter count falls among well-known model sizes."""
     st.divider()
@@ -298,24 +407,30 @@ def _render_nearest_model_sizes(parameter_count: int) -> None:
     solved_inserted = False
     for name, size in COMMON_MODEL_SIZES.items():
         if not solved_inserted and parameter_count < size:
-            rows.append({
+            rows.append(
+                {
+                    "Model Size": f"► {_fmt_tokens(parameter_count)} (your budget)",
+                    "Parameters": f"{parameter_count:,}",
+                    "vs. Solved": "← solved",
+                }
+            )
+            solved_inserted = True
+        rows.append(
+            {
+                "Model Size": name,
+                "Parameters": f"{size:,}",
+                "vs. Solved": f"{parameter_count / size:.2f}×" if size > 0 else "-",
+            }
+        )
+
+    if not solved_inserted:
+        rows.append(
+            {
                 "Model Size": f"► {_fmt_tokens(parameter_count)} (your budget)",
                 "Parameters": f"{parameter_count:,}",
                 "vs. Solved": "← solved",
-            })
-            solved_inserted = True
-        rows.append({
-            "Model Size": name,
-            "Parameters": f"{size:,}",
-            "vs. Solved": f"{parameter_count / size:.2f}×" if size > 0 else "-",
-        })
-
-    if not solved_inserted:
-        rows.append({
-            "Model Size": f"► {_fmt_tokens(parameter_count)} (your budget)",
-            "Parameters": f"{parameter_count:,}",
-            "vs. Solved": "← solved",
-        })
+            }
+        )
 
     df = pd.DataFrame(rows)
     st.dataframe(df, use_container_width=True, hide_index=True)

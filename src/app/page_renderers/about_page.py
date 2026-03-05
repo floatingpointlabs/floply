@@ -63,7 +63,9 @@ ML video datasets (Kinetics, Something-Something, etc.) are stored on disk.
         """)
 
     # ── 3. Chinchilla / Scaling Law Banner ────────────────────────────────────
-    with st.expander("Scaling law health check — Chinchilla, full FT, and LoRA thresholds"):
+    with st.expander(
+        "Scaling law health check — Chinchilla, full FT, and LoRA thresholds"
+    ):
         st.markdown("""
 The banner adapts its thresholds to the training method in use.
 
@@ -333,4 +335,6 @@ Multi-node scaling is modelled as linear (no communication overhead penalty).
 | Storage | S3 only; no EFS, FSx for Lustre (common in production), or local NVMe during training. |
         """)
 
-    st.caption("Floply v2.0 · February 2026 · [Hoffmann et al. 2022](https://arxiv.org/abs/2203.15556) · [Kaplan et al. 2020](https://arxiv.org/abs/2001.08361)")
+    st.caption(
+        "Floply v2.0 · February 2026 · [Hoffmann et al. 2022](https://arxiv.org/abs/2203.15556) · [Kaplan et al. 2020](https://arxiv.org/abs/2001.08361)"
+    )

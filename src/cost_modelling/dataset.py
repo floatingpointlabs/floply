@@ -34,6 +34,7 @@ WHISPER_TOKENS_PER_SECOND = 50
 
 # -- Per-sample functions --------------------------------------------------
 
+
 def tokens_per_text_sample(avg_seq_len_words: int) -> int:
     """Estimate BPE tokens for a text sample of given word count."""
     return int(avg_seq_len_words * WORDS_TO_BPE_TOKENS)

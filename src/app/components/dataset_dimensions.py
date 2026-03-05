@@ -17,6 +17,7 @@ from src.cost_modelling.dataset import (
     WHISPER_TOKENS_PER_SECOND,
 )
 
+
 def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
     """Render the dataset dimensions form.
 
@@ -42,9 +43,11 @@ def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
 
         ds_col1, ds_col2, ds_col3 = st.columns(3)
         with ds_col1:
-            data_type = st.selectbox("Select Modality", 
-                                     options=["Text", "Image", "Audio", "Video"], 
-                                     index=None)
+            data_type = st.selectbox(
+                "Select Modality",
+                options=["Text", "Image", "Audio", "Video"],
+                index=None,
+            )
 
         with ds_col2:
             dataset_size = _scaled_number_input(
@@ -111,10 +114,18 @@ def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
                             step=1,
                             help="Number of RVQ codebook levels.",
                         )
-                        base_rate = ENCODEC_TOKENS_PER_SECOND if "EnCodec" in audio_tokenizer else SOUNDSTREAM_TOKENS_PER_SECOND
-                        tokens_per_sample = tokens_per_audio_sample(clip_duration, base_rate, num_codebooks)
+                        base_rate = (
+                            ENCODEC_TOKENS_PER_SECOND
+                            if "EnCodec" in audio_tokenizer
+                            else SOUNDSTREAM_TOKENS_PER_SECOND
+                        )
+                        tokens_per_sample = tokens_per_audio_sample(
+                            clip_duration, base_rate, num_codebooks
+                        )
                     else:
-                        tokens_per_sample = tokens_per_audio_sample(clip_duration, WHISPER_TOKENS_PER_SECOND)
+                        tokens_per_sample = tokens_per_audio_sample(
+                            clip_duration, WHISPER_TOKENS_PER_SECOND
+                        )
                     bytes_per_sample = bytes_per_audio_sample(clip_duration)
                 case "Video":
                     vid_duration = st.number_input(
@@ -142,8 +153,12 @@ def render_dataset_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
                         options=[14, 16, 32],
                         index=1,
                     )
-                    tokens_per_sample = tokens_per_video_sample(vid_duration, sampled_fps, vid_resolution, vid_patch_size)
-                    bytes_per_sample = bytes_per_video_sample(vid_duration, sampled_fps, vid_resolution)
+                    tokens_per_sample = tokens_per_video_sample(
+                        vid_duration, sampled_fps, vid_resolution, vid_patch_size
+                    )
+                    bytes_per_sample = bytes_per_video_sample(
+                        vid_duration, sampled_fps, vid_resolution
+                    )
 
         if data_type and dataset_size:
             total_tokens = int(tokens_per_sample * dataset_size)

@@ -4,7 +4,9 @@ from streamlit.components.v1 import html
 
 from src.app.config import configure_page, PAGE_TITLE, _TAB_CSS
 from src.app.page_renderers.about_page import render_about_page
-from src.app.page_renderers.cost_estimator_page import render_create_a_training_budget_page
+from src.app.page_renderers.cost_estimator_page import (
+    render_create_a_training_budget_page,
+)
 from src.app.page_renderers.model_size_page import render_budget_optimizer_page
 from src.app.page_renderers.min_dataset_size_page import render_min_dataset_size_page
 

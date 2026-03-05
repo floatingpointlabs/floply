@@ -13,7 +13,10 @@ from src.app.components.dataset_dimensions import render_dataset_dimensions
 from src.app.components.training_dimensions import render_training_dimensions
 from src.app.components.compute_dimensions import render_compute_dimensions
 from src.app.components.eval_dimensions import render_eval_dimensions
-from src.app.components.output_dimensions import render_cost_summary_charts, render_final_display
+from src.app.components.output_dimensions import (
+    render_cost_summary_charts,
+    render_final_display,
+)
 from src.app.helpers import _chinchilla_banner
 
 # Keys used to gate each successive section of the form

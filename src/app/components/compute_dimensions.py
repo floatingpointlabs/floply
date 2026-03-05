@@ -4,8 +4,16 @@ import streamlit as st
 
 from src.app.config import INSTANCE_DISPLAY_NAMES, MIXED_PRECISION_OPTIONS
 from src.app.helpers import _format_wall_clock_time, _format_gpu_hours
-from src.cost_modelling.calculator import calculate_training_flops, estimate_compute_cost, estimate_gpu_memory_gb
-from src.cost_modelling.gpu_specs import list_available_instances, get_gpu_instance, peak_flops_for_precision
+from src.cost_modelling.calculator import (
+    calculate_training_flops,
+    estimate_compute_cost,
+    estimate_gpu_memory_gb,
+)
+from src.cost_modelling.gpu_specs import (
+    list_available_instances,
+    get_gpu_instance,
+    peak_flops_for_precision,
+)
 
 
 def _render_hardware_widgets(
@@ -27,6 +35,7 @@ def _render_hardware_widgets(
     Returns:
         Dict containing all hardware parameters needed by the caller.
     """
+
     def _key(name: str) -> str | None:
         return f"{key_prefix}_{name}" if key_prefix else None
 
@@ -60,7 +69,9 @@ def _render_hardware_widgets(
             index=0,
             key=_key("instance"),
         )
-        instance_type = available_instances[instance_display_options.index(instance_display)]
+        instance_type = available_instances[
+            instance_display_options.index(instance_display)
+        ]
 
         num_instances = st.number_input(
             "Number of Instances",
@@ -94,7 +105,9 @@ def _render_hardware_widgets(
             key=_key("mfu"),
         )
         mfu = mfu_pct / 100.0
-        st.caption(f"Instance default MFU for {instance_spec['gpu']}: {instance_spec['typical_mfu']:.0%}")
+        st.caption(
+            f"Instance default MFU for {instance_spec['gpu']}: {instance_spec['typical_mfu']:.0%}"
+        )
 
     total_gpus = instance_spec["gpu_count"] * num_instances
     peak_flops_per_gpu = peak_flops_for_precision(instance_spec, mixed_precision)
@@ -112,7 +125,9 @@ def _render_hardware_widgets(
     }
 
 
-def render_hardware_config(training_config: Dict[str, Any], key_prefix: str = "hw") -> Dict[str, Any]:
+def render_hardware_config(
+    training_config: Dict[str, Any], key_prefix: str = "hw"
+) -> Dict[str, Any]:
     """Render hardware-only compute config for solver pages.
 
     Shows instance selection, MFU, epochs, and gradient checkpointing without
@@ -213,13 +228,15 @@ def render_compute_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
             epochs=epochs,
             gradient_checkpointing=gradient_checkpointing,
         )
-        wall_clock_hours, gpu_hours, compute_cost, wall_clock_days = estimate_compute_cost(
-            total_flops=total_flops,
-            peak_flops_per_gpu=peak_flops_per_gpu,
-            mfu=mfu,
-            total_gpus=total_gpus,
-            num_instances=hw["num_instances"],
-            hourly_cost=instance_spec["hourly_cost"],
+        wall_clock_hours, gpu_hours, compute_cost, wall_clock_days = (
+            estimate_compute_cost(
+                total_flops=total_flops,
+                peak_flops_per_gpu=peak_flops_per_gpu,
+                mfu=mfu,
+                total_gpus=total_gpus,
+                num_instances=hw["num_instances"],
+                hourly_cost=instance_spec["hourly_cost"],
+            )
         )
 
         training_config["Epochs"] = epochs
@@ -239,7 +256,9 @@ def render_compute_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
 
         weights_gb, activation_gb, memory_per_gpu_gb = estimate_gpu_memory_gb(
             effective_params=effective_params,
-            trainable_params=training_config.get("Trainable Parameters", effective_params),
+            trainable_params=training_config.get(
+                "Trainable Parameters", effective_params
+            ),
             ft_method=training_config.get("Fine-Tuning Method"),
             total_gpus=total_gpus,
             rl_multiplier=training_config.get("Memory Multiplier", 1),
@@ -264,7 +283,11 @@ def render_compute_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
                 f"{abs(headroom_gb):.1f} GB. Consider more instances, gradient checkpointing, or QLoRA."
             )
         else:
-            act_note = f" (weights: {weights_gb:.1f} GB + activations: {activation_gb:.1f} GB)" if activation_gb > 0 else ""
+            act_note = (
+                f" (weights: {weights_gb:.1f} GB + activations: {activation_gb:.1f} GB)"
+                if activation_gb > 0
+                else ""
+            )
             st.success(
                 f"GPU memory fits: {memory_per_gpu_gb:.1f} GB / {vram_per_gpu} GB per GPU{act_note} "
                 f"({headroom_gb:.1f} GB headroom)."

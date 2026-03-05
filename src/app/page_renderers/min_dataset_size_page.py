@@ -108,12 +108,18 @@ def render_min_dataset_size_page() -> None:
                     )
                     ft_d_model = st.number_input(
                         "Hidden Dimension (d_model)",
-                        min_value=64, max_value=65536, value=4096, step=64,
+                        min_value=64,
+                        max_value=65536,
+                        value=4096,
+                        step=64,
                         key="mds_ft_d_model",
                     )
                     ft_num_layers = st.number_input(
                         "Number of Layers",
-                        min_value=1, max_value=512, value=32, step=1,
+                        min_value=1,
+                        max_value=512,
+                        value=32,
+                        step=1,
                         key="mds_ft_num_layers",
                     )
 
@@ -133,13 +139,23 @@ def render_min_dataset_size_page() -> None:
                 with lora_col1:
                     lora_rank = st.slider(
                         "LoRA Rank (r)",
-                        min_value=1, max_value=128, value=16, step=1,
+                        min_value=1,
+                        max_value=128,
+                        value=16,
+                        step=1,
                         help="Higher rank = more expressive adapters but more parameters.",
                         key="mds_lora_rank",
                     )
                     target_modules = st.multiselect(
                         "Target Modules",
-                        options=["q_proj", "k_proj", "v_proj", "o_proj", "up_proj", "down_proj"],
+                        options=[
+                            "q_proj",
+                            "k_proj",
+                            "v_proj",
+                            "o_proj",
+                            "up_proj",
+                            "down_proj",
+                        ],
                         default=["q_proj", "k_proj", "v_proj", "o_proj"],
                         help="Which weight matrices to attach LoRA adapters to.",
                         key="mds_target_modules",
@@ -173,7 +189,9 @@ def render_min_dataset_size_page() -> None:
                             "⚠ Approximate LoRA param count — select a preset model for GQA-aware calculation."
                         )
                 else:
-                    st.warning("Configure LoRA settings above to calculate trainable parameters.")
+                    st.warning(
+                        "Configure LoRA settings above to calculate trainable parameters."
+                    )
                     return
             else:
                 trainable_params = ft_param_count
@@ -192,7 +210,8 @@ def render_min_dataset_size_page() -> None:
         _render_requirements_section(
             "Pre-Training Data Requirements",
             f"Chinchilla scaling laws (Hoffmann et al. 2022) for a **{_fmt_tokens(pre_param_count)}-parameter** model.",
-            tiers, effective_count,
+            tiers,
+            effective_count,
         )
     else:  # Fine-Tuning
         if ft_method == "Full Fine-Tuning":
@@ -200,7 +219,8 @@ def render_min_dataset_size_page() -> None:
             _render_requirements_section(
                 "Full Fine-Tuning Data Requirements",
                 f"Practical thresholds for a **{_fmt_tokens(ft_param_count)}-parameter** base model.",
-                tiers, effective_count,
+                tiers,
+                effective_count,
             )
         else:
             tiers, effective_count = LORA_TIERS, trainable_params
@@ -211,7 +231,9 @@ def render_min_dataset_size_page() -> None:
                     f"with **{_fmt_tokens(trainable_params)} trainable adapter parameters** "
                     f"({trainable_params / ft_param_count * 100:.2f}% of base)."
                 ),
-                tiers, effective_count, lora_note=True,
+                tiers,
+                effective_count,
+                lora_note=True,
             )
 
     st.divider()
@@ -219,6 +241,7 @@ def render_min_dataset_size_page() -> None:
 
 
 # ── Output helpers ────────────────────────────────────────────────────────────
+
 
 def _render_requirements_section(
     title: str,
@@ -244,26 +267,28 @@ def _render_tier_chart(tiers: list, effective_count: int) -> None:
 
     for tier in reversed(tiers):
         x_start = effective_count * tier["ratio_min_chart"]
-        x_end   = effective_count * tier["ratio_max"]
-        width   = x_end - x_start
-        label   = f"{_fmt_tokens(int(x_start))}–{_fmt_tokens(int(x_end))}"
+        x_end = effective_count * tier["ratio_max"]
+        width = x_end - x_start
+        label = f"{_fmt_tokens(int(x_start))}–{_fmt_tokens(int(x_end))}"
 
-        fig.add_trace(go.Bar(
-            x=[width],
-            y=[tier["tier"]],
-            base=[x_start],
-            orientation="h",
-            marker_color=tier["color"],
-            name=tier["tier"],
-            text=label,
-            textposition="inside",
-            hovertemplate=(
-                f"<b>{tier['tier']}</b><br>"
-                f"{label} tokens<br>"
-                f"{tier['label']}<extra></extra>"
-            ),
-            showlegend=False,
-        ))
+        fig.add_trace(
+            go.Bar(
+                x=[width],
+                y=[tier["tier"]],
+                base=[x_start],
+                orientation="h",
+                marker_color=tier["color"],
+                name=tier["tier"],
+                text=label,
+                textposition="inside",
+                hovertemplate=(
+                    f"<b>{tier['tier']}</b><br>"
+                    f"{label} tokens<br>"
+                    f"{tier['label']}<extra></extra>"
+                ),
+                showlegend=False,
+            )
+        )
 
     fig.update_layout(
         barmode="overlay",
@@ -289,7 +314,9 @@ def _render_tier_chart(tiers: list, effective_count: int) -> None:
 
 def _render_reverse_calculator(tiers: list, effective_count: int) -> None:
     """Translate tier token requirements into real example counts for a chosen modality."""
-    with st.expander("Reverse Dataset Calculator — How much data do I need?", expanded=True):
+    with st.expander(
+        "Reverse Dataset Calculator — How much data do I need?", expanded=True
+    ):
         modality = st.selectbox(
             "Modality",
             options=["Text", "Image", "Audio", "Video"],
@@ -303,7 +330,10 @@ def _render_reverse_calculator(tiers: list, effective_count: int) -> None:
             with rc_col1:
                 avg_words = st.number_input(
                     "Avg sequence length (words)",
-                    min_value=1, max_value=100_000, value=400, step=50,
+                    min_value=1,
+                    max_value=100_000,
+                    value=400,
+                    step=50,
                     help="Average number of words per training example. 1 word ≈ 1.3 BPE tokens.",
                     key="mds_rc_avg_words",
                 )
@@ -316,13 +346,15 @@ def _render_reverse_calculator(tiers: list, effective_count: int) -> None:
             with rc_col1:
                 resolution = st.selectbox(
                     "Image resolution (px)",
-                    options=[224, 336, 512, 1024], index=0,
+                    options=[224, 336, 512, 1024],
+                    index=0,
                     help="Square image side length in pixels.",
                     key="mds_rc_resolution",
                 )
                 patch_size = st.selectbox(
                     "Patch size (px)",
-                    options=[14, 16, 32], index=1,
+                    options=[14, 16, 32],
+                    index=1,
                     help="ViT patch size. Smaller patches = more tokens per image.",
                     key="mds_rc_patch_size",
                 )
@@ -335,7 +367,10 @@ def _render_reverse_calculator(tiers: list, effective_count: int) -> None:
             with rc_col1:
                 clip_duration = st.number_input(
                     "Avg clip duration (seconds)",
-                    min_value=0.1, max_value=3600.0, value=30.0, step=5.0,
+                    min_value=0.1,
+                    max_value=3600.0,
+                    value=30.0,
+                    step=5.0,
                     help="Average audio clip length.",
                     key="mds_rc_clip_duration",
                 )
@@ -351,7 +386,10 @@ def _render_reverse_calculator(tiers: list, effective_count: int) -> None:
                 if "EnCodec" in audio_tokenizer or "SoundStream" in audio_tokenizer:
                     num_codebooks = st.number_input(
                         "Codebooks",
-                        min_value=1, max_value=16, value=8, step=1,
+                        min_value=1,
+                        max_value=16,
+                        value=8,
+                        step=1,
                         key="mds_rc_codebooks",
                     )
                     base_rate = (
@@ -359,9 +397,13 @@ def _render_reverse_calculator(tiers: list, effective_count: int) -> None:
                         if "EnCodec" in audio_tokenizer
                         else SOUNDSTREAM_TOKENS_PER_SECOND
                     )
-                    tokens_per_sample = tokens_per_audio_sample(clip_duration, base_rate, num_codebooks)
+                    tokens_per_sample = tokens_per_audio_sample(
+                        clip_duration, base_rate, num_codebooks
+                    )
                 else:
-                    tokens_per_sample = tokens_per_audio_sample(clip_duration, WHISPER_TOKENS_PER_SECOND)
+                    tokens_per_sample = tokens_per_audio_sample(
+                        clip_duration, WHISPER_TOKENS_PER_SECOND
+                    )
             sample_unit = "audio clips"
             with rc_col2:
                 st.metric("Tokens per clip", _fmt_tokens(tokens_per_sample))
@@ -370,23 +412,31 @@ def _render_reverse_calculator(tiers: list, effective_count: int) -> None:
             with rc_col1:
                 vid_duration = st.number_input(
                     "Avg clip duration (seconds)",
-                    min_value=0.1, max_value=3600.0, value=10.0, step=1.0,
+                    min_value=0.1,
+                    max_value=3600.0,
+                    value=10.0,
+                    step=1.0,
                     key="mds_rc_vid_duration",
                 )
                 sampled_fps = st.number_input(
                     "Sampled FPS",
-                    min_value=1, max_value=60, value=1, step=1,
+                    min_value=1,
+                    max_value=60,
+                    value=1,
+                    step=1,
                     help="Frames sampled per second (not source FPS). Lower = fewer tokens.",
                     key="mds_rc_fps",
                 )
                 vid_resolution = st.selectbox(
                     "Frame resolution (px)",
-                    options=[224, 336, 512], index=0,
+                    options=[224, 336, 512],
+                    index=0,
                     key="mds_rc_vid_resolution",
                 )
                 vid_patch_size = st.selectbox(
                     "Patch size (px)",
-                    options=[14, 16, 32], index=1,
+                    options=[14, 16, 32],
+                    index=1,
                     key="mds_rc_vid_patch_size",
                 )
             tokens_per_sample = tokens_per_video_sample(

@@ -14,8 +14,14 @@ PROVIDERS_DIR = Path(__file__).parent.parent / "data" / "providers"
 
 
 _FLOAT_FIELDS = {"peak_flops_fp16", "peak_flops_fp32", "hourly_cost", "typical_mfu"}
-_INT_FIELDS = {"gpu_count", "memory_per_gpu", "total_gpu_memory", "vcpus",
-               "system_memory", "network_bandwidth"}
+_INT_FIELDS = {
+    "gpu_count",
+    "memory_per_gpu",
+    "total_gpu_memory",
+    "vcpus",
+    "system_memory",
+    "network_bandwidth",
+}
 
 
 def load_instances() -> dict[str, dict[str, Any]]:
