@@ -1,0 +1,109 @@
+# Curated GPU hardware facts — the values AWS publishes nowhere.
+#
+# peak_flops_* come from NVIDIA datasheets (dense / non-sparse figures).
+# typical_mfu is empirical: single-node, dense-transformer training.
+#
+# Keyed by GPU model as reported by ec2:DescribeInstanceTypes
+# GpuInfo.Gpus[].Name, so a newly discovered instance type resolves its
+# throughput automatically. A GPU with no entry here is quarantined rather
+# than guessed at.
+#
+# precision_multipliers are relative to peak_flops_fp16. An ABSENT key means
+# the die has no hardware support for that format — not that it runs at 1x.
+# fp32 is null because it uses the absolute peak_flops_fp32 value instead.
+
+schema_version: 1
+
+gpus:
+  V100:
+    vendor: NVIDIA
+    aliases: ["V100", "Tesla V100", "NVIDIA V100"]
+    peak_flops_fp16: 125.0e12
+    peak_flops_fp32: 15.7e12
+    typical_mfu: 0.40
+    precision_multipliers:
+      fp16: 1.0
+      int8: 0.5          # 62.8 TOPS via DP4A; Volta has no int8 tensor cores
+      fp32: null
+      # no bf16 — Ampere and later only
+      # no tf32 — Ampere and later only
+      # no fp8  — Hopper and later only
+      # no fp4  — Blackwell and later only
+    description: "NVIDIA V100 (Volta), legacy training generation"
+    source: "NVIDIA V100 SXM2 datasheet, dense"
+
+  A100:
+    vendor: NVIDIA
+    aliases: ["A100", "A100-SXM4-40GB", "A100-SXM4-80GB", "NVIDIA A100"]
+    peak_flops_fp16: 312.0e12
+    peak_flops_fp32: 19.5e12
+    typical_mfu: 0.45
+    precision_multipliers:
+      fp16: 1.0
+      bf16: 1.0
+      tf32: 0.5          # 156 TFLOPS
+      int8: 2.0          # 624 TOPS
+      fp32: null
+      # no fp8 — Hopper and later only
+      # no fp4 — Blackwell and later only
+    description: "NVIDIA A100 (Ampere), optimized for deep learning training"
+    source: "NVIDIA A100 datasheet, dense (without sparsity)"
+
+  H100:
+    vendor: NVIDIA
+    aliases: ["H100", "H100 80GB HBM3", "NVIDIA H100"]
+    peak_flops_fp16: 989.0e12
+    peak_flops_fp32: 67.0e12
+    typical_mfu: 0.55
+    precision_multipliers:
+      fp16: 1.0
+      bf16: 1.0
+      tf32: 0.5          # 495 TFLOPS
+      fp8:  2.0          # 1979 TFLOPS
+      int8: 2.0          # 1979 TOPS
+      fp32: null
+      # no fp4 — Blackwell and later only
+    description: "NVIDIA H100 (Hopper), large-scale training"
+    source: "NVIDIA H100 SXM5 datasheet, dense (without sparsity)"
+
+  H200:
+    vendor: NVIDIA
+    aliases: ["H200", "NVIDIA H200"]
+    peak_flops_fp16: 989.0e12
+    peak_flops_fp32: 67.0e12
+    typical_mfu: 0.55
+    precision_multipliers:
+      fp16: 1.0
+      bf16: 1.0
+      tf32: 0.5
+      fp8:  2.0
+      int8: 2.0
+      fp32: null
+    description: "NVIDIA H200 (Hopper), H100 compute with larger/faster HBM3e"
+    source: "NVIDIA H200 datasheet, dense. Same GH100 compute die as H100."
+
+  B200:
+    vendor: NVIDIA
+    aliases: ["B200", "NVIDIA B200"]
+    peak_flops_fp16: 2250.0e12
+    peak_flops_fp32: 80.0e12      # APPROXIMATE — verify before relying on fp32 estimates
+    typical_mfu: 0.50             # provisional; little public dense-training data yet
+    precision_multipliers:
+      fp16: 1.0
+      bf16: 1.0
+      tf32: 0.5
+      fp8:  2.0          # 4.5 PFLOPS
+      fp4:  4.0          # 9 PFLOPS
+      int8: 2.0
+      fp32: null
+    description: "NVIDIA B200 (Blackwell), first generation with fp4 tensor cores"
+    source: "NVIDIA Blackwell datasheet, dense. fp32 and typical_mfu provisional."
+
+# Per-instance overrides, applied on top of the GPU-model entry above.
+#
+# Needed because GpuInfo.Gpus[].Name is not a die identifier: AWS reports
+# "H100" for both SXM5 (989 TF dense fp16) and PCIe/NVL (~756 TF) parts, and
+# typical_mfu genuinely varies with interconnect at multi-node scale.
+instance_overrides: {}
+  # p5e.48xlarge:
+  #   typical_mfu: 0.52

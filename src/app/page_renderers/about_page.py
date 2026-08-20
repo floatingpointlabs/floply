@@ -1,4 +1,57 @@
+import pandas as pd
 import streamlit as st
+
+from src.app.components.region_selector import current_region
+from src.cost_modelling.gpu_specs import (
+    catalog_for,
+    list_available_instances,
+    supported_precisions,
+)
+
+
+def _render_instance_reference() -> None:
+    """Generate the instance table from live pricing.
+
+    Previously a hardcoded markdown table — a third copy of the same numbers,
+    guaranteed to drift the moment prices moved.
+    """
+    region = current_region()
+    catalog = catalog_for(region)
+
+    if not catalog.provenance.is_usable:
+        st.warning("Live pricing is unavailable, so the instance table cannot be shown.")
+        return
+
+    rows = []
+    for instance_type in list_available_instances(region):
+        spec = catalog.spec_for(instance_type)
+        rows.append({
+            "Instance": instance_type,
+            "GPU": spec["gpu"],
+            "Count": spec["gpu_count"],
+            "VRAM/GPU": f"{spec['memory_per_gpu']} GB",
+            "FP16 TFLOPS": round(spec["peak_flops_fp16"] / 1e12),
+            "Typical MFU": f"{spec['typical_mfu']:.0%}",
+            "Precisions": ", ".join(supported_precisions(spec)),
+            "Cost/hr": f"${spec['hourly_cost']:,.2f}",
+        })
+
+    st.caption(
+        f"On-demand list price, Linux, shared tenancy — {region}, "
+        f"{catalog.provenance.summary().lower()}."
+    )
+    st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+    st.markdown(
+        "FP16 TFLOPS and typical MFU are curated NVIDIA datasheet figures from "
+        "`src/data/gpu_hardware.yaml` — AWS publishes neither. Everything else "
+        "is fetched live.\n\n"
+        "Multi-node scaling is modelled as linear (no communication overhead penalty)."
+    )
+
+    if catalog.provenance.quarantined:
+        st.markdown("**Discovered but unusable — no curated throughput:**")
+        for instance_type, reason in sorted(catalog.provenance.quarantined.items()):
+            st.markdown(f"- `{instance_type}` — {reason}")
 
 
 def render_about_page():
@@ -301,20 +354,7 @@ total_project_cost = total_compute_cost + dataset_storage_cost + checkpoint_stor
 
     # ── 10. AWS Instance Reference ─────────────────────────────────────────────
     with st.expander("AWS GPU instance reference — pricing & specs"):
-        st.markdown("""
-Prices are on-demand averages across US regions, as of February 2026.
-
-| Instance | GPU | Count | VRAM/GPU | FP16 TFLOPS | Cost/hr |
-|---|---|---|---|---|---|
-| p4d.24xlarge | A100 | 8 | 40 GB | 312 | $26.87 |
-| p4de.24xlarge | A100 | 8 | 80 GB | 312 | $32.77 |
-| p5.48xlarge | H100 | 8 | 80 GB | 989 | $66.64 |
-| p3.16xlarge | V100 | 8 | 16 GB | 125 | $24.48 |
-| p3dn.24xlarge | V100 | 8 | 32 GB | 125 | $31.22 |
-
-All instances use NVLink / NVSwitch for intra-node GPU communication.
-Multi-node scaling is modelled as linear (no communication overhead penalty).
-        """)
+        _render_instance_reference()
 
     # ── 11. Limitations ────────────────────────────────────────────────────────
     with st.expander("Known limitations & assumptions"):

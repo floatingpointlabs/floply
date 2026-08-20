@@ -31,10 +31,99 @@ streamlit run src/app/app.py
 
 ```bash
 docker build -t floply .
-docker run -p 8501:8501 floply
+docker run -p 8501:8501 \
+  -v floply-cache:/app/.cache \
+  -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY \
+  floply
 ```
 
 Then open `http://localhost:8501` in your browser.
+
+Both paths need AWS credentials — see below.
+
+## AWS pricing
+
+Floply reads instance prices and hardware specs live from the AWS Price List and
+EC2 APIs. **There is no bundled price snapshot**: a cost estimator quoting
+months-old prices is worse than one that says it cannot price at all.
+
+### Credentials
+
+Standard boto3 resolution — environment variables, `~/.aws/credentials`, or an
+instance/task role. The required policy is read-only and grants no access to
+your account's data:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {"Effect": "Allow", "Action": ["pricing:GetProducts"], "Resource": "*"},
+    {"Effect": "Allow",
+     "Action": ["ec2:DescribeInstanceTypes", "ec2:DescribeInstanceTypeOfferings"],
+     "Resource": "*"}
+  ]
+}
+```
+
+A cheap credential check runs at startup so a bad policy surfaces at deploy time
+rather than to a user mid-form.
+
+### Caching
+
+Prices are fetched lazily — nothing calls AWS until a price is actually needed,
+so loading the app or reading the About tab costs nothing. Results are cached per
+region (30 days by default) with hardware specs cached separately (90 days),
+which keeps a cold start to one region's worth of calls rather than all of them.
+
+The TTL means *"try to refresh"*, never *"delete"*. If AWS is unreachable, cached
+prices keep being served behind a prominent staleness warning; the app only
+refuses to price when it has nothing cached at all. **Mount a volume over
+`/app/.cache`** so this survives container replacement.
+
+Prime or inspect the cache directly:
+
+```bash
+python -m src.cost_modelling.pricing.refresh_cli            # refresh stale entries
+python -m src.cost_modelling.pricing.refresh_cli --force    # refresh everything
+python -m src.cost_modelling.pricing.refresh_cli --probe-only  # check credentials
+```
+
+### Configuration
+
+All settings are environment variables; the common ones:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `FLOPLY_AWS_REGIONS` | six common regions | Regions offered in the selector |
+| `FLOPLY_DEFAULT_REGION` | `us-east-1` | Initial selection |
+| `FLOPLY_PRICING_TTL_DAYS` | `30` | Price refresh threshold |
+| `FLOPLY_SPECS_TTL_DAYS` | `90` | Hardware spec refresh threshold |
+| `FLOPLY_CACHE_DIR` | `.cache/floply` | Cache location |
+| `FLOPLY_INSTANCE_FAMILY_ALLOWLIST` | `p` | Instance families eligible for discovery |
+| `FLOPLY_DISCOVER_MIN_GPUS` | `4` | Minimum GPUs for a discovered instance |
+
+See `src/cost_modelling/pricing/settings.py` for the full list.
+
+> Prices shown are **on-demand list prices** (Linux, shared tenancy). Real
+> training spend usually goes through Capacity Blocks, Savings Plans, or Spot,
+> which are substantially cheaper — treat the output as an upper bound.
+
+## Adding a GPU
+
+Throughput (`peak_flops_*`) and `typical_mfu` come from NVIDIA datasheets and
+empirical measurement — AWS publishes neither, so they are curated in
+`src/data/gpu_hardware.yaml`, keyed by GPU model.
+
+This is what makes instance discovery safe: when AWS starts offering a new
+family, Floply picks up its specs and price automatically, but **quarantines it**
+until its GPU has a curated entry. A quarantined instance is listed in the
+sidebar's *Pricing data source* panel with the exact key to add, rather than
+appearing with guessed throughput.
+
+An absent entry in `precision_multipliers` means the die has *no hardware
+support* for that format — not that it runs at 1×. That distinction is why
+selecting fp4 on an A100 is now rejected instead of silently reporting double
+the real throughput.
 
 ## Adding a model
 

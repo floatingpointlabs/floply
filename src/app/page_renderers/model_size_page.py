@@ -24,12 +24,27 @@ from src.cost_modelling.calculator import (
     calculate_lora_trainable_params,
     BYTES_PER_PARAM_CHECKPOINT,
 )
+from src.app.components.region_selector import current_region
 from src.cost_modelling.gpu_specs import (
+    PricingUnavailableError,
     get_gpu_instance,
+    get_provenance,
     get_storage_cost,
     list_available_instances,
+    list_storage_classes,
     peak_flops_for_precision,
+    supported_precisions,
 )
+
+
+def _catalog_stamp(region: str) -> str:
+    """Cache-busting token for @st.cache_data functions that read prices.
+
+    Changes whenever the underlying pricing does, so cached derivations are
+    recomputed after a refresh instead of outliving the data they came from.
+    """
+    provenance = get_provenance(region)
+    return provenance.fetched_at.isoformat() if provenance.fetched_at else "unavailable"
 
 
 _ARCH_MULTIPLIERS = {
@@ -86,17 +101,23 @@ _MAX_INSTANCES = 1_024
 
 
 @st.cache_data
-def _auto_configure_hardware() -> dict:
+def _auto_configure_hardware(region: str, catalog_stamp: str) -> dict:
     """Pick the most cost-efficient available instance and return its config.
 
     Cost efficiency = effective_TFLOPS_per_$ = peak_flops × gpus × typical_mfu / hourly_cost.
-    H100 (p5.48xlarge) currently wins: ~65 TFLOPS/$ vs A100 ~42 TFLOPS/$.
+    H100 (p5.48xlarge) typically wins: ~65 TFLOPS/$ vs A100 ~42 TFLOPS/$.
+
+    Args:
+        region: AWS region. Prices differ per region, so the winner can differ too.
+        catalog_stamp: Provenance timestamp. Both arguments exist purely to key
+            the cache — without them this returned the first region's answer
+            forever, even after a price refresh.
     """
     best_instance = None
     best_efficiency = -1.0
 
-    for instance_type in list_available_instances():
-        spec = get_gpu_instance(instance_type)
+    for instance_type in list_available_instances(region):
+        spec = get_gpu_instance(instance_type, region)
         flops_per_dollar = (
             spec["peak_flops_fp16"] * spec["gpu_count"] * spec["typical_mfu"]
             / spec["hourly_cost"]
@@ -105,10 +126,17 @@ def _auto_configure_hardware() -> dict:
             best_efficiency = flops_per_dollar
             best_instance = instance_type
 
-    spec = get_gpu_instance(best_instance)
-    peak_flops = peak_flops_for_precision(spec, "bf16")
+    if best_instance is None:
+        raise PricingUnavailableError(region, "No priced instances in this region.")
+
+    spec = get_gpu_instance(best_instance, region)
+    # bf16 is the modern training default, but Volta-era GPUs predate it.
+    precisions = supported_precisions(spec)
+    precision = "bf16" if "bf16" in precisions else "fp16"
+    peak_flops = peak_flops_for_precision(spec, precision)
     return {
         "instance_type": best_instance,
+        "mixed_precision": precision,
         "instance_spec": spec,
         "peak_flops_per_gpu": peak_flops,
         "mfu": spec["typical_mfu"],
@@ -395,7 +423,8 @@ def render_budget_optimizer_page():
                 n_adapter = ft_base_params   # SFT: all params are trainable
 
     # ── 2. Auto-configure hardware (pure computation, needed for schedule defaults) ──
-    hw = _auto_configure_hardware()
+    region = current_region()
+    hw = _auto_configure_hardware(region, _catalog_stamp(region))
     peak_flops_per_gpu = hw["peak_flops_per_gpu"]
     mfu = hw["mfu"]
     gpus_per_instance = hw["gpus_per_instance"]
@@ -418,9 +447,11 @@ def render_budget_optimizer_page():
     # automatically. If the user manually overrides a widget, the override sticks until
     # the next Project Setup change.
     quick_n = _quick_n_estimate(compute_budget, multiplier, hw)
+    # Region belongs in the signature: changing it changes prices, so the
+    # derived schedule defaults must be recomputed alongside them.
     setup_sig = (
         compute_budget, modality, training_type, ft_method or "",
-        ft_base_model_name or "", lora_rank,
+        ft_base_model_name or "", lora_rank, region,
     )
 
     if st.session_state.get("ms_setup_sig") != setup_sig:
@@ -457,7 +488,7 @@ def render_budget_optimizer_page():
 
     hp_fraction        = hp_fraction_pct / 100.0
     project_multiplier = 1.0 + num_hp_trials * hp_fraction
-    cost_per_tb_month  = get_storage_cost(storage_class)
+    cost_per_tb_month  = get_storage_cost(storage_class, region)
     storage_cost_per_token = (
         (bytes_per_token / 1e12) * cost_per_tb_month * storage_duration_months
     )
@@ -1073,12 +1104,13 @@ def render_budget_optimizer_page():
                 help="How long to retain dataset + checkpoints in object storage.",
                 key="ms_storage_months",
             )
+            # Options and prices both come from live pricing; the previous
+            # hardcoded "$23/TB/mo" labels were a fourth copy of this data.
             st.selectbox(
                 "Storage Class",
-                options=["standard", "standard_ia"],
+                options=list_storage_classes(region),
                 help="S3 storage tier.",
-                format_func=lambda x: "Standard ($23/TB/mo)" if x == "standard"
-                                      else "Infrequent Access ($13.8/TB/mo)",
+                format_func=lambda name: f"{name} (${get_storage_cost(name, region):,.2f}/TB/mo)",
                 key="ms_storage_class",
             )
         with sched_col4:

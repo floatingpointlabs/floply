@@ -2,10 +2,16 @@ from typing import Dict, Any
 
 import streamlit as st
 
-from src.app.config import INSTANCE_DISPLAY_NAMES, MIXED_PRECISION_OPTIONS
+from src.app.components.region_selector import current_region
 from src.app.helpers import _format_wall_clock_time, _format_gpu_hours
 from src.cost_modelling.calculator import calculate_training_flops, estimate_compute_cost, estimate_gpu_memory_gb
-from src.cost_modelling.gpu_specs import list_available_instances, get_gpu_instance, peak_flops_for_precision
+from src.cost_modelling.gpu_specs import (
+    format_instance_label,
+    get_gpu_instance,
+    list_available_instances,
+    peak_flops_for_precision,
+    supported_precisions,
+)
 
 
 def _render_hardware_widgets(
@@ -48,19 +54,23 @@ def _render_hardware_widgets(
             key=_key("grad_ckpt"),
         )
 
+    region = current_region()
+
     with col2:
         st.caption("Compute cluster")
-        available_instances = list_available_instances()
-        instance_display_options = [
-            INSTANCE_DISPLAY_NAMES.get(i, i) for i in available_instances
-        ]
-        instance_display = st.selectbox(
+        available_instances = list_available_instances(region)
+        # The option value is the instance type, not its label: labels carry the
+        # price, so a refresh would otherwise silently reset the user's choice.
+        instance_type = st.selectbox(
             "Instance Type",
-            options=instance_display_options,
+            options=available_instances,
             index=0,
+            format_func=lambda name: format_instance_label(
+                get_gpu_instance(name, region)),
             key=_key("instance"),
         )
-        instance_type = available_instances[instance_display_options.index(instance_display)]
+
+        instance_spec = get_gpu_instance(instance_type, region)
 
         num_instances = st.number_input(
             "Number of Instances",
@@ -68,18 +78,21 @@ def _render_hardware_widgets(
             max_value=512,
             value=1,
             step=1,
-            help="Each instance has 8 GPUs. Total GPUs = instances × 8.",
+            help=f"Each instance has {instance_spec['gpu_count']} GPUs. "
+                 f"Total GPUs = instances × {instance_spec['gpu_count']}.",
             key=_key("num_instances"),
         )
+        # Only formats the selected GPU actually implements. Offering the full
+        # list let fp4 on an A100 report 2x the real throughput.
+        precisions = supported_precisions(instance_spec)
         mixed_precision = st.selectbox(
             "Mixed Precision",
-            options=MIXED_PRECISION_OPTIONS,
-            index=3,
-            help="Numeric format for weights and activations. bf16 is standard for modern LLM training.",
+            options=precisions,
+            index=precisions.index("bf16") if "bf16" in precisions else precisions.index("fp16"),
+            help=f"Numeric format for weights and activations. bf16 is standard for modern "
+                 f"LLM training. Options are limited to formats {instance_spec['gpu']} supports.",
             key=_key("precision"),
         )
-
-    instance_spec = get_gpu_instance(instance_type)
 
     with col3:
         st.caption("Performance tuning")

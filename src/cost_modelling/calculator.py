@@ -390,17 +390,20 @@ def calculate_project_compute_cost(
 def calculate_storage_cost(
     dataset_size_tb: float,
     storage_duration_months: float = 1.0,
-    storage_class: str = "standard"
+    storage_class: str = "standard",
+    region: str | None = None,
 ) -> float:
     """Calculate S3 storage cost for training data.
-    
+
     Args:
         dataset_size_tb: Dataset size in terabytes
         storage_duration_months: How long to store the data
         storage_class: S3 storage class
-        
+        region: AWS region; None uses the configured default. S3 pricing is
+            region-dependent, so this changes the result.
+
     Returns:
         Total storage cost in USD
     """
-    cost_per_tb_month = get_storage_cost(storage_class)
+    cost_per_tb_month = get_storage_cost(storage_class, region)
     return dataset_size_tb * cost_per_tb_month * storage_duration_months

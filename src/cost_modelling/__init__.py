@@ -21,15 +21,29 @@ from src.cost_modelling.calculator import (
     BYTES_PER_PARAM_FULL_FT,
     ACTIVATION_BYTES_PER_TOKEN_PER_LAYER,
 )
+from src.cost_modelling.gpu_hardware import (
+    GpuHardware,
+    UnsupportedPrecisionError,
+    load_gpu_hardware,
+    resolve_gpu,
+)
 from src.cost_modelling.gpu_specs import (
-    AWS_GPU_INSTANCES,
+    Catalog,
+    PricingUnavailableError,
+    Provenance,
+    catalog_for,
+    format_instance_label,
     get_gpu_instance,
+    get_provenance,
     get_storage_cost,
+    invalidate_catalog,
     list_available_instances,
+    list_regions,
+    list_storage_classes,
     peak_flops_for_precision,
+    supported_precisions,
 )
 from src.cost_modelling.model_loader import ModelDefinition, load_models
-from src.cost_modelling.provider_loader import load_instances
 from src.cost_modelling.dataset import (
     tokens_per_text_sample,
     bytes_per_text_sample,
@@ -66,16 +80,28 @@ __all__ = [
     "BYTES_PER_PARAM_FULL_FT",
     "ACTIVATION_BYTES_PER_TOKEN_PER_LAYER",
     # gpu_specs
-    "AWS_GPU_INSTANCES",
+    "Catalog",
+    "PricingUnavailableError",
+    "Provenance",
+    "catalog_for",
+    "format_instance_label",
     "get_gpu_instance",
+    "get_provenance",
     "get_storage_cost",
+    "invalidate_catalog",
     "list_available_instances",
+    "list_regions",
+    "list_storage_classes",
     "peak_flops_for_precision",
+    "supported_precisions",
+    # gpu_hardware
+    "GpuHardware",
+    "UnsupportedPrecisionError",
+    "load_gpu_hardware",
+    "resolve_gpu",
     # model_loader
     "ModelDefinition",
     "load_models",
-    # provider_loader
-    "load_instances",
     # dataset
     "tokens_per_text_sample",
     "bytes_per_text_sample",

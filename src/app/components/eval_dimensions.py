@@ -1,10 +1,12 @@
 import streamlit as st
 from typing import Dict, Any
+from src.app.components.region_selector import current_region
 from src.cost_modelling.calculator import (
     calculate_storage_cost,
     calculate_checkpoint_storage_tb,
     calculate_project_compute_cost,
 )
+from src.cost_modelling.gpu_specs import get_storage_cost, list_storage_classes
 
 def render_eval_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
     """Render the eval dimensions form.
@@ -73,10 +75,15 @@ def render_eval_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
                 help="Typical ablation is ~50% of a full run's cost.",
             )
 
+        # Derived from live pricing rather than a hardcoded list, which had
+        # omitted one_zone_ia entirely.
+        region = current_region()
+        storage_classes = list_storage_classes(region)
         storage_class = st.selectbox(
             "S3 Storage Class",
-            options=["standard", "intelligent_tiering", "standard_ia", "glacier"],
-            index=0,
+            options=storage_classes,
+            index=storage_classes.index("standard") if "standard" in storage_classes else 0,
+            format_func=lambda name: f"{name} (${get_storage_cost(name, region):,.2f}/TB/mo)",
             help="S3 storage class for dataset and checkpoints.",
         )
         training_config["S3 Storage Class"] = storage_class
@@ -112,11 +119,13 @@ def render_eval_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]:
             training_config.get("Dataset Size (TB)", 0),
             training_config.get("Storage Duration (months)", 1),
             storage_class,
+            region,
         )
         checkpoint_storage_cost = calculate_storage_cost(
             checkpoint_size_tb,
             training_config.get("Storage Duration (months)", 1),
             storage_class,
+            region,
         )
         total_runs = num_training_runs + num_hp_trials + num_ablations
 

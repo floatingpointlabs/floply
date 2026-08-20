@@ -26,16 +26,32 @@ CHART_COLORS = {
 # Model architecture options (used across training config and solver pages)
 ARCHITECTURE_OPTIONS = ["Transformer", "CNN", "RNN", "ViT", "Diffusion"]
 
-# Mixed-precision training format options (ordered fastest/smallest → most precise)
-MIXED_PRECISION_OPTIONS = ["fp4", "int8", "fp8", "bf16", "fp16", "tf32", "fp32"]
+# Mixed-precision options are no longer a global list — they come from
+# gpu_specs.supported_precisions(), which reflects what the selected GPU
+# actually implements. See src/data/gpu_hardware.yaml.
 
-# Instance type display names
-INSTANCE_DISPLAY_NAMES = {
-    "p4d.24xlarge": "p4d.24xlarge (8x A100 40GB) - $26.87/hr",
-    "p4de.24xlarge": "p4de.24xlarge (8x A100 80GB) - $32.77/hr",
-    "p5.48xlarge": "p5.48xlarge (8x H100 80GB) - $66.64/hr",
-    "p3.16xlarge": "p3.16xlarge (8x V100 16GB) - $24.48/hr",
-    "p3dn.24xlarge": "p3dn.24xlarge (8x V100 32GB) - $31.22/hr",
+# Instance labels are built from live data by gpu_specs.format_instance_label();
+# hardcoding them here meant the price in the dropdown could drift from the
+# price used in the calculation.
+
+# Region display names. AWS does not expose these under the minimal IAM policy
+# Floply uses, and they are presentation strings rather than data.
+AWS_REGION_LABELS = {
+    "us-east-1":      "US East (N. Virginia)",
+    "us-east-2":      "US East (Ohio)",
+    "us-west-1":      "US West (N. California)",
+    "us-west-2":      "US West (Oregon)",
+    "ca-central-1":   "Canada (Central)",
+    "eu-west-1":      "Europe (Ireland)",
+    "eu-west-2":      "Europe (London)",
+    "eu-central-1":   "Europe (Frankfurt)",
+    "eu-north-1":     "Europe (Stockholm)",
+    "ap-northeast-1": "Asia Pacific (Tokyo)",
+    "ap-northeast-2": "Asia Pacific (Seoul)",
+    "ap-southeast-1": "Asia Pacific (Singapore)",
+    "ap-southeast-2": "Asia Pacific (Sydney)",
+    "ap-south-1":     "Asia Pacific (Mumbai)",
+    "sa-east-1":      "South America (São Paulo)",
 }
 
 # Common model sizes (parameters) — used for reference tables and quick-select UIs

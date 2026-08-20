@@ -26,6 +26,14 @@ COPY --from=builder /app/.streamlit/config.toml /app/.streamlit/config.toml
 
 ENV PATH="/app/.venv/bin:$PATH"
 
+# Live AWS pricing is cached here. Mount a volume over /app/.cache to keep it
+# across container replacements — otherwise every new container starts cold and
+# must reach AWS before it can price anything:
+#   docker run -v floply-cache:/app/.cache ...
+# No VOLUME instruction: that would create a fresh anonymous volume per run.
+RUN mkdir -p /app/.cache/floply
+ENV FLOPLY_CACHE_DIR=/app/.cache/floply
+
 EXPOSE 8501
 
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1

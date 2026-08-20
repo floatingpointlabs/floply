@@ -21,10 +21,18 @@ pyright = "^1.1.404"
 python-dotenv = "^1.1.1"
 streamlit = "^1.40.0"
 openpyxl = "^3.1.0"
+boto3 = "^1.43"
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.12.0"
 ipykernel = "^7.1.0"
+pytest = "^9.1.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "no_primed_cache: opt out of the autouse primed pricing cache, for tests that exercise cold-cache and unavailable paths",
+]
 
 [tool.isort]
 profile = "black"
