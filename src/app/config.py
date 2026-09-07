@@ -2,17 +2,16 @@
 
 import streamlit as st
 
+# Scaling-law ratios are owned by the engine; re-exported here so UI modules can keep
+# importing them from config without a second definition drifting out of sync.
+from src.cost_modelling.budget_optimizer import (
+    CHINCHILLA_OPTIMAL_RATIO,
+    LORA_OPTIMAL_RATIO,
+)
+
 # Page configuration
 PAGE_TITLE = "Floply"
 LAYOUT = "wide"
-
-# Chinchilla scaling-law optimal ratio (Hoffmann et al. 2022)
-# Compute-optimal pre-training requires ~20 tokens per parameter.
-CHINCHILLA_OPTIMAL_RATIO = 20
-
-# LoRA efficiency optimal token-to-adapter-param ratio.
-# Empirical sweet spot: ~50 tokens per trainable adapter parameter.
-LORA_OPTIMAL_RATIO = 50
 
 # Chart colour palette (Plotly hex strings)
 CHART_COLORS = {

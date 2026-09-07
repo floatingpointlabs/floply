@@ -1,8 +1,9 @@
-"""Interactive budget optimizer: find the optimal model + dataset size within a total budget."""
+"""Interactive budget optimizer: find the optimal model + dataset size within a total budget.
 
-import math
+The solve itself lives in src/cost_modelling/budget_optimizer.py; this module is the
+widget shell that feeds it and renders the result.
+"""
 
-import numpy as np
 import streamlit as st
 import plotly.graph_objects as go
 
@@ -14,224 +15,23 @@ from src.app.helpers import (
     _UNIT_MULTIPLIERS,
     _render_chinchilla_assessment,
 )
-from src.cost_modelling.calculator import (
-    solve_for_parameter_count,
-    solve_for_training_tokens,
-    calculate_training_flops,
-    estimate_compute_cost,
-    calculate_storage_cost,
-    calculate_checkpoint_storage_tb,
-    calculate_lora_trainable_params,
-    BYTES_PER_PARAM_CHECKPOINT,
+from src.cost_modelling.calculator import calculate_lora_trainable_params
+from src.cost_modelling.budget_optimizer import (
+    ARCH_MULTIPLIERS,
+    CHECKPOINTS_PER_RUN,
+    MAX_INSTANCES,
+    MODALITY_DEFAULTS,
+    TARGET_WALL_CLOCK_DAYS,
+    OptimizerInputs,
+    Selection,
+    auto_configure_hardware,
+    budget_curve_n,
+    derive_schedule_defaults,
+    logspace,
+    quick_n_estimate,
+    resolve_selection,
+    solve_budget_optimum,
 )
-from src.app.components.region_selector import current_region
-from src.cost_modelling.gpu_specs import (
-    PricingUnavailableError,
-    get_gpu_instance,
-    get_provenance,
-    get_storage_cost,
-    list_available_instances,
-    list_storage_classes,
-    peak_flops_for_precision,
-    supported_precisions,
-)
-
-
-def _catalog_stamp(region: str) -> str:
-    """Cache-busting token for @st.cache_data functions that read prices.
-
-    Changes whenever the underlying pricing does, so cached derivations are
-    recomputed after a refresh instead of outliving the data they came from.
-    """
-    provenance = get_provenance(region)
-    return provenance.fetched_at.isoformat() if provenance.fetched_at else "unavailable"
-
-
-_ARCH_MULTIPLIERS = {
-    "Transformer": 6.0,
-    "CNN": 4.0,
-    "RNN": 8.0,
-    "ViT": 6.0,
-    "Diffusion": 6.5,
-}
-
-# bytes_per_token: average object-storage bytes per training token/sample
-MODALITY_DEFAULTS = {
-    "Text (LLM)": {
-        "arch": "Transformer",
-        "bytes_per_token": 4,
-        "tokens_per_sample": 512,    # ~512 tokens per web document / article
-        "sample_noun": "documents",
-    },
-    "Vision (ViT / CLIP)": {
-        "arch": "ViT",
-        "bytes_per_token": 1536,
-        "tokens_per_sample": 196,    # 14×14 patches for 224×224 at 16×16 patch size
-        "sample_noun": "images",
-    },
-    "Audio": {
-        "arch": "Transformer",
-        "bytes_per_token": 8,
-        "tokens_per_sample": 750,    # 10-second clip at 75 tok/s (EnCodec / Whisper rate)
-        "sample_noun": "clips",
-    },
-    "Multimodal (VLM)": {
-        "arch": "Transformer",
-        "bytes_per_token": 512,
-        "tokens_per_sample": 512,    # mixed text + image patches per caption/pair
-        "sample_noun": "samples",
-    },
-    "Diffusion (Image Gen)": {
-        "arch": "Diffusion",
-        "bytes_per_token": 2048,
-        "tokens_per_sample": 1024,   # 32×32 latent patches for a 512×512 image (8× VAE)
-        "sample_noun": "images",
-    },
-}
-
-# Checkpoints saved per full training run (used for storage estimation)
-_CHECKPOINTS_PER_RUN = 5
-
-# Target wall-clock days for auto-scaling num_instances
-_TARGET_WALL_CLOCK_DAYS = 60
-
-# Hard cap on recommended instances — represents a realistic large-scale cluster
-# (~8,192 H100 GPUs).  Wall-clock is reported honestly for whatever this delivers.
-_MAX_INSTANCES = 1_024
-
-
-@st.cache_data
-def _auto_configure_hardware(region: str, catalog_stamp: str) -> dict:
-    """Pick the most cost-efficient available instance and return its config.
-
-    Cost efficiency = effective_TFLOPS_per_$ = peak_flops × gpus × typical_mfu / hourly_cost.
-    H100 (p5.48xlarge) typically wins: ~65 TFLOPS/$ vs A100 ~42 TFLOPS/$.
-
-    Args:
-        region: AWS region. Prices differ per region, so the winner can differ too.
-        catalog_stamp: Provenance timestamp. Both arguments exist purely to key
-            the cache — without them this returned the first region's answer
-            forever, even after a price refresh.
-    """
-    best_instance = None
-    best_efficiency = -1.0
-
-    for instance_type in list_available_instances(region):
-        spec = get_gpu_instance(instance_type, region)
-        flops_per_dollar = (
-            spec["peak_flops_fp16"] * spec["gpu_count"] * spec["typical_mfu"]
-            / spec["hourly_cost"]
-        )
-        if flops_per_dollar > best_efficiency:
-            best_efficiency = flops_per_dollar
-            best_instance = instance_type
-
-    if best_instance is None:
-        raise PricingUnavailableError(region, "No priced instances in this region.")
-
-    spec = get_gpu_instance(best_instance, region)
-    # bf16 is the modern training default, but Volta-era GPUs predate it.
-    precisions = supported_precisions(spec)
-    precision = "bf16" if "bf16" in precisions else "fp16"
-    peak_flops = peak_flops_for_precision(spec, precision)
-    return {
-        "instance_type": best_instance,
-        "mixed_precision": precision,
-        "instance_spec": spec,
-        "peak_flops_per_gpu": peak_flops,
-        "mfu": spec["typical_mfu"],
-        "gpus_per_instance": spec["gpu_count"],
-        "hourly_cost": spec["hourly_cost"],
-        "gradient_checkpointing": False,
-    }
-
-
-def _quick_n_estimate(compute_budget: float, arch_multiplier: float, hw: dict) -> float:
-    """Estimate model parameter count from budget alone (1-epoch Chinchilla, auto hardware).
-
-    Used only for deriving sensible Training Schedule defaults — no storage correction needed.
-    Approximate outputs at H100 pricing:
-      $1K → ~140M params | $10K → ~450M | $100K → ~1.4B | $1M → ~14B | $10M → ~45B
-    """
-    quick_cost_per_tp = (
-        arch_multiplier
-        / (hw["peak_flops_per_gpu"] * hw["mfu"] * hw["gpus_per_instance"] * 3600)
-    ) * hw["hourly_cost"]
-    if quick_cost_per_tp <= 0:
-        return 0.0
-    return math.sqrt(compute_budget / (CHINCHILLA_OPTIMAL_RATIO * quick_cost_per_tp))
-
-
-def _derive_schedule_defaults(
-    compute_budget: float,
-    modality: str,
-    training_type: str,
-    ft_method: str | None,
-    quick_n: float,
-) -> dict:
-    """Derive recommended Training Schedule & Storage defaults from project-setup inputs.
-
-    Returns a dict with keys: epochs, hp_trials, hp_fraction_pct, storage_months, storage_class.
-    """
-    is_lora = ft_method in ("LoRA", "QLoRA")
-
-    # Epochs — driven by training type
-    # Pre-training is 1-epoch optimal under Chinchilla; FT benefits from more passes.
-    if training_type == "Pre-Training":
-        epochs = 1
-    elif is_lora:
-        epochs = 5
-    else:
-        epochs = 3
-
-    # HP Tuning Trials — scaled with budget (more budget = can afford more HP search)
-    if compute_budget < 5_000:
-        hp_trials = 0
-    elif compute_budget < 50_000:
-        hp_trials = 2
-    elif compute_budget < 500_000:
-        hp_trials = 5
-    elif compute_budget < 5_000_000:
-        hp_trials = 10
-    else:
-        hp_trials = 20
-
-    # HP Trial Cost % — larger models need shorter (cheaper) HP trials
-    if quick_n >= 30e9:
-        hp_fraction_pct = 5
-    elif quick_n >= 3e9:
-        hp_fraction_pct = 10
-    elif quick_n >= 500e6:
-        hp_fraction_pct = 15
-    else:
-        hp_fraction_pct = 25
-
-    # Storage Duration — bigger budget = more valuable artifacts = keep longer
-    # Vision/Diffusion have expensive storage so halve the duration
-    bytes_per_token = MODALITY_DEFAULTS[modality]["bytes_per_token"]
-    storage_heavy = bytes_per_token > 100  # Vision, Multimodal, Diffusion
-
-    if compute_budget < 10_000:
-        base_months = 1
-    elif compute_budget < 100_000:
-        base_months = 3
-    elif compute_budget < 1_000_000:
-        base_months = 6
-    else:
-        base_months = 12
-
-    storage_months = max(1, base_months // 2 if storage_heavy else base_months)
-
-    # Storage Class — longer retention → cheaper tier
-    storage_class = "standard_ia" if storage_months > 3 else "standard"
-
-    return {
-        "epochs": epochs,
-        "hp_trials": hp_trials,
-        "hp_fraction_pct": hp_fraction_pct,
-        "storage_months": storage_months,
-        "storage_class": storage_class,
-    }
 
 
 def render_budget_optimizer_page():
@@ -427,8 +227,7 @@ def render_budget_optimizer_page():
                 n_adapter = ft_base_params   # SFT: all params are trainable
 
     # ── 2. Auto-configure hardware (pure computation, needed for schedule defaults) ──
-    region = current_region()
-    hw = _auto_configure_hardware(region, _catalog_stamp(region))
+    hw = auto_configure_hardware()
     peak_flops_per_gpu = hw["peak_flops_per_gpu"]
     mfu = hw["mfu"]
     gpus_per_instance = hw["gpus_per_instance"]
@@ -436,7 +235,7 @@ def render_budget_optimizer_page():
     gradient_checkpointing = hw["gradient_checkpointing"]
     instance_spec = hw["instance_spec"]
 
-    multiplier = _ARCH_MULTIPLIERS.get(architecture, 6.0)
+    multiplier = ARCH_MULTIPLIERS.get(architecture, 6.0)
 
     budget_display = (
         f"${compute_budget / 1e9:.1f}B" if compute_budget >= 1e9
@@ -450,9 +249,7 @@ def render_budget_optimizer_page():
     # Widgets read session state (key= argument), so they'll reflect the new defaults
     # automatically. If the user manually overrides a widget, the override sticks until
     # the next Project Setup change.
-    quick_n = _quick_n_estimate(compute_budget, multiplier, hw)
-    # Region belongs in the signature: changing it changes prices, so the
-    # derived schedule defaults must be recomputed alongside them.
+    quick_n = quick_n_estimate(compute_budget, multiplier, hw)
     setup_sig = (
         compute_budget, modality, training_type, ft_method or "",
         ft_base_model_name or "", lora_rank, region,
@@ -460,7 +257,7 @@ def render_budget_optimizer_page():
 
     if st.session_state.get("ms_setup_sig") != setup_sig:
         st.session_state["ms_setup_sig"] = setup_sig
-        defaults = _derive_schedule_defaults(
+        defaults = derive_schedule_defaults(
             compute_budget=compute_budget,
             modality=modality,
             training_type=training_type,
@@ -490,294 +287,78 @@ def render_budget_optimizer_page():
     storage_duration_months = st.session_state.get("ms_storage_months", 3)
     storage_class           = st.session_state.get("ms_storage_class", "standard")
 
-    hp_fraction        = hp_fraction_pct / 100.0
-    project_multiplier = 1.0 + num_hp_trials * hp_fraction
-    cost_per_tb_month  = get_storage_cost(storage_class, region)
-    storage_cost_per_token = (
-        (bytes_per_token / 1e12) * cost_per_tb_month * storage_duration_months
-    )
+    hp_fraction = hp_fraction_pct / 100.0
 
-    optimal_ratio = LORA_OPTIMAL_RATIO if is_lora else CHINCHILLA_OPTIMAL_RATIO
-
-    # cost per (parameter × token) — num_instances cancels in cost formula
-    cost_per_token_param = (
-        epochs * multiplier / (peak_flops_per_gpu * mfu * gpus_per_instance * 3600)
-    ) * hourly_cost
-
-    # ── 5. Solve for optimal (n_opt, d_opt) ──────────────────────────────────
-    ckpt_cost_per_param = (
-        BYTES_PER_PARAM_CHECKPOINT / 1e12
-        * cost_per_tb_month
-        * storage_duration_months
-        * (_CHECKPOINTS_PER_RUN + num_hp_trials)
-    )
-
-    if is_ft_with_base and n_adapter > 0:
-        # Fine-tuning with a known base model: N is fixed by the model + rank.
-        # For LoRA/QLoRA the forward/backward pass runs through the full base model,
-        # so compute cost uses ft_base_params; adapter N is used for checkpoints only.
-        #
-        # Two competing bounds on D:
-        #
-        # 1) LoRA efficiency bound — empirical optimal ratio (D/N_adapter ≈ 50):
-        #      D_eff = LORA_OPTIMAL_RATIO × n_adapter
-        #    This scales with rank and is the primary bound at large budgets.
-        #
-        # 2) Budget bound — how much data the full budget can afford:
-        #      D_budget = (B − ckpt_cost) / (cost_per_token_param × N_base + storage_per_token)
-        #    This is the hard ceiling; at small budgets it overrides the efficiency bound.
-        #
-        # D_opt = min(D_eff, D_budget)
-        n_flops_base  = ft_base_flops_params   # used for compute FLOPs
-        n_opt         = float(n_adapter) # displayed / checkpoint param count
-        ckpt_total    = ckpt_cost_per_param * n_adapter
-        denom         = (
-            project_multiplier * cost_per_token_param * n_flops_base
-            + storage_cost_per_token
-        )
-        d_budget = max(compute_budget - ckpt_total, 0.0) / denom if denom > 0 else 0.0
-        d_eff    = float(LORA_OPTIMAL_RATIO * n_adapter) if is_lora else d_budget
-        d_opt    = min(d_eff, d_budget)
-    else:
-        # Pre-training (or FT without a selected base model): quadratic solve.
-        # Total budget B = compute_total + dataset_storage + checkpoint_storage
-        # Under Chinchilla D = optimal_ratio × N:  a·N² + b·N = B
-        #   a = optimal_ratio × project_multiplier × cost_per_token_param
-        #   b = optimal_ratio × storage_cost_per_token + ckpt_cost_per_param
-        # N* = (−b + √(b² + 4aB)) / (2a)
-        n_flops_base = 0   # not used in pre-training path
-        a_coeff = optimal_ratio * project_multiplier * cost_per_token_param
-        b_coeff = optimal_ratio * storage_cost_per_token + ckpt_cost_per_param
-        if a_coeff > 0:
-            discriminant = b_coeff ** 2 + 4 * a_coeff * compute_budget
-            n_opt = (-b_coeff + math.sqrt(max(discriminant, 0.0))) / (2 * a_coeff)
-            d_opt = optimal_ratio * n_opt
-        else:
-            n_opt, d_opt = 0.0, 0.0
-
-    # ── Cost breakdown at optimal point ──────────────────────────────────────
-    # Use the base model's active params for FLOPs when fine-tuning (forward pass runs
-    # through the full model); use n_opt (adapter params or pre-train N) for checkpoints.
-    _opt_flops_n = max(int(ft_base_flops_params if (is_ft_with_base and n_flops_base) else n_opt), 1)
-    opt_flops = calculate_training_flops(
-        parameter_count=_opt_flops_n,
-        training_tokens=max(int(d_opt), 1),
-        architecture=architecture.lower(),
+    # ── 5. Solve (pure — see src/cost_modelling/budget_optimizer.py) ─────────
+    opt_inputs = OptimizerInputs(
+        compute_budget=compute_budget,
+        modality=modality,
+        training_type=training_type,
+        ft_method=ft_method,
+        ft_base_model=ft_base_model,
+        lora_rank=lora_rank,
+        target_modules=target_modules,
         epochs=epochs,
-        gradient_checkpointing=gradient_checkpointing,
-    )
-    _, _, opt_compute_cost_per_run, _ = estimate_compute_cost(
-        total_flops=opt_flops,
-        peak_flops_per_gpu=peak_flops_per_gpu,
-        mfu=mfu,
-        total_gpus=gpus_per_instance,
-        num_instances=1,
-        hourly_cost=hourly_cost,
-    )
-    opt_compute_cost_total = opt_compute_cost_per_run * project_multiplier
-    opt_dataset_storage_cost = calculate_storage_cost(
-        dataset_size_tb=max(int(d_opt), 1) * bytes_per_token / 1e12,
+        num_hp_trials=num_hp_trials,
+        hp_fraction_pct=hp_fraction_pct,
         storage_duration_months=storage_duration_months,
         storage_class=storage_class,
+        hardware=hw,
     )
-    opt_ckpt_storage_cost = calculate_storage_cost(
-        dataset_size_tb=calculate_checkpoint_storage_tb(
-            checkpoint_params=max(int(n_opt), 1),
-            num_checkpoints=_CHECKPOINTS_PER_RUN,
-            num_training_runs=1,
-            num_hp_trials=num_hp_trials,
-            num_ablations=0,
-        ),
-        storage_duration_months=storage_duration_months,
-        storage_class=storage_class,
+    optimum = solve_budget_optimum(opt_inputs)
+
+    n_opt                    = optimum.n_opt
+    d_opt                    = optimum.d_opt
+    d_eff                    = optimum.d_eff
+    d_budget                 = optimum.d_budget
+    project_multiplier       = optimum.project_multiplier
+    cost_per_token_param     = optimum.cost_per_token_param
+    storage_cost_per_token   = optimum.storage_cost_per_token
+    ckpt_cost_per_param      = optimum.ckpt_cost_per_param
+    cost_per_tb_month        = optimum.cost_per_tb_month
+    optimal_ratio            = optimum.optimal_ratio
+    opt_compute_cost_total   = optimum.opt_compute_cost_total
+    opt_dataset_storage_cost = optimum.opt_dataset_storage_cost
+    opt_ckpt_storage_cost    = optimum.opt_ckpt_storage_cost
+    opt_storage_cost         = optimum.opt_storage_cost
+    total_project_cost       = optimum.total_project_cost
+
+    selection = Selection(
+        explore_dir=st.session_state.get("ms_explore_dir"),
+        log_d=st.session_state.get("ms_dataset_slider"),
+        log_n=st.session_state.get("ms_model_slider"),
+        rank=st.session_state.get("ms_rank_slider"),
+        num_instances=st.session_state.get("ms_num_instances"),
     )
-    opt_storage_cost   = opt_dataset_storage_cost + opt_ckpt_storage_cost
-    total_project_cost = opt_compute_cost_total + opt_storage_cost
+    sel = resolve_selection(opt_inputs, optimum, selection)
 
-    # recommended_instances is computed later, after the slider selection is resolved,
-    # so it stays in sync with the FLOP count actually being displayed.
+    _ft_explore_opts        = sel.explore_options
+    explore_dir             = sel.explore_dir
+    tokens_per_sample       = sel.tokens_per_sample
+    sample_noun             = sel.sample_noun
+    slider_effective_budget = sel.slider_effective_budget
+    d_slider_min            = sel.d_slider_min
+    d_slider_max            = sel.d_slider_max
+    n_slider_min            = sel.n_slider_min
+    n_slider_max            = sel.n_slider_max
+    d_opt_log_default       = sel.d_opt_log_default
+    n_opt_log_default       = sel.n_opt_log_default
+    selected_tokens         = sel.selected_tokens
+    selected_params         = sel.selected_params
+    n_axis_title            = sel.n_axis_title
+    n_hover                 = sel.n_hover
+    wall_clock_hours_1inst  = sel.wall_clock_hours_1inst
+    recommended_instances   = sel.recommended_instances
+    num_instances           = sel.num_instances
+    sel_dataset_storage     = sel.sel_dataset_storage
+    sel_ckpt_storage        = sel.sel_ckpt_storage
+    sel_compute_cost_total  = sel.sel_compute_cost_total
+    sel_total_cost          = sel.sel_total_cost
+    sel_wall_clock_days     = sel.sel_wall_clock_days
+    sel_samples             = sel.sel_samples
+    current_ratio           = sel.current_ratio
+    budget_used_pct         = sel.budget_used_pct
 
-    # ── 6. Pre-compute slider selection from session state ───────────────────
-    # Reading slider values from session state *before* the column layout means
-    # the left panel can display the selected (not just optimal) values on every
-    # rerun.  The slider widgets in the right column write back to the same keys,
-    # so dragging them reruns the page and refreshes the left column automatically.
-    tokens_per_sample = modality_cfg.get("tokens_per_sample", 512)
-    sample_noun       = modality_cfg.get("sample_noun", "samples")
-
-    slider_compute_budget   = max(compute_budget - opt_storage_cost, compute_budget * 0.5)
-    slider_effective_budget = slider_compute_budget / project_multiplier
-
-    # Dynamic slider bounds — scale to the optimal point.
-    # For LoRA, d_opt can be well below 1B tokens (e.g. 50 × a few-million adapter params),
-    # so we anchor the minimum ~2 log-decades below d_opt instead of hardcoding 1B.
-    if is_ft_with_base and is_lora and d_opt > 0:
-        d_slider_min = max(6.0, math.floor(math.log10(max(d_opt, 1e6)) / 0.05) * 0.05 - 2.0)
-    else:
-        d_slider_min = 9.0   # pre-training / SFT: 1B token minimum
-
-    d_log_opt    = math.log10(max(d_opt, 10 ** d_slider_min))
-    d_slider_max = max(d_slider_min + 4.0, math.ceil(d_log_opt / 0.05) * 0.05 + 0.05)
-
-    n_log_opt    = math.log10(max(n_opt, 1e7))
-    n_slider_min = 7.0
-    n_slider_max = max(11.0, math.ceil(n_log_opt / 0.05) * 0.05 + 0.05)
-
-    # For fine-tuning, the explore directions are adapted:
-    #   LoRA/QLoRA: "Dataset size" (D varies, adapter N fixed) | "LoRA Rank" (rank varies → N + D both change)
-    #   SFT: only "Dataset size" (N fixed = ft_base_params)
-    #   Pre-training: standard "Token count → model size" | "Model size → token count"
-    _ft_explore_opts = (
-        ["Dataset size → token/param ratio", "LoRA Rank → dataset size"]
-        if (is_ft_with_base and is_lora)
-        else ["Dataset size → token/param ratio"]
-        if is_ft_with_base
-        else ["Token count → model size", "Model size → token count"]
-    )
-    _explore_default = st.session_state.get("ms_explore_dir", _ft_explore_opts[0])
-    # Guard: if the stored direction isn't valid for the current mode, reset it.
-    if _explore_default not in _ft_explore_opts:
-        _explore_default = _ft_explore_opts[0]
-    explore_dir = _explore_default
-
-    # ── Slider pre-computation (read from session state so left col reflects selection) ──
-
-    if is_ft_with_base and is_lora:
-        # LoRA mode: N is determined by base model + rank.  Both slider directions are useful.
-        if explore_dir == "LoRA Rank → dataset size":
-            # Rank slider: user picks rank, we solve for optimal D.
-            rank_default = st.session_state.get("ms_rank_slider", lora_rank)
-            sel_rank     = int(rank_default)
-            sel_n_adapter = calculate_lora_trainable_params(
-                ft_method=ft_method,
-                base_params=ft_base_params,
-                target_modules=target_modules or [],
-                d_model=ft_arch.get("d_model", 0),
-                num_layers=ft_arch.get("num_layers", 0),
-                lora_rank=sel_rank,
-                architecture=ft_arch,
-            ) or 1
-            # Linear solve for D with this hypothetical rank
-            _ckpt_n   = sel_n_adapter
-            _denom    = (
-                project_multiplier * cost_per_token_param * ft_base_flops_params
-                + storage_cost_per_token
-            )
-            _eff_bgt  = max(compute_budget - ckpt_cost_per_param * _ckpt_n, 0.0)
-            selected_tokens = max(int(_eff_bgt / _denom), 1) if _denom > 0 else 1
-            selected_params = sel_n_adapter
-        else:
-            # Dataset slider: D varies, adapter N stays fixed at Project Setup rank.
-            d_opt_log_raw     = math.log10(max(d_opt, 10 ** d_slider_min))
-            d_opt_log_default = round(max(d_slider_min, min(d_slider_max, d_opt_log_raw)) / 0.05) * 0.05
-            log_d             = st.session_state.get("ms_dataset_slider", d_opt_log_default)
-            selected_tokens   = int(10 ** log_d)
-            selected_params   = max(n_adapter, 1)
-        # FLOPs: always use full base model (frozen forward/backward pass)
-        flops_params = ft_base_flops_params
-        n_axis_title = "Adapter params"
-        n_hover      = "Adapter N"
-
-    elif is_ft_with_base:
-        # SFT: all params are trained.  Only dataset exploration makes sense.
-        d_opt_log_raw     = math.log10(max(d_opt, 10 ** d_slider_min))
-        d_opt_log_default = round(max(d_slider_min, min(d_slider_max, d_opt_log_raw)) / 0.05) * 0.05
-        log_d             = st.session_state.get("ms_dataset_slider", d_opt_log_default)
-        selected_tokens   = int(10 ** log_d)
-        selected_params   = ft_base_params
-        flops_params      = ft_base_flops_params
-        n_axis_title      = "Model size (params)"
-        n_hover           = "N"
-
-    else:
-        # Pre-training: free solve in both directions.
-        if explore_dir == "Token count → model size":
-            d_opt_log_raw     = math.log10(max(d_opt, 10 ** d_slider_min))
-            d_opt_log_default = round(max(d_slider_min, min(d_slider_max, d_opt_log_raw)) / 0.05) * 0.05
-            log_d             = st.session_state.get("ms_dataset_slider", d_opt_log_default)
-            selected_tokens   = int(10 ** log_d)
-            selected_params   = solve_for_parameter_count(
-                compute_budget_usd=slider_effective_budget,
-                training_tokens=selected_tokens,
-                peak_flops_per_gpu=peak_flops_per_gpu,
-                mfu=mfu,
-                total_gpus=gpus_per_instance,
-                num_instances=1,
-                hourly_cost=hourly_cost,
-                architecture=architecture.lower(),
-                epochs=epochs,
-                gradient_checkpointing=gradient_checkpointing,
-            )
-        else:
-            n_opt_log_raw     = math.log10(max(n_opt, 1e7))
-            n_opt_log_default = round(max(n_slider_min, min(n_slider_max, n_opt_log_raw)) / 0.05) * 0.05
-            log_n             = st.session_state.get("ms_model_slider", n_opt_log_default)
-            selected_params   = int(10 ** log_n)
-            selected_tokens   = solve_for_training_tokens(
-                compute_budget_usd=slider_effective_budget,
-                parameter_count=selected_params,
-                peak_flops_per_gpu=peak_flops_per_gpu,
-                mfu=mfu,
-                total_gpus=gpus_per_instance,
-                num_instances=1,
-                hourly_cost=hourly_cost,
-                architecture=architecture.lower(),
-                epochs=epochs,
-                gradient_checkpointing=gradient_checkpointing,
-            )
-        flops_params = selected_params
-        n_axis_title = "Max model size (params)"
-        n_hover      = "Max N"
-
-    total_flops_sel = calculate_training_flops(
-        parameter_count=max(flops_params, 1),
-        training_tokens=max(selected_tokens, 1),
-        architecture=architecture.lower(),
-        epochs=epochs,
-        gradient_checkpointing=gradient_checkpointing,
-    )
-    _, _, compute_cost_sel, wall_clock_days_sel = estimate_compute_cost(
-        total_flops=total_flops_sel,
-        peak_flops_per_gpu=peak_flops_per_gpu,
-        mfu=mfu,
-        total_gpus=gpus_per_instance,
-        num_instances=1,
-        hourly_cost=hourly_cost,
-    )
-
-    # Recommend num_instances to hit ≤ _TARGET_WALL_CLOCK_DAYS for the *selected* point.
-    # Keeping this here (after the slider solve) ensures the hardware card and the
-    # wall-clock metric in the left column are always derived from the same FLOP count.
-    wall_clock_hours_1inst = total_flops_sel / (peak_flops_per_gpu * mfu * gpus_per_instance * 3600)
-    recommended_instances  = min(
-        _MAX_INSTANCES,
-        max(1, math.ceil(wall_clock_hours_1inst / (_TARGET_WALL_CLOCK_DAYS * 24))),
-    )
-    # User can override the cluster size; default resets whenever setup changes.
-    num_instances = st.session_state.get("ms_num_instances", recommended_instances)
-
-    sel_dataset_storage = calculate_storage_cost(
-        dataset_size_tb=max(selected_tokens, 1) * bytes_per_token / 1e12,
-        storage_duration_months=storage_duration_months,
-        storage_class=storage_class,
-    )
-    sel_ckpt_storage = calculate_storage_cost(
-        dataset_size_tb=calculate_checkpoint_storage_tb(
-            checkpoint_params=max(selected_params, 1),
-            num_checkpoints=_CHECKPOINTS_PER_RUN,
-            num_training_runs=1,
-            num_hp_trials=num_hp_trials,
-            num_ablations=0,
-        ),
-        storage_duration_months=storage_duration_months,
-        storage_class=storage_class,
-    )
-    sel_compute_cost_total = compute_cost_sel * project_multiplier
-    sel_total_cost         = sel_compute_cost_total + sel_dataset_storage + sel_ckpt_storage
-    sel_wall_clock_days = wall_clock_hours_1inst / (num_instances * 24)
-    sel_samples         = selected_tokens / max(tokens_per_sample, 1)
-    current_ratio       = selected_tokens / max(selected_params, 1)
-    budget_used_pct     = min(sel_total_cost / max(compute_budget, 1e-9), 1.0)
 
     # ── Two-column layout ─────────────────────────────────────────────────────
     col_dims, col_explorer = st.columns(2)
@@ -862,7 +443,7 @@ def render_budget_optimizer_page():
             st.metric(
                 "Checkpoint Storage",
                 f"${sel_ckpt_storage:,.2f}",
-                help=f"{_CHECKPOINTS_PER_RUN} checkpoints/run + {num_hp_trials} HP trial checkpoints."
+                help=f"{CHECKPOINTS_PER_RUN} checkpoints/run + {num_hp_trials} HP trial checkpoints."
                 + (" Adapters only — base weights aren't saved." if is_ft_with_base and is_lora else ""),
             )
             over_budget = sel_total_cost > compute_budget * 1.001
@@ -888,7 +469,7 @@ def render_budget_optimizer_page():
         st.radio(
             "Explore by",
             options=_ft_explore_opts,
-            index=_ft_explore_opts.index(_explore_default),
+            index=_ft_explore_opts.index(explore_dir),
             horizontal=True,
             key="ms_explore_dir",
         )
@@ -958,8 +539,8 @@ def render_budget_optimizer_page():
 
 
     # ── 7. Chart (full-width, paired with the Trade-off Explorer above) ──────
-    d_range = np.logspace(d_slider_min, d_slider_max, 300)
-    n_budget = _budget_curve_n(
+    d_range = logspace(d_slider_min, d_slider_max, 300)
+    n_budget = budget_curve_n(
         d_tokens=d_range,
         budget=slider_effective_budget,
         peak_flops_per_gpu=peak_flops_per_gpu,
@@ -973,23 +554,23 @@ def render_budget_optimizer_page():
     fig = go.Figure()
 
     fig.add_trace(go.Scatter(
-        x=d_range.tolist(),
-        y=n_budget.tolist(),
+        x=d_range,
+        y=n_budget,
         name="Budget curve (max N)",
         mode="lines",
         line=dict(color=CHART_COLORS["compute"], width=2),
         hovertemplate=f"D=%{{x:.2e}} tokens<br>{n_hover}=%{{y:.2e}}<extra>Budget curve</extra>",
     ))
 
-    n_optimal_line = d_range / optimal_ratio
+    n_optimal_line = [d / optimal_ratio for d in d_range]
     opt_line_label = (
         f"Chinchilla optimal (N = D / {CHINCHILLA_OPTIMAL_RATIO})"
         if not is_lora
         else f"LoRA sweet spot (D / {LORA_OPTIMAL_RATIO})"
     )
     fig.add_trace(go.Scatter(
-        x=d_range.tolist(),
-        y=n_optimal_line.tolist(),
+        x=d_range,
+        y=n_optimal_line,
         name=opt_line_label,
         mode="lines",
         line=dict(color=CHART_COLORS["success"], width=2, dash="dash"),
@@ -1001,7 +582,7 @@ def render_budget_optimizer_page():
     # relative to the budget curve and sweet-spot line.
     if is_ft_with_base and is_lora and n_adapter > 0:
         fig.add_trace(go.Scatter(
-            x=d_range.tolist(),
+            x=d_range,
             y=[n_adapter] * len(d_range),
             name=f"Adapter params (rank {lora_rank})",
             mode="lines",
@@ -1120,11 +701,11 @@ def render_budget_optimizer_page():
         with sched_col4:
             st.number_input(
                 "GPU Instances",
-                min_value=1, max_value=_MAX_INSTANCES, step=1,
+                min_value=1, max_value=MAX_INSTANCES, step=1,
                 value=recommended_instances,
                 help=(
                     f"Number of {instance_spec['display_name']} instances to run in parallel. "
-                    f"Auto-recommendation: **{recommended_instances}** (targets ≤ {_TARGET_WALL_CLOCK_DAYS} day wall-clock). "
+                    f"Auto-recommendation: **{recommended_instances}** (targets ≤ {TARGET_WALL_CLOCK_DAYS} day wall-clock). "
                     f"Increasing this reduces training time; decreasing it lowers parallelism costs."
                 ),
                 key="ms_num_instances",
@@ -1147,24 +728,3 @@ def render_budget_optimizer_page():
         f"→ ~{sel_wall_clock_days:.1f} day wall-clock",
         icon="⚙️",
     )
-
-
-
-def _budget_curve_n(
-    d_tokens: np.ndarray,
-    budget: float,
-    peak_flops_per_gpu: float,
-    mfu: float,
-    gpus_per_instance: int,
-    hourly_cost: float,
-    multiplier: float,
-    epochs: int,
-) -> np.ndarray:
-    """Vectorised: N_max = budget / (cost_per_token_param × D).
-
-    num_instances cancels in the cost formula, so we pass gpus_per_instance directly.
-    """
-    cost_per_token_param = (
-        epochs * multiplier / (peak_flops_per_gpu * mfu * gpus_per_instance * 3600)
-    ) * hourly_cost
-    return budget / (cost_per_token_param * d_tokens)
