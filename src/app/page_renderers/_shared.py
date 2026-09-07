@@ -43,12 +43,10 @@ def _render_standard_training_page(output_fn: Callable, subtitle: str = "") -> N
 
     if TRAINING_FLAG in training_config:
         training_config, can_compute = render_training_dimensions(training_config)
-
-    try:
         if can_compute:
             _chinchilla_banner(training_config)
             training_config = render_compute_dimensions(training_config)
-    except UnboundLocalError:
+    else:
         st.write("Select a modality & enter a dataset size to continue.")
 
     if EVAL_FLAG in training_config:

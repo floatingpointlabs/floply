@@ -24,23 +24,8 @@ from src.cost_modelling.pricing.settings import get_settings
 
 _PRECISION_ORDER = ["fp4", "int8", "fp8", "bf16", "fp16", "tf32", "fp32"]
 
-__all__ = [
-    "Catalog",
-    "PricingUnavailableError",
-    "Provenance",
-    "UnsupportedPrecisionError",
-    "catalog_for",
-    "format_instance_label",
-    "get_gpu_instance",
-    "get_provenance",
-    "get_storage_cost",
-    "invalidate_catalog",
-    "list_available_instances",
-    "list_regions",
-    "list_storage_classes",
-    "peak_flops_for_precision",
-    "supported_precisions",
-]
+# Populated from src/providers/aws.yaml (storage section)
+S3_STORAGE_PRICING: dict[str, float] = load_storage_pricing()
 
 
 def _region(region: str | None) -> str:

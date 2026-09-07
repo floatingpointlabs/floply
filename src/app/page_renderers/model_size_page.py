@@ -400,7 +400,8 @@ def render_budget_optimizer_page():
         and ft_base_model_name != "Custom"
     )
     ft_base_model  = None
-    ft_base_params = 0
+    ft_base_params = 0    # total params — checkpoints, VRAM, adapter percentages
+    ft_base_flops_params = 0   # active params — compute only (differs for MoE)
     ft_arch        = {}
     n_adapter      = 0   # trainable / displayed parameter count for fine-tuning
 
@@ -408,6 +409,9 @@ def render_budget_optimizer_page():
         ft_base_model = next((m for m in _known_models if m.name == ft_base_model_name), None)
         if ft_base_model:
             ft_base_params = ft_base_model.parameter_count
+            # MoE routes each token through a subset of experts, so FLOPs scale with
+            # active params while storage and VRAM still scale with the total.
+            ft_base_flops_params = ft_base_model.effective_parameter_count
             ft_arch        = ft_base_model.architecture
             if is_lora:
                 n_adapter = calculate_lora_trainable_params(
@@ -524,7 +528,7 @@ def render_budget_optimizer_page():
         #    This is the hard ceiling; at small budgets it overrides the efficiency bound.
         #
         # D_opt = min(D_eff, D_budget)
-        n_flops_base  = ft_base_params   # used for compute FLOPs
+        n_flops_base  = ft_base_flops_params   # used for compute FLOPs
         n_opt         = float(n_adapter) # displayed / checkpoint param count
         ckpt_total    = ckpt_cost_per_param * n_adapter
         denom         = (
@@ -552,9 +556,9 @@ def render_budget_optimizer_page():
             n_opt, d_opt = 0.0, 0.0
 
     # ── Cost breakdown at optimal point ──────────────────────────────────────
-    # Use ft_base_params for FLOPs when fine-tuning (forward pass through full model);
-    # use n_opt (adapter params or pre-train N) for checkpoint storage.
-    _opt_flops_n = max(int(ft_base_params if (is_ft_with_base and n_flops_base) else n_opt), 1)
+    # Use the base model's active params for FLOPs when fine-tuning (forward pass runs
+    # through the full model); use n_opt (adapter params or pre-train N) for checkpoints.
+    _opt_flops_n = max(int(ft_base_flops_params if (is_ft_with_base and n_flops_base) else n_opt), 1)
     opt_flops = calculate_training_flops(
         parameter_count=_opt_flops_n,
         training_tokens=max(int(d_opt), 1),
@@ -656,7 +660,7 @@ def render_budget_optimizer_page():
             # Linear solve for D with this hypothetical rank
             _ckpt_n   = sel_n_adapter
             _denom    = (
-                project_multiplier * cost_per_token_param * ft_base_params
+                project_multiplier * cost_per_token_param * ft_base_flops_params
                 + storage_cost_per_token
             )
             _eff_bgt  = max(compute_budget - ckpt_cost_per_param * _ckpt_n, 0.0)
@@ -670,7 +674,7 @@ def render_budget_optimizer_page():
             selected_tokens   = int(10 ** log_d)
             selected_params   = max(n_adapter, 1)
         # FLOPs: always use full base model (frozen forward/backward pass)
-        flops_params = ft_base_params
+        flops_params = ft_base_flops_params
         n_axis_title = "Adapter params"
         n_hover      = "Adapter N"
 
@@ -681,7 +685,7 @@ def render_budget_optimizer_page():
         log_d             = st.session_state.get("ms_dataset_slider", d_opt_log_default)
         selected_tokens   = int(10 ** log_d)
         selected_params   = ft_base_params
-        flops_params      = ft_base_params
+        flops_params      = ft_base_flops_params
         n_axis_title      = "Model size (params)"
         n_hover           = "N"
 

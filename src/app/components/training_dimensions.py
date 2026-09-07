@@ -97,6 +97,10 @@ def render_fine_tuning_dimensions(training_config: Dict[str, Any], pre_training:
         with st.expander("Fine-Tuning Configuration", expanded=True):
             ft_col1, ft_col2 = st.columns(2)
 
+            # Bound unconditionally: the `pre_training or base_model_name` check below
+            # reads it on the pre-training path, where the selectbox never runs.
+            base_model_name = None
+
             if pre_training:
                 selected_model = None
                 base_params = training_config["Parameter Count"]
@@ -152,6 +156,13 @@ def render_fine_tuning_dimensions(training_config: Dict[str, Any], pre_training:
 
             if pre_training or base_model_name:
                 training_config["Base Model Params"] = base_params
+                # MoE models run each token through a subset of experts, so compute
+                # scales with active params while storage/VRAM scale with the total.
+                training_config["Base Model FLOPs Params"] = (
+                    selected_model.effective_parameter_count
+                    if selected_model
+                    else base_params
+                )
                 training_config["d_model"] = d_model
                 training_config["num_layers"] = num_layers
                 with ft_col2:

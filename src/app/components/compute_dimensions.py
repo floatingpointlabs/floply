@@ -2,7 +2,7 @@ from typing import Dict, Any
 
 import streamlit as st
 
-from src.app.components.region_selector import current_region
+from src.app.config import MIXED_PRECISION_OPTIONS
 from src.app.helpers import _format_wall_clock_time, _format_gpu_hours
 from src.cost_modelling.calculator import calculate_training_flops, estimate_compute_cost, estimate_gpu_memory_gb
 from src.cost_modelling.gpu_specs import (
@@ -58,10 +58,15 @@ def _render_hardware_widgets(
 
     with col2:
         st.caption("Compute cluster")
-        available_instances = list_available_instances(region)
-        # The option value is the instance type, not its label: labels carry the
-        # price, so a refresh would otherwise silently reset the user's choice.
-        instance_type = st.selectbox(
+        available_instances = list_available_instances()
+        # Labels and prices come from the provider YAML so they cannot drift from the
+        # costs actually used in the estimate.
+        _specs = {i: get_gpu_instance(i) for i in available_instances}
+        instance_display_options = [
+            f"{_specs[i]['display_name']} - ${_specs[i]['hourly_cost']:.2f}/hr"
+            for i in available_instances
+        ]
+        instance_display = st.selectbox(
             "Instance Type",
             options=available_instances,
             index=0,
@@ -219,8 +224,15 @@ def render_compute_dimensions(training_config: Dict[str, Any]) -> Dict[str, Any]
             effective_params = int(training_config["Base Model Params"])
             architecture = "transformer"
 
+        # MoE routes each token through a subset of experts, so compute scales with
+        # active params. Memory below deliberately keeps the total — every expert
+        # still occupies VRAM regardless of routing.
+        flops_params = int(
+            training_config.get("Base Model FLOPs Params", effective_params)
+        )
+
         total_flops = calculate_training_flops(
-            parameter_count=effective_params,
+            parameter_count=flops_params,
             training_tokens=training_config["Total tokens"],
             architecture=architecture,
             epochs=epochs,
