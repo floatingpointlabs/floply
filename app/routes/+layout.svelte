@@ -30,14 +30,20 @@
   <meta name="twitter:card" content="summary" />
 
   {#if data.umami}
-    <script async defer src={data.umami.url} data-website-id={data.umami.websiteId}
+    <script
+      async
+      defer
+      src={data.umami.url}
+      data-website-id={data.umami.websiteId}
     ></script>
   {/if}
 </svelte:head>
 
 <div class="flex min-h-screen flex-col">
   <header class="border-b border-[var(--color-rule)]">
-    <div class="mx-auto flex max-w-6xl flex-wrap items-baseline gap-x-6 gap-y-2 px-6 py-6">
+    <div
+      class="mx-auto flex max-w-6xl flex-wrap items-baseline gap-x-6 gap-y-2 px-6 py-6"
+    >
       <a
         href="/"
         class="font-[family-name:var(--font-display)] text-[1.6rem] font-bold lowercase
@@ -85,19 +91,25 @@
       class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-7"
     >
       <a
-        href="https://floatingpointlabs.github.io"
+        href="https://floatingpointlabs.ca"
         class="flex items-center gap-2.5 text-sm text-[var(--color-ink-muted)] no-underline
                transition-colors hover:text-[var(--color-ink)]"
       >
         <Logo idPrefix="footer" size={30} />
-        <span class="font-[family-name:var(--font-display)] lowercase tracking-[-0.02em]">
-          A <span class="text-[var(--color-ink)]">Floating Point Labs</span> project
+        <span
+          class="font-[family-name:var(--font-display)] lowercase tracking-[-0.02em]"
+        >
+          A <span class="text-[var(--color-ink)] font-bold"
+            >Floating Point Labs</span
+          > project
         </span>
       </a>
 
-      <p class="max-w-[52ch] text-xs leading-relaxed text-[var(--color-ink-faint)]">
-        Estimates only. FLOPs-based modelling assumes ideal scaling; real runs vary with
-        data loading, checkpointing overhead, and cluster utilisation.
+      <p
+        class="max-w-[52ch] text-xs leading-relaxed text-[var(--color-ink-faint)]"
+      >
+        Estimates only. FLOPs-based modelling assumes ideal scaling; real runs
+        vary with data loading, checkpointing overhead, and cluster utilisation.
       </p>
     </div>
   </footer>
