@@ -15,14 +15,14 @@ import {
   calculateTrainingFlops,
   estimateComputeCost,
   solveForParameterCount,
-  solveForTrainingTokens,
+  solveForTrainingTokens
 } from "./calculator";
 import {
   effectiveParameterCount,
   getGpuInstance,
   getStorageCost,
   listAvailableInstances,
-  peakFlopsForPrecision,
+  peakFlopsForPrecision
 } from "./gpuSpecs";
 import { CHINCHILLA_OPTIMAL_RATIO, LORA_OPTIMAL_RATIO } from "./constants";
 import type { InstanceSpec, ModelDefinition } from "./types";
@@ -34,7 +34,7 @@ export const ARCH_MULTIPLIERS: Record<string, number> = {
   CNN: 4.0,
   RNN: 8.0,
   ViT: 6.0,
-  Diffusion: 6.5,
+  Diffusion: 6.5
 };
 
 export interface ModalityConfig {
@@ -49,32 +49,32 @@ export const MODALITY_DEFAULTS: Record<string, ModalityConfig> = {
     arch: "Transformer",
     bytes_per_token: 4,
     tokens_per_sample: 512, // ~512 tokens per web document / article
-    sample_noun: "documents",
+    sample_noun: "documents"
   },
   "Vision (ViT / CLIP)": {
     arch: "ViT",
     bytes_per_token: 1536,
     tokens_per_sample: 196, // 14x14 patches for 224x224 at 16x16 patch size
-    sample_noun: "images",
+    sample_noun: "images"
   },
   Audio: {
     arch: "Transformer",
     bytes_per_token: 8,
     tokens_per_sample: 750, // 10-second clip at 75 tok/s (EnCodec / Whisper rate)
-    sample_noun: "clips",
+    sample_noun: "clips"
   },
   "Multimodal (VLM)": {
     arch: "Transformer",
     bytes_per_token: 512,
     tokens_per_sample: 512, // mixed text + image patches per caption/pair
-    sample_noun: "samples",
+    sample_noun: "samples"
   },
   "Diffusion (Image Gen)": {
     arch: "Diffusion",
     bytes_per_token: 2048,
     tokens_per_sample: 1024, // 32x32 latent patches for a 512x512 image (8x VAE)
-    sample_noun: "images",
-  },
+    sample_noun: "images"
+  }
 };
 
 export const CHECKPOINTS_PER_RUN = 5;
@@ -129,7 +129,7 @@ export function autoConfigureHardware(): Hardware {
     mfu: spec.typical_mfu,
     gpus_per_instance: spec.gpu_count,
     hourly_cost: spec.hourly_cost,
-    gradient_checkpointing: false,
+    gradient_checkpointing: false
   });
   return cachedHardware;
 }
@@ -141,11 +141,10 @@ export function autoConfigureHardware(): Hardware {
 export function quickNEstimate(
   computeBudget: number,
   archMultiplier: number,
-  hw: Hardware,
+  hw: Hardware
 ): number {
   const quickCostPerTp =
-    (archMultiplier /
-      (hw.peak_flops_per_gpu * hw.mfu * hw.gpus_per_instance * 3600)) *
+    (archMultiplier / (hw.peak_flops_per_gpu * hw.mfu * hw.gpus_per_instance * 3600)) *
     hw.hourly_cost;
   if (quickCostPerTp <= 0) return 0.0;
   return Math.sqrt(computeBudget / (CHINCHILLA_OPTIMAL_RATIO * quickCostPerTp));
@@ -164,7 +163,7 @@ export function deriveScheduleDefaults(
   modality: string,
   trainingType: string,
   ftMethod: string | null,
-  quickN: number,
+  quickN: number
 ): ScheduleDefaults {
   const isLora = ftMethod === "LoRA" || ftMethod === "QLoRA";
 
@@ -197,17 +196,14 @@ export function deriveScheduleDefaults(
   else baseMonths = 12;
 
   // Python `//` — Math.floor, not `/`
-  const storageMonths = Math.max(
-    1,
-    storageHeavy ? Math.floor(baseMonths / 2) : baseMonths,
-  );
+  const storageMonths = Math.max(1, storageHeavy ? Math.floor(baseMonths / 2) : baseMonths);
 
   return {
     epochs,
     hp_trials: hpTrials,
     hp_fraction_pct: hpFractionPct,
     storage_months: storageMonths,
-    storage_class: storageMonths > 3 ? "standard_ia" : "standard",
+    storage_class: storageMonths > 3 ? "standard_ia" : "standard"
   };
 }
 
@@ -219,11 +215,10 @@ export function budgetCurveN(
   gpusPerInstance: number,
   hourlyCost: number,
   multiplier: number,
-  epochs: number,
+  epochs: number
 ): number[] {
   const costPerTokenParam =
-    ((epochs * multiplier) / (peakFlopsPerGpu * mfu * gpusPerInstance * 3600)) *
-    hourlyCost;
+    ((epochs * multiplier) / (peakFlopsPerGpu * mfu * gpusPerInstance * 3600)) * hourlyCost;
   return dTokens.map((d) => budget / (costPerTokenParam * d));
 }
 
@@ -268,7 +263,7 @@ function resolveInputs(inputs: OptimizerInputs): ResolvedInputs {
     hp_fraction_pct: inputs.hp_fraction_pct ?? 10,
     storage_duration_months: inputs.storage_duration_months ?? 3,
     storage_class: inputs.storage_class ?? "standard",
-    hardware: inputs.hardware ?? autoConfigureHardware(),
+    hardware: inputs.hardware ?? autoConfigureHardware()
   };
 }
 
@@ -298,7 +293,7 @@ export function adapterParams(i: ResolvedInputs, loraRank?: number): number {
       arch.d_model ?? 0,
       arch.num_layers ?? 0,
       loraRank ?? i.lora_rank,
-      arch,
+      arch
     ) ?? 0
   );
 }
@@ -348,15 +343,13 @@ export function solveBudgetOptimum(rawInputs: OptimizerInputs): BudgetOptimum {
   const hpFraction = i.hp_fraction_pct / 100.0;
   const projectMultiplier = 1.0 + i.num_hp_trials * hpFraction;
   const costPerTbMonth = getStorageCost(i.storage_class);
-  const storageCostPerToken =
-    (bytesPerToken / 1e12) * costPerTbMonth * i.storage_duration_months;
+  const storageCostPerToken = (bytesPerToken / 1e12) * costPerTbMonth * i.storage_duration_months;
 
   const optimalRatio = isLora ? LORA_OPTIMAL_RATIO : CHINCHILLA_OPTIMAL_RATIO;
 
   // cost per (parameter x token) — numInstances cancels in the cost formula
   const costPerTokenParam =
-    ((i.epochs * multiplier) /
-      (hw.peak_flops_per_gpu * hw.mfu * hw.gpus_per_instance * 3600)) *
+    ((i.epochs * multiplier) / (hw.peak_flops_per_gpu * hw.mfu * hw.gpus_per_instance * 3600)) *
     hw.hourly_cost;
 
   const ckptCostPerParam =
@@ -405,16 +398,13 @@ export function solveBudgetOptimum(rawInputs: OptimizerInputs): BudgetOptimum {
 
   // Cost breakdown at the optimal point. FLOPs use the base model's active params when
   // fine-tuning; checkpoints use nOpt (adapter params, or pre-training N).
-  const optFlopsN = Math.max(
-    Math.trunc(ftWithBase && nFlopsBase ? baseParamsActive(i) : nOpt),
-    1,
-  );
+  const optFlopsN = Math.max(Math.trunc(ftWithBase && nFlopsBase ? baseParamsActive(i) : nOpt), 1);
   const optFlops = calculateTrainingFlops(
     optFlopsN,
     Math.max(Math.trunc(dOpt), 1),
     architecture.toLowerCase(),
     i.epochs,
-    hw.gradient_checkpointing,
+    hw.gradient_checkpointing
   );
   const optRun = estimateComputeCost(
     optFlops,
@@ -422,13 +412,13 @@ export function solveBudgetOptimum(rawInputs: OptimizerInputs): BudgetOptimum {
     hw.mfu,
     hw.gpus_per_instance,
     1,
-    hw.hourly_cost,
+    hw.hourly_cost
   );
   const optComputeCostTotal = optRun.compute_cost * projectMultiplier;
   const optDatasetStorageCost = calculateStorageCost(
     (Math.max(Math.trunc(dOpt), 1) * bytesPerToken) / 1e12,
     i.storage_duration_months,
-    i.storage_class,
+    i.storage_class
   );
   const optCkptStorageCost = calculateStorageCost(
     calculateCheckpointStorageTb(
@@ -436,10 +426,10 @@ export function solveBudgetOptimum(rawInputs: OptimizerInputs): BudgetOptimum {
       CHECKPOINTS_PER_RUN,
       1,
       i.num_hp_trials,
-      0,
+      0
     ),
     i.storage_duration_months,
-    i.storage_class,
+    i.storage_class
   );
   const optStorageCost = optDatasetStorageCost + optCkptStorageCost;
 
@@ -460,7 +450,7 @@ export function solveBudgetOptimum(rawInputs: OptimizerInputs): BudgetOptimum {
     ckpt_cost_per_param: ckptCostPerParam,
     storage_cost_per_token: storageCostPerToken,
     cost_per_tb_month: costPerTbMonth,
-    optimal_ratio: optimalRatio,
+    optimal_ratio: optimalRatio
   };
 }
 
@@ -509,7 +499,7 @@ export interface SelectionResult {
 export function resolveSelection(
   rawInputs: OptimizerInputs,
   optimum: BudgetOptimum,
-  selection: Selection = {},
+  selection: Selection = {}
 ): SelectionResult {
   const i = resolveInputs(rawInputs);
   const hw = i.hardware;
@@ -529,7 +519,7 @@ export function resolveSelection(
 
   const sliderComputeBudget = Math.max(
     computeBudget - optimum.opt_storage_cost,
-    computeBudget * 0.5,
+    computeBudget * 0.5
   );
   const sliderEffectiveBudget = sliderComputeBudget / projectMultiplier;
 
@@ -604,7 +594,7 @@ export function resolveSelection(
         hw.hourly_cost,
         architecture.toLowerCase(),
         i.epochs,
-        hw.gradient_checkpointing,
+        hw.gradient_checkpointing
       );
     } else {
       const logN = selection.log_n ?? nOptLogDefault;
@@ -619,7 +609,7 @@ export function resolveSelection(
         hw.hourly_cost,
         architecture.toLowerCase(),
         i.epochs,
-        hw.gradient_checkpointing,
+        hw.gradient_checkpointing
       );
     }
     flopsParams = selectedParams;
@@ -632,7 +622,7 @@ export function resolveSelection(
     Math.max(selectedTokens, 1),
     architecture.toLowerCase(),
     i.epochs,
-    hw.gradient_checkpointing,
+    hw.gradient_checkpointing
   );
   const selRun = estimateComputeCost(
     totalFlopsSel,
@@ -640,7 +630,7 @@ export function resolveSelection(
     hw.mfu,
     hw.gpus_per_instance,
     1,
-    hw.hourly_cost,
+    hw.hourly_cost
   );
 
   // Derived after the slider solve so the hardware card and the wall-clock metric always
@@ -649,14 +639,14 @@ export function resolveSelection(
     totalFlopsSel / (hw.peak_flops_per_gpu * hw.mfu * hw.gpus_per_instance * 3600);
   const recommendedInstances = Math.min(
     MAX_INSTANCES,
-    Math.max(1, Math.ceil(wallClockHours1Inst / (TARGET_WALL_CLOCK_DAYS * 24))),
+    Math.max(1, Math.ceil(wallClockHours1Inst / (TARGET_WALL_CLOCK_DAYS * 24)))
   );
   const numInstances = selection.num_instances ?? recommendedInstances;
 
   const selDatasetStorage = calculateStorageCost(
     (Math.max(selectedTokens, 1) * bytesPerToken) / 1e12,
     i.storage_duration_months,
-    i.storage_class,
+    i.storage_class
   );
   const selCkptStorage = calculateStorageCost(
     calculateCheckpointStorageTb(
@@ -664,10 +654,10 @@ export function resolveSelection(
       CHECKPOINTS_PER_RUN,
       1,
       i.num_hp_trials,
-      0,
+      0
     ),
     i.storage_duration_months,
-    i.storage_class,
+    i.storage_class
   );
   const selComputeCostTotal = selRun.compute_cost * projectMultiplier;
   const selTotalCost = selComputeCostTotal + selDatasetStorage + selCkptStorage;
@@ -702,6 +692,6 @@ export function resolveSelection(
     n_opt_log_default: nOptLogDefault,
     slider_effective_budget: sliderEffectiveBudget,
     tokens_per_sample: tokensPerSample,
-    sample_noun: sampleNoun,
+    sample_noun: sampleNoun
   };
 }

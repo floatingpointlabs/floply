@@ -4,7 +4,7 @@ import {
   calculateStorageCost,
   calculateTrainingFlops,
   estimateComputeCost,
-  estimateGpuMemoryGb,
+  estimateGpuMemoryGb
 } from "./calculator";
 import { getGpuInstance, peakFlopsForPrecision } from "./gpuSpecs";
 import type { FineTuningMethod } from "./types";
@@ -103,7 +103,7 @@ const DEFAULTS = {
   hp_fraction: 0.3,
   num_ablations: 0,
   ablation_fraction: 0.5,
-  storage_class: "standard",
+  storage_class: "standard"
 };
 
 const totalTokens = (i: Required<TrainingBudgetInputs>): number =>
@@ -126,9 +126,7 @@ export function estimateTrainingBudget(raw: TrainingBudgetInputs): TrainingBudge
   // Params that occupy VRAM — always the total, even for MoE.
   const memoryParams = Math.trunc(i.parameter_count || i.base_params);
   // Params written per checkpoint: adapters only for LoRA/QLoRA.
-  const checkpointParams = isAdapter(i.ft_method)
-    ? Math.trunc(i.trainable_params)
-    : memoryParams;
+  const checkpointParams = isAdapter(i.ft_method) ? Math.trunc(i.trainable_params) : memoryParams;
 
   const spec = getGpuInstance(i.instance_type);
   const totalGpus = spec.gpu_count * i.num_instances;
@@ -141,7 +139,7 @@ export function estimateTrainingBudget(raw: TrainingBudgetInputs): TrainingBudge
     tokens,
     i.architecture.toLowerCase(),
     i.epochs,
-    i.gradient_checkpointing,
+    i.gradient_checkpointing
   );
   const run = estimateComputeCost(
     totalFlops,
@@ -149,7 +147,7 @@ export function estimateTrainingBudget(raw: TrainingBudgetInputs): TrainingBudge
     i.mfu,
     totalGpus,
     i.num_instances,
-    spec.hourly_cost,
+    spec.hourly_cost
   );
 
   const memory = estimateGpuMemoryGb(
@@ -162,7 +160,7 @@ export function estimateTrainingBudget(raw: TrainingBudgetInputs): TrainingBudge
     i.num_layers,
     i.seq_len,
     i.batch_size,
-    i.gradient_checkpointing,
+    i.gradient_checkpointing
   );
 
   const checkpointStorageTb = calculateCheckpointStorageTb(
@@ -170,7 +168,7 @@ export function estimateTrainingBudget(raw: TrainingBudgetInputs): TrainingBudge
     i.num_checkpoints,
     i.num_training_runs,
     i.num_hp_trials,
-    i.num_ablations,
+    i.num_ablations
   );
   const totalComputeCost = calculateProjectComputeCost(
     run.compute_cost,
@@ -178,17 +176,13 @@ export function estimateTrainingBudget(raw: TrainingBudgetInputs): TrainingBudge
     i.num_hp_trials,
     i.hp_fraction,
     i.num_ablations,
-    i.ablation_fraction,
+    i.ablation_fraction
   );
-  const datasetStorageCost = calculateStorageCost(
-    sizeTb,
-    i.storage_months,
-    i.storage_class,
-  );
+  const datasetStorageCost = calculateStorageCost(sizeTb, i.storage_months, i.storage_class);
   const checkpointStorageCost = calculateStorageCost(
     checkpointStorageTb,
     i.storage_months,
-    i.storage_class,
+    i.storage_class
   );
 
   return {
@@ -212,6 +206,6 @@ export function estimateTrainingBudget(raw: TrainingBudgetInputs): TrainingBudge
     dataset_storage_cost: datasetStorageCost,
     checkpoint_storage_cost: checkpointStorageCost,
     total_project_cost: totalComputeCost + datasetStorageCost + checkpointStorageCost,
-    total_experiment_runs: i.num_training_runs + i.num_hp_trials + i.num_ablations,
+    total_experiment_runs: i.num_training_runs + i.num_hp_trials + i.num_ablations
   };
 }

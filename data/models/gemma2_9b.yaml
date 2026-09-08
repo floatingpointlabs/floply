@@ -6,7 +6,7 @@ architecture:
   num_layers: 42
   d_model: 3584
   num_heads: 16
-  num_kv_heads: 8        # Grouped Query Attention
+  num_kv_heads: 8 # Grouped Query Attention
   ffn_intermediate: 14336
   ffn_type: "gelu"
   vocab_size: 256000

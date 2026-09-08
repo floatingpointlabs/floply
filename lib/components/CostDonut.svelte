@@ -23,17 +23,8 @@
   /**
    * Annular sector between two angles, measured clockwise from 12 o'clock.
    */
-  function arc(
-    from: number,
-    to: number,
-    outer: number,
-    inner: number,
-    centre: number,
-  ): string {
-    const point = (r: number, a: number) => [
-      centre + r * Math.sin(a),
-      centre - r * Math.cos(a),
-    ];
+  function arc(from: number, to: number, outer: number, inner: number, centre: number): string {
+    const point = (r: number, a: number) => [centre + r * Math.sin(a), centre - r * Math.cos(a)];
     const large = to - from > Math.PI ? 1 : 0;
     const [x1, y1] = point(outer, from);
     const [x2, y2] = point(outer, to);
@@ -44,7 +35,7 @@
       `A ${outer} ${outer} 0 ${large} 1 ${x2} ${y2}`,
       `L ${x3} ${y3}`,
       `A ${inner} ${inner} 0 ${large} 0 ${x4} ${y4}`,
-      "Z",
+      "Z"
     ].join(" ");
   }
 
@@ -74,16 +65,14 @@
         x={OUTER}
         y={OUTER - 2}
         text-anchor="middle"
-        class="num fill-[var(--color-ink)] text-[1.15rem]"
-      >
+        class="num fill-[var(--color-ink)] text-[1.15rem]">
         {money(total)}
       </text>
       <text
         x={OUTER}
         y={OUTER + 16}
         text-anchor="middle"
-        class="fill-[var(--color-ink-faint)] text-[11px]"
-      >
+        class="fill-[var(--color-ink-faint)] text-[11px]">
         total
       </text>
     </svg>

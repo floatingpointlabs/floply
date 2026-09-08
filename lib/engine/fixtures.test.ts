@@ -13,7 +13,13 @@ import * as bo from "./budgetOptimizer";
 import * as ds from "./dataset";
 import * as fmt from "./formatting";
 import * as sl from "./scalingLaws";
-import { MODELS, displayName, effectiveParameterCount, getGpuInstance, peakFlopsForPrecision } from "./gpuSpecs";
+import {
+  MODELS,
+  displayName,
+  effectiveParameterCount,
+  getGpuInstance,
+  peakFlopsForPrecision
+} from "./gpuSpecs";
 import { FULL_FT_TIERS, LORA_TIERS, PRE_TRAINING_TIERS } from "./tiers";
 import type { Tier } from "./tiers";
 import { estimateTrainingBudget } from "./trainingBudget";
@@ -47,8 +53,10 @@ function approx(got: unknown, want: unknown, tol: number, path = ""): void {
       expect(Math.abs(got), path).toBeLessThanOrEqual(tol);
       return;
     }
-    expect(Math.abs(got - want) / Math.abs(want), `${path} (got ${got}, want ${want})`)
-      .toBeLessThanOrEqual(tol);
+    expect(
+      Math.abs(got - want) / Math.abs(want),
+      `${path} (got ${got}, want ${want})`
+    ).toBeLessThanOrEqual(tol);
     return;
   }
   if (Array.isArray(want)) {
@@ -76,50 +84,92 @@ const DISPATCH: Record<string, (c: Case) => unknown> = {
     calc.getFlopsMultiplier(A(c).architecture, A(c).gradient_checkpointing),
   calculate_training_flops: (c) =>
     calc.calculateTrainingFlops(
-      A(c).parameter_count, A(c).training_tokens, A(c).architecture,
-      A(c).epochs, A(c).gradient_checkpointing,
+      A(c).parameter_count,
+      A(c).training_tokens,
+      A(c).architecture,
+      A(c).epochs,
+      A(c).gradient_checkpointing
     ),
   estimate_compute_cost: (c) =>
     calc.estimateComputeCost(
-      A(c).total_flops, A(c).peak_flops_per_gpu, A(c).mfu,
-      A(c).total_gpus, A(c).num_instances, A(c).hourly_cost,
+      A(c).total_flops,
+      A(c).peak_flops_per_gpu,
+      A(c).mfu,
+      A(c).total_gpus,
+      A(c).num_instances,
+      A(c).hourly_cost
     ),
   solve_for_parameter_count: (c) =>
     calc.solveForParameterCount(
-      A(c).compute_budget_usd, A(c).training_tokens, A(c).peak_flops_per_gpu,
-      A(c).mfu, A(c).total_gpus, A(c).num_instances, A(c).hourly_cost,
-      A(c).architecture, A(c).epochs, A(c).gradient_checkpointing,
+      A(c).compute_budget_usd,
+      A(c).training_tokens,
+      A(c).peak_flops_per_gpu,
+      A(c).mfu,
+      A(c).total_gpus,
+      A(c).num_instances,
+      A(c).hourly_cost,
+      A(c).architecture,
+      A(c).epochs,
+      A(c).gradient_checkpointing
     ),
   solve_for_training_tokens: (c) =>
     calc.solveForTrainingTokens(
-      A(c).compute_budget_usd, A(c).parameter_count, A(c).peak_flops_per_gpu,
-      A(c).mfu, A(c).total_gpus, A(c).num_instances, A(c).hourly_cost,
-      A(c).architecture, A(c).epochs, A(c).gradient_checkpointing,
+      A(c).compute_budget_usd,
+      A(c).parameter_count,
+      A(c).peak_flops_per_gpu,
+      A(c).mfu,
+      A(c).total_gpus,
+      A(c).num_instances,
+      A(c).hourly_cost,
+      A(c).architecture,
+      A(c).epochs,
+      A(c).gradient_checkpointing
     ),
   estimate_gpu_memory_gb: (c) =>
     calc.estimateGpuMemoryGb(
-      A(c).effective_params, A(c).trainable_params, A(c).ft_method,
-      A(c).total_gpus, A(c).rl_multiplier, A(c).d_model, A(c).num_layers,
-      A(c).seq_len, A(c).batch_size, A(c).gradient_checkpointing,
+      A(c).effective_params,
+      A(c).trainable_params,
+      A(c).ft_method,
+      A(c).total_gpus,
+      A(c).rl_multiplier,
+      A(c).d_model,
+      A(c).num_layers,
+      A(c).seq_len,
+      A(c).batch_size,
+      A(c).gradient_checkpointing
     ),
   calculate_lora_trainable_params: (c) =>
     calc.calculateLoraTrainableParams(
-      A(c).ft_method, A(c).base_params, A(c).target_modules,
-      A(c).d_model, A(c).num_layers, A(c).lora_rank, A(c).architecture,
+      A(c).ft_method,
+      A(c).base_params,
+      A(c).target_modules,
+      A(c).d_model,
+      A(c).num_layers,
+      A(c).lora_rank,
+      A(c).architecture
     ),
   calculate_checkpoint_storage_tb: (c) =>
     calc.calculateCheckpointStorageTb(
-      A(c).checkpoint_params, A(c).num_checkpoints, A(c).num_training_runs,
-      A(c).num_hp_trials, A(c).num_ablations,
+      A(c).checkpoint_params,
+      A(c).num_checkpoints,
+      A(c).num_training_runs,
+      A(c).num_hp_trials,
+      A(c).num_ablations
     ),
   calculate_project_compute_cost: (c) =>
     calc.calculateProjectComputeCost(
-      A(c).single_run_cost, A(c).num_training_runs, A(c).num_hp_trials,
-      A(c).hp_fraction, A(c).num_ablations, A(c).ablation_fraction,
+      A(c).single_run_cost,
+      A(c).num_training_runs,
+      A(c).num_hp_trials,
+      A(c).hp_fraction,
+      A(c).num_ablations,
+      A(c).ablation_fraction
     ),
   calculate_storage_cost: (c) =>
     calc.calculateStorageCost(
-      A(c).dataset_size_tb, A(c).storage_duration_months, A(c).storage_class,
+      A(c).dataset_size_tb,
+      A(c).storage_duration_months,
+      A(c).storage_class
     ),
   peak_flops_for_precision: (c) =>
     peakFlopsForPrecision(getGpuInstance(A(c).instance_type), A(c).mixed_precision),
@@ -132,8 +182,7 @@ const DISPATCH: Record<string, (c: Case) => unknown> = {
   bytes_per_audio_sample: (c) => ds.bytesPerAudioSample(A(c).clip_duration),
   tokens_per_video_sample: (c) =>
     ds.tokensPerVideoSample(A(c).duration, A(c).fps, A(c).resolution, A(c).patch_size),
-  bytes_per_video_sample: (c) =>
-    ds.bytesPerVideoSample(A(c).duration, A(c).fps, A(c).resolution),
+  bytes_per_video_sample: (c) => ds.bytesPerVideoSample(A(c).duration, A(c).fps, A(c).resolution),
   fmt_tokens: (c) => fmt.fmtTokens(A(c).n),
   fmt_samples: (c) => fmt.fmtSamples(A(c).n),
   format_wall_clock_time: (c) => fmt.formatWallClockTime(A(c).wall_clock_days),
@@ -142,23 +191,35 @@ const DISPATCH: Record<string, (c: Case) => unknown> = {
   display_value: (c) => fmt.displayValue(A(c).val, c.arg_type === "float"),
   assess_training_config: (c) =>
     sl.assessTrainingConfig(
-      A(c).total_tokens, A(c).ft_method, A(c).base_params,
-      A(c).pre_params, A(c).adapter_params,
+      A(c).total_tokens,
+      A(c).ft_method,
+      A(c).base_params,
+      A(c).pre_params,
+      A(c).adapter_params
     ),
   assess_lora_ratio: (c) => sl.assessLoraRatio(A(c).ratio),
   assess_chinchilla_ratio: (c) =>
     sl.assessChinchillaRatio(A(c).ratio, A(c).optimal_tokens, A(c).fix_hint),
   derive_schedule_defaults: (c) =>
     bo.deriveScheduleDefaults(
-      A(c).compute_budget, A(c).modality, A(c).training_type,
-      A(c).ft_method, A(c).quick_n,
+      A(c).compute_budget,
+      A(c).modality,
+      A(c).training_type,
+      A(c).ft_method,
+      A(c).quick_n
     ),
   logspace: (c) => bo.logspace(A(c).start, A(c).stop, A(c).num),
   budget_curve_n: (c) =>
     bo.budgetCurveN(
-      A(c).d_tokens, A(c).budget, A(c).peak_flops_per_gpu, A(c).mfu,
-      A(c).gpus_per_instance, A(c).hourly_cost, A(c).multiplier, A(c).epochs,
-    ),
+      A(c).d_tokens,
+      A(c).budget,
+      A(c).peak_flops_per_gpu,
+      A(c).mfu,
+      A(c).gpus_per_instance,
+      A(c).hourly_cost,
+      A(c).multiplier,
+      A(c).epochs
+    )
 };
 
 describe("engine.json", () => {
@@ -179,7 +240,9 @@ describe("engine.json", () => {
 
         if (group === "tiers") {
           const tables: Record<string, Tier[]> = {
-            PRE_TRAINING_TIERS, FULL_FT_TIERS, LORA_TIERS,
+            PRE_TRAINING_TIERS,
+            FULL_FT_TIERS,
+            LORA_TIERS
           };
           // Colour is presentation, not behaviour — see gen_fixtures.py.
           const got = tables[c.args.table].map(({ color: _color, ...rest }) => rest);
@@ -191,12 +254,13 @@ describe("engine.json", () => {
           const m = models.get(c.args.slug) as ModelDefinition;
           expect(
             {
-              name: m.name, family: m.family,
+              name: m.name,
+              family: m.family,
               parameter_count: m.parameter_count,
               effective_parameter_count: effectiveParameterCount(m),
-              display_name: displayName(m),
+              display_name: displayName(m)
             },
-            where,
+            where
           ).toEqual(c.expect);
           return;
         }
@@ -216,8 +280,8 @@ describe("engine.json", () => {
             values.forEach((v) =>
               expect(
                 typeof v === "number" && Number.isFinite(v),
-                `${where} must be a finite number, not Infinity/NaN`,
-              ).toBe(true),
+                `${where} must be a finite number, not Infinity/NaN`
+              ).toBe(true)
             );
           }
           return;

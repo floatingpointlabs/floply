@@ -4,12 +4,12 @@ Floply is an open-source ML training cost estimator. Given a dataset's dimension
 
 Four tools:
 
-| | |
-|---|---|
+|                      |                                                                                                      |
+| -------------------- | ---------------------------------------------------------------------------------------------------- |
 | **Budget optimizer** | Given a budget, the largest model and dataset you can afford, and where the scaling-law optimum sits |
-| **Minimum data** | How much data a model needs, from Chinchilla and practical fine-tuning thresholds |
-| **Training budget** | Bottom-up cost for a whole project: compute, storage, sweeps and ablations |
-| **Methodology** | Every formula behind the estimates, and what they assume |
+| **Minimum data**     | How much data a model needs, from Chinchilla and practical fine-tuning thresholds                    |
+| **Training budget**  | Bottom-up cost for a whole project: compute, storage, sweeps and ablations                           |
+| **Methodology**      | Every formula behind the estimates, and what they assume                                             |
 
 ## Setup
 
@@ -176,7 +176,7 @@ architecture:
   num_layers: 32
   d_model: 4096
   num_heads: 32
-  num_kv_heads: 8        # omit if not GQA — defaults to num_heads
+  num_kv_heads: 8 # omit if not GQA — defaults to num_heads
   ffn_intermediate: 11008
   ffn_type: "swiglu"
   vocab_size: 32000
@@ -193,7 +193,7 @@ MoE models must include `moe.active_parameter_count`. Floply uses this value —
 name: "My MoE Model"
 slug: "my_moe_model"
 family: "transformer"
-parameter_count: 140000000000   # total parameters across all experts
+parameter_count: 140000000000 # total parameters across all experts
 
 architecture:
   num_layers: 32
@@ -206,7 +206,7 @@ architecture:
   moe:
     num_experts: 64
     active_experts: 2
-    active_parameter_count: 12000000000   # params active per token — used for FLOPs
+    active_parameter_count: 12000000000 # params active per token — used for FLOPs
 
 source: "https://huggingface.co/..."
 notes: "Brief description."
@@ -220,41 +220,41 @@ numeric field that parsed as a string.
 
 #### Required
 
-| Field | Type | Used for |
-|---|---|---|
-| `name` | string | Display name in the UI dropdown |
-| `slug` | string | Unique identifier; must match the filename without `.yaml` |
-| `family` | string | FLOPs multiplier (`transformer` 6×, `cnn` 4×, `rnn` 8×, `vit` 6×, `diffusion` 6.5×) |
-| `parameter_count` | integer | FLOPs, checkpoint storage size, memory estimation |
+| Field             | Type    | Used for                                                                            |
+| ----------------- | ------- | ----------------------------------------------------------------------------------- |
+| `name`            | string  | Display name in the UI dropdown                                                     |
+| `slug`            | string  | Unique identifier; must match the filename without `.yaml`                          |
+| `family`          | string  | FLOPs multiplier (`transformer` 6×, `cnn` 4×, `rnn` 8×, `vit` 6×, `diffusion` 6.5×) |
+| `parameter_count` | integer | FLOPs, checkpoint storage size, memory estimation                                   |
 
 #### Optional — `architecture`
 
 Including these fields enables GQA-aware LoRA parameter counting and accurate activation memory estimation. Without them, Floply falls back to uniform approximations.
 
-| Field | Used for | Default if omitted |
-|---|---|---|
-| `num_layers` | Activation memory, LoRA trainable param count | Falls back to approximation |
-| `d_model` | Activation memory, LoRA adapter sizing | Falls back to approximation |
-| `num_heads` | Per-head dimension for `q_proj` / `o_proj` LoRA | Falls back to approximation |
-| `num_kv_heads` | GQA-aware `k_proj` / `v_proj` LoRA sizing | Defaults to `num_heads` |
-| `ffn_intermediate` | LoRA `up_proj` / `down_proj` adapter sizing | Defaults to `4 × d_model` |
-| `ffn_type` | Informational only | — |
-| `vocab_size` | Informational only | — |
+| Field              | Used for                                        | Default if omitted          |
+| ------------------ | ----------------------------------------------- | --------------------------- |
+| `num_layers`       | Activation memory, LoRA trainable param count   | Falls back to approximation |
+| `d_model`          | Activation memory, LoRA adapter sizing          | Falls back to approximation |
+| `num_heads`        | Per-head dimension for `q_proj` / `o_proj` LoRA | Falls back to approximation |
+| `num_kv_heads`     | GQA-aware `k_proj` / `v_proj` LoRA sizing       | Defaults to `num_heads`     |
+| `ffn_intermediate` | LoRA `up_proj` / `down_proj` adapter sizing     | Defaults to `4 × d_model`   |
+| `ffn_type`         | Informational only                              | —                           |
+| `vocab_size`       | Informational only                              | —                           |
 
 #### Optional — `architecture.moe` (MoE models only)
 
-| Field | Used for |
-|---|---|
-| `num_experts` | Informational |
-| `active_experts` | Informational |
+| Field                    | Used for                                                                            |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `num_experts`            | Informational                                                                       |
+| `active_experts`         | Informational                                                                       |
 | `active_parameter_count` | **FLOPs calculation** — overrides `parameter_count` when computing training compute |
 
 #### Other top-level
 
-| Field | Used for |
-|---|---|
-| `source` | URL to the HuggingFace model page or paper (informational) |
-| `notes` | Short description shown as a caption below the model selector |
+| Field    | Used for                                                      |
+| -------- | ------------------------------------------------------------- |
+| `source` | URL to the HuggingFace model page or paper (informational)    |
+| `notes`  | Short description shown as a caption below the model selector |
 
 ## Adding a provider or instance
 

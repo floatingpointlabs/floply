@@ -18,7 +18,7 @@ export default {
       lib: "lib",
       appTemplate: "app/app.html",
       errorTemplate: "app/error.html",
-      assets: "static",
-    },
-  },
+      assets: "static"
+    }
+  }
 };

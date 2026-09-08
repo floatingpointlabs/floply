@@ -6,7 +6,7 @@ architecture:
   num_layers: 96
   d_model: 12288
   num_heads: 96
-  num_kv_heads: 96       # Multi-Head Attention (no GQA)
+  num_kv_heads: 96 # Multi-Head Attention (no GQA)
   ffn_intermediate: 49152
   ffn_type: "gelu"
   vocab_size: 50257

@@ -1,0 +1,13 @@
+node_modules
+build
+.svelte-kit
+pnpm-lock.yaml
+
+# Generated: rewritten by scripts/build-data.mjs and scripts/gen_fixtures.py on every run,
+# so formatting them is undone on the next build.
+lib/data/generated.ts
+fixtures
+
+# Python virtualenv and Playwright output
+.venv
+test-results

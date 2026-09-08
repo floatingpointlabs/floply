@@ -2,7 +2,7 @@ export const UNIT_MULTIPLIERS: Record<string, number> = {
   K: 1_000,
   M: 1_000_000,
   B: 1_000_000_000,
-  T: 1_000_000_000_000,
+  T: 1_000_000_000_000
 };
 
 /**
@@ -82,7 +82,7 @@ export function money(n: number, cents = false): string {
   return n.toLocaleString("en-US", {
     style: "currency",
     currency: "USD",
-    ...(cents ? { minimumFractionDigits: 2 } : { maximumFractionDigits: 0 }),
+    ...(cents ? { minimumFractionDigits: 2 } : { maximumFractionDigits: 0 })
   });
 }
 

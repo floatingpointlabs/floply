@@ -12,7 +12,7 @@
     default: "text-[var(--color-ink)]",
     accent: "text-[var(--color-violet)]",
     warning: "text-[var(--color-warning)]",
-    success: "text-[var(--color-success)]",
+    success: "text-[var(--color-success)]"
   } as const;
 </script>
 

@@ -7,10 +7,7 @@ export interface LogAxis {
   ok: boolean;
 }
 
-export function logAxis(
-  domain: [number, number],
-  range: [number, number],
-): LogAxis {
+export function logAxis(domain: [number, number], range: [number, number]): LogAxis {
   const ok = domain[0] > 0 && domain[1] > domain[0];
   const scale = scaleLog().domain(domain).range(range).clamp(true);
 

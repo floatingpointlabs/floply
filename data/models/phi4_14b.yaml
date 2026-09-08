@@ -6,7 +6,7 @@ architecture:
   num_layers: 40
   d_model: 5120
   num_heads: 40
-  num_kv_heads: 10       # Grouped Query Attention
+  num_kv_heads: 10 # Grouped Query Attention
   ffn_intermediate: 17920
   ffn_type: "swiglu"
   vocab_size: 100352

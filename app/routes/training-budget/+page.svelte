@@ -9,7 +9,7 @@
   import {
     ARCHITECTURE_OPTIONS,
     CHART_COLORS,
-    MIXED_PRECISION_OPTIONS,
+    MIXED_PRECISION_OPTIONS
   } from "$lib/engine/constants";
   import { DEFAULT_TARGET_MODULES } from "$lib/engine/budgetOptimizer";
   import {
@@ -23,7 +23,7 @@
     tokensPerAudioSample,
     tokensPerImageSample,
     tokensPerTextSample,
-    tokensPerVideoSample,
+    tokensPerVideoSample
   } from "$lib/engine/dataset";
   import {
     UNIT_MULTIPLIERS,
@@ -31,7 +31,7 @@
     formatE,
     formatGpuHours,
     formatWallClockTime,
-    money,
+    money
   } from "$lib/engine/formatting";
 
   // Line items carry cents; the headline figures elsewhere do not.
@@ -41,7 +41,7 @@
     MODELS,
     S3_STORAGE_PRICING,
     getGpuInstance,
-    peakFlopsForPrecision,
+    peakFlopsForPrecision
   } from "$lib/engine/gpuSpecs";
   import { assessTrainingConfig } from "$lib/engine/scalingLaws";
   import { estimateTrainingBudget } from "$lib/engine/trainingBudget";
@@ -74,7 +74,7 @@
       case "Image":
         return {
           tokens: tokensPerImageSample(resolution, patchSize),
-          bytes: bytesPerImageSample(resolution),
+          bytes: bytesPerImageSample(resolution)
         };
       case "Audio": {
         const tokens =
@@ -85,14 +85,14 @@
                 audioTokenizer === "EnCodec"
                   ? ENCODEC_TOKENS_PER_SECOND
                   : SOUNDSTREAM_TOKENS_PER_SECOND,
-                codebooks,
+                codebooks
               );
         return { tokens, bytes: bytesPerAudioSample(clipDuration) };
       }
       case "Video":
         return {
           tokens: tokensPerVideoSample(vidDuration, sampledFps, vidResolution, vidPatchSize),
-          bytes: bytesPerVideoSample(vidDuration, sampledFps, vidResolution),
+          bytes: bytesPerVideoSample(vidDuration, sampledFps, vidResolution)
         };
       default:
         return { tokens: 0, bytes: 0 };
@@ -122,19 +122,19 @@
       ? 0
       : isAdapter
         ? (calculateLoraTrainableParams(
-            ftMethod, baseModel.parameter_count,
+            ftMethod,
+            baseModel.parameter_count,
             DEFAULT_TARGET_MODULES,
             baseModel.architecture.d_model ?? 0,
             baseModel.architecture.num_layers ?? 0,
-            loraRank, baseModel.architecture,
+            loraRank,
+            baseModel.architecture
           ) ?? 0)
-        : baseModel.parameter_count,
+        : baseModel.parameter_count
   );
 
   // DPO keeps a reference model in memory; PPO adds a value and reward model too.
-  const rlMultiplier = $derived(
-    rlAlgorithm === "DPO" ? 2 : rlAlgorithm === "PPO" ? 4 : 1,
-  );
+  const rlMultiplier = $derived(rlAlgorithm === "DPO" ? 2 : rlAlgorithm === "PPO" ? 4 : 1);
 
   let epochs = $state(1);
   let gradientCheckpointing = $state(false);
@@ -153,14 +153,13 @@
    * rather than letting someone pick a format expecting a speedup that cannot happen.
    */
   const acceleratedOn = (precision: string) =>
-      !["fp4", "fp8", "int8"].includes(precision) ||
-    peakFlopsForPrecision(instanceSpec, precision) >
-      peakFlopsForPrecision(instanceSpec, "fp16");
+    !["fp4", "fp8", "int8"].includes(precision) ||
+    peakFlopsForPrecision(instanceSpec, precision) > peakFlopsForPrecision(instanceSpec, "fp16");
 
   const precisionNote = $derived(
     acceleratedOn(mixedPrecision)
       ? undefined
-      : `${instanceSpec.gpu} has no ${mixedPrecision} path, so this is costed at the fp16 rate.`,
+      : `${instanceSpec.gpu} has no ${mixedPrecision} path, so this is costed at the fp16 rate.`
   );
 
   let numTrainingRuns = $state(1);
@@ -203,8 +202,8 @@
       hp_fraction: hpFraction,
       num_ablations: numAblations,
       ablation_fraction: ablationFraction,
-      storage_class: storageClass,
-    }),
+      storage_class: storageClass
+    })
   );
 
   // Assessed on dataset tokens, not tokens-seen: epochs are applied inside the FLOPs
@@ -215,11 +214,9 @@
       isFt ? ftMethod : null,
       isFt ? baseModel.parameter_count : 0,
       isFt ? 0 : preParamCount,
-      trainableParams,
-    ),
+      trainableParams
+    )
   );
-
-
 
   const sizeLabel = $derived.by(() => {
     const tb = budget.dataset_size_tb;
@@ -233,7 +230,7 @@
       label: "Full runs",
       value: budget.compute_cost * numTrainingRuns,
       detail: `${numTrainingRuns} × full training run`,
-      color: CHART_COLORS.compute,
+      color: CHART_COLORS.compute
     },
     {
       label: "HP trials",
@@ -241,7 +238,7 @@
       detail: numHpTrials
         ? `${numHpTrials} × ${(hpFraction * 100).toFixed(0)}% of a run`
         : "none planned",
-      color: CHART_COLORS.warning,
+      color: CHART_COLORS.warning
     },
     {
       label: "Ablations",
@@ -249,8 +246,8 @@
       detail: numAblations
         ? `${numAblations} × ${(ablationFraction * 100).toFixed(0)}% of a run`
         : "none planned",
-      color: CHART_COLORS.success,
-    },
+      color: CHART_COLORS.success
+    }
   ]);
 
   /**
@@ -268,11 +265,7 @@
 
     ["Model", "Training type", trainingType],
     ["Model", "Model / base", isFt ? baseModelName : architecture],
-    [
-      "Model",
-      "Parameter count",
-      fmtTokens(isFt ? baseModel.parameter_count : preParamCount),
-    ],
+    ["Model", "Parameter count", fmtTokens(isFt ? baseModel.parameter_count : preParamCount)],
     ["Model", "Fine-tuning method", isFt ? ftMethod : "N/A"],
     ["Model", "Trainable parameters", isFt ? fmtTokens(trainableParams) : "all"],
     ["Model", "Alignment", isFt ? rlAlgorithm : "N/A"],
@@ -305,23 +298,21 @@
     ["Cost", "Compute (all runs)", moneyCents(budget.total_compute_cost)],
     ["Cost", "Dataset storage", moneyCents(budget.dataset_storage_cost)],
     ["Cost", "Checkpoint storage", moneyCents(budget.checkpoint_storage_cost)],
-    ["Cost", "Total project cost", moneyCents(budget.total_project_cost)],
+    ["Cost", "Total project cost", moneyCents(budget.total_project_cost)]
   ] as const);
-
 </script>
 
 <svelte:head>
   <title>Training budget — Floply</title>
   <meta
     name="description"
-    content="Estimate the full cost of a training project: GPU compute, dataset storage, checkpoints, hyperparameter trials and ablations."
-  />
+    content="Estimate the full cost of a training project: GPU compute, dataset storage, checkpoints, hyperparameter trials and ablations." />
 </svelte:head>
 
 <h1 class="text-2xl font-semibold tracking-tight">What will this project cost?</h1>
 <p class="mt-2 max-w-[62ch] text-sm leading-relaxed text-[var(--color-ink-muted)]">
-  Describe the dataset, the model and the cluster. Each section unlocks as the one above
-  it is answered.
+  Describe the dataset, the model and the cluster. Each section unlocks as the one above it is
+  answered.
 </p>
 
 <section class="mt-8 border-t border-[var(--color-rule)] pt-6">
@@ -343,13 +334,19 @@
           id="dataset-size"
           bind:value={datasetSize}
           bind:unit={datasetUnit}
-          units={["K", "M", "B", "T"]}
-        />
+          units={["K", "M", "B", "T"]} />
       </Field>
 
       {#if modality === "Text"}
         <Field label="Average length (words)" id="avg-words" hint="1 word ≈ 1.3 BPE tokens.">
-          <input id="avg-words" type="number" bind:value={avgWords} min="1" max="100000" step="50" class="control num" />
+          <input
+            id="avg-words"
+            type="number"
+            bind:value={avgWords}
+            min="1"
+            max="100000"
+            step="50"
+            class="control num" />
         </Field>
       {:else if modality === "Image"}
         <Field label="Resolution (px)" id="resolution">
@@ -364,7 +361,14 @@
         </Field>
       {:else if modality === "Audio"}
         <Field label="Clip duration (seconds)" id="clip">
-          <input id="clip" type="number" bind:value={clipDuration} min="0.1" max="3600" step="5" class="control num" />
+          <input
+            id="clip"
+            type="number"
+            bind:value={clipDuration}
+            min="0.1"
+            max="3600"
+            step="5"
+            class="control num" />
         </Field>
         <Field label="Tokenizer" id="tokenizer">
           <select id="tokenizer" bind:value={audioTokenizer} class="control">
@@ -375,15 +379,37 @@
         </Field>
         {#if audioTokenizer !== "Whisper"}
           <Field label="Codebooks" id="codebooks">
-            <input id="codebooks" type="number" bind:value={codebooks} min="1" max="16" class="control num" />
+            <input
+              id="codebooks"
+              type="number"
+              bind:value={codebooks}
+              min="1"
+              max="16"
+              class="control num" />
           </Field>
         {/if}
       {:else if modality === "Video"}
         <Field label="Clip duration (seconds)" id="vid-dur">
-          <input id="vid-dur" type="number" bind:value={vidDuration} min="0.1" max="3600" step="1" class="control num" />
+          <input
+            id="vid-dur"
+            type="number"
+            bind:value={vidDuration}
+            min="0.1"
+            max="3600"
+            step="1"
+            class="control num" />
         </Field>
-        <Field label="Sampled FPS" id="fps" hint="Frames sampled per second, not source frame rate.">
-          <input id="fps" type="number" bind:value={sampledFps} min="1" max="60" class="control num" />
+        <Field
+          label="Sampled FPS"
+          id="fps"
+          hint="Frames sampled per second, not source frame rate.">
+          <input
+            id="fps"
+            type="number"
+            bind:value={sampledFps}
+            min="1"
+            max="60"
+            class="control num" />
         </Field>
         <Field label="Frame resolution (px)" id="vid-res">
           <select id="vid-res" bind:value={vidResolution} class="control num">
@@ -447,7 +473,10 @@
             <span class="num text-sm">{loraRank}</span>
           </Field>
         {/if}
-        <Field label="Alignment" id="rl" hint="DPO holds a reference model in memory; PPO adds value and reward models.">
+        <Field
+          label="Alignment"
+          id="rl"
+          hint="DPO holds a reference model in memory; PPO adds value and reward models.">
           <select id="rl" bind:value={rlAlgorithm} class="control">
             <option>Supervised</option>
             <option>DPO</option>
@@ -461,21 +490,40 @@
           </select>
         </Field>
         <Field label="Parameter count" id="pre-params">
-          <ScaledNumber id="pre-params" bind:value={preParams} bind:unit={preUnit} units={["M", "B", "T"]} />
+          <ScaledNumber
+            id="pre-params"
+            bind:value={preParams}
+            bind:unit={preUnit}
+            units={["M", "B", "T"]} />
         </Field>
         <Field label="Hidden dimension" id="d-model">
-          <input id="d-model" type="number" bind:value={dModel} min="64" max="65536" step="64" class="control num" />
+          <input
+            id="d-model"
+            type="number"
+            bind:value={dModel}
+            min="64"
+            max="65536"
+            step="64"
+            class="control num" />
         </Field>
         <Field label="Layers" id="layers">
-          <input id="layers" type="number" bind:value={numLayers} min="1" max="512" class="control num" />
+          <input
+            id="layers"
+            type="number"
+            bind:value={numLayers}
+            min="1"
+            max="512"
+            class="control num" />
         </Field>
       {/if}
     </div>
 
     {#if isAdapter}
       <p class="mt-4 text-xs text-[var(--color-ink-faint)]">
-        <span class="num">{fmtTokens(trainableParams)}</span> trainable adapter parameters
-        &mdash; checkpoints store these, not the {fmtTokens(baseModel.parameter_count)}-parameter base.
+        <span class="num">{fmtTokens(trainableParams)}</span>
+        trainable adapter parameters &mdash; checkpoints store these, not the {fmtTokens(
+          baseModel.parameter_count
+        )}-parameter base.
       </p>
     {/if}
 
@@ -488,21 +536,34 @@
       <Field label="Instance type" id="instance">
         <select id="instance" bind:value={instanceType} class="control">
           {#each INSTANCE_ORDER as t (t)}
-            <option value={t}>{getGpuInstance(t).display_name} — ${getGpuInstance(t).hourly_cost.toFixed(2)}/hr</option>
+            <option value={t}>
+              {getGpuInstance(t).display_name} — ${getGpuInstance(t).hourly_cost.toFixed(2)}/hr
+            </option>
           {/each}
         </select>
       </Field>
-      <Field label="Instances" id="instances" hint="{instanceSpec.gpu_count} GPUs each, {budget.total_gpus} total.">
-        <input id="instances" type="number" bind:value={numInstances} min="1" max="512" class="control num" />
+      <Field
+        label="Instances"
+        id="instances"
+        hint="{instanceSpec.gpu_count} GPUs each, {budget.total_gpus} total.">
+        <input
+          id="instances"
+          type="number"
+          bind:value={numInstances}
+          min="1"
+          max="512"
+          class="control num" />
       </Field>
       <Field label="Epochs" id="epochs">
-        <input id="epochs" type="number" bind:value={epochs} min="1" max="100" class="control num" />
+        <input
+          id="epochs"
+          type="number"
+          bind:value={epochs}
+          min="1"
+          max="100"
+          class="control num" />
       </Field>
-      <Field
-        label="Mixed precision"
-        id="precision"
-        hint={precisionNote}
-      >
+      <Field label="Mixed precision" id="precision" hint={precisionNote}>
         <select id="precision" bind:value={mixedPrecision} class="control">
           {#each MIXED_PRECISION_OPTIONS as p (p)}
             <option value={p}>
@@ -511,14 +572,26 @@
           {/each}
         </select>
       </Field>
-      <Field label="Model FLOPs utilisation" id="mfu" hint="Share of peak throughput actually achieved. 30% is a conservative real-world default.">
+      <Field
+        label="Model FLOPs utilisation"
+        id="mfu"
+        hint="Share of peak throughput actually achieved. 30% is a conservative real-world default.">
         <input id="mfu" type="range" bind:value={mfuPct} min="5" max="100" step="5" />
         <span class="num text-sm">{mfuPct}%</span>
       </Field>
       <Field label="Batch size" id="batch">
-        <input id="batch" type="number" bind:value={batchSize} min="1" max="65536" class="control num" />
+        <input
+          id="batch"
+          type="number"
+          bind:value={batchSize}
+          min="1"
+          max="65536"
+          class="control num" />
       </Field>
-      <Field label="Gradient checkpointing" id="grad-ckpt" hint="Recomputes activations to save memory. Adds ~33% FLOPs.">
+      <Field
+        label="Gradient checkpointing"
+        id="grad-ckpt"
+        hint="Recomputes activations to save memory. Adds ~33% FLOPs.">
         <label class="flex items-center gap-2 text-sm">
           <input id="grad-ckpt" type="checkbox" bind:checked={gradientCheckpointing} />
           Enabled
@@ -526,7 +599,8 @@
       </Field>
     </div>
 
-    <dl class="mt-6 grid gap-6 border-t border-[var(--color-rule)] pt-5 sm:grid-cols-2 lg:grid-cols-4">
+    <dl
+      class="mt-6 grid gap-6 border-t border-[var(--color-rule)] pt-5 sm:grid-cols-2 lg:grid-cols-4">
       <Figure label="Total FLOPs" value={formatE(budget.total_flops, 2)} />
       <Figure label="Wall-clock (1 run)" value={formatWallClockTime(budget.wall_clock_days)} />
       <Figure label="GPU-hours (1 run)" value="{formatGpuHours(budget.gpu_hours)} GPU-hrs" />
@@ -534,8 +608,7 @@
         label="Memory per GPU"
         value="{budget.memory_per_gpu_gb.toFixed(1)} GB"
         note="{budget.vram_per_gpu} GB available"
-        tone={budget.memory_fits ? "success" : "warning"}
-      />
+        tone={budget.memory_fits ? "success" : "warning"} />
     </dl>
     {#if !budget.memory_fits}
       <p class="mt-3 text-sm text-[var(--color-warning)]">
@@ -548,27 +621,65 @@
   <section class="mt-10 border-t border-[var(--color-rule)] pt-6">
     <h2 class="text-lg font-semibold tracking-tight">Experiments</h2>
     <p class="mt-1.5 max-w-[62ch] text-sm text-[var(--color-ink-muted)]">
-      Real projects are never one run. Hyperparameter trials and ablations usually cost
-      more than the final model.
+      Real projects are never one run. Hyperparameter trials and ablations usually cost more than
+      the final model.
     </p>
     <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       <Field label="Full training runs" id="runs">
-        <input id="runs" type="number" bind:value={numTrainingRuns} min="1" max="100" class="control num" />
+        <input
+          id="runs"
+          type="number"
+          bind:value={numTrainingRuns}
+          min="1"
+          max="100"
+          class="control num" />
       </Field>
       <Field label="Checkpoints per run" id="ckpts">
-        <input id="ckpts" type="number" bind:value={numCheckpoints} min="1" max="200" class="control num" />
+        <input
+          id="ckpts"
+          type="number"
+          bind:value={numCheckpoints}
+          min="1"
+          max="200"
+          class="control num" />
       </Field>
       <Field label="HP tuning trials" id="hp">
-        <input id="hp" type="number" bind:value={numHpTrials} min="0" max="1000" class="control num" />
+        <input
+          id="hp"
+          type="number"
+          bind:value={numHpTrials}
+          min="0"
+          max="1000"
+          class="control num" />
       </Field>
       <Field label="HP trial length" id="hp-frac" hint="Fraction of a full run's cost.">
-        <input id="hp-frac" type="number" bind:value={hpFraction} min="0.05" max="1" step="0.05" class="control num" />
+        <input
+          id="hp-frac"
+          type="number"
+          bind:value={hpFraction}
+          min="0.05"
+          max="1"
+          step="0.05"
+          class="control num" />
       </Field>
       <Field label="Ablation studies" id="abl">
-        <input id="abl" type="number" bind:value={numAblations} min="0" max="100" class="control num" />
+        <input
+          id="abl"
+          type="number"
+          bind:value={numAblations}
+          min="0"
+          max="100"
+          class="control num" />
       </Field>
       <Field label="Ablation length" id="abl-frac" hint="Fraction of a full run's cost.">
-        <input id="abl-frac" type="number" bind:value={ablationFraction} min="0.05" max="1" step="0.05" class="control num" />
+        <input
+          id="abl-frac"
+          type="number"
+          bind:value={ablationFraction}
+          min="0.05"
+          max="1"
+          step="0.05"
+          class="control num" />
       </Field>
       <Field label="S3 storage class" id="storage-class">
         <select id="storage-class" bind:value={storageClass} class="control">
@@ -587,9 +698,10 @@
       <Figure label="Compute (1 run)" value={moneyCents(budget.compute_cost)} />
       <Figure
         label="Compute (all {budget.total_experiment_runs} runs)"
-        value={moneyCents(budget.total_compute_cost)}
-      />
-      <Figure label="Storage" value={moneyCents(budget.dataset_storage_cost + budget.checkpoint_storage_cost)} />
+        value={moneyCents(budget.total_compute_cost)} />
+      <Figure
+        label="Storage"
+        value={moneyCents(budget.dataset_storage_cost + budget.checkpoint_storage_cost)} />
       <Figure label="Total" value={moneyCents(budget.total_project_cost)} tone="accent" />
     </dl>
 
@@ -598,24 +710,31 @@
         total={budget.total_project_cost}
         segments={[
           { label: "Compute", value: budget.total_compute_cost, color: CHART_COLORS.compute },
-          { label: "Dataset storage", value: budget.dataset_storage_cost, color: CHART_COLORS.storage },
-          { label: "Checkpoint storage", value: budget.checkpoint_storage_cost, color: CHART_COLORS.checkpoint },
-        ]}
-      />
+          {
+            label: "Dataset storage",
+            value: budget.dataset_storage_cost,
+            color: CHART_COLORS.storage
+          },
+          {
+            label: "Checkpoint storage",
+            value: budget.checkpoint_storage_cost,
+            color: CHART_COLORS.checkpoint
+          }
+        ]} />
     </div>
 
     <p class="mt-6 text-xs text-[var(--color-ink-faint)]">
-      {budget.total_gpus} GPUs · {instanceSpec.gpu} · ${instanceSpec.hourly_cost.toFixed(2)}/hr
-      per instance · {(budget.peak_flops_per_gpu / 1e12).toFixed(0)} TFLOPS peak
-      ({mixedPrecision}) · {budget.checkpoint_storage_tb.toFixed(2)} TB of checkpoints
+      {budget.total_gpus} GPUs · {instanceSpec.gpu} · ${instanceSpec.hourly_cost.toFixed(2)}/hr per
+      instance · {(budget.peak_flops_per_gpu / 1e12).toFixed(0)} TFLOPS peak ({mixedPrecision}) · {budget.checkpoint_storage_tb.toFixed(
+        2
+      )} TB of checkpoints
     </p>
   </section>
 
   <section class="mt-10 border-t border-[var(--color-rule)] pt-6">
     <h2 class="text-lg font-semibold tracking-tight">Compute by run type</h2>
     <p class="mt-1.5 max-w-[62ch] text-sm text-[var(--color-ink-muted)]">
-      Sweeps and ablations often cost more than the model you keep. A single total hides
-      that.
+      Sweeps and ablations often cost more than the model you keep. A single total hides that.
     </p>
     <div class="mt-5">
       <CostBars segments={runTypeSegments} />
@@ -634,10 +753,9 @@
           {#each recap as [category, label, value], i (category + label)}
             {@const first = i === 0 || recap[i - 1][0] !== category}
             <tr class={first && i > 0 ? "border-t border-[var(--color-rule-strong)]" : ""}>
-              <td
-                class="w-28 py-1.5 pr-4 align-top text-[var(--color-ink-faint)]"
-                >{first ? category : ""}</td
-              >
+              <td class="w-28 py-1.5 pr-4 align-top text-[var(--color-ink-faint)]">
+                {first ? category : ""}
+              </td>
               <td class="py-1.5 pr-4 align-top text-[var(--color-ink-muted)]">{label}</td>
               <td class="num py-1.5 align-top text-[var(--color-ink)]">{value}</td>
             </tr>

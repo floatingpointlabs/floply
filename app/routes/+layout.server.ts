@@ -12,5 +12,5 @@ export const load = () => ({
   umami:
     env.UMAMI_URL && env.UMAMI_WEBSITE_ID
       ? { url: env.UMAMI_URL, websiteId: env.UMAMI_WEBSITE_ID }
-      : null,
+      : null
 });

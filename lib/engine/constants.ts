@@ -13,13 +13,10 @@ export const CHART_COLORS = {
   storage: "#22d3ee",
   checkpoint: "#f59e0b",
   warning: "#fb7185",
-  success: "#34d399",
+  success: "#34d399"
 } as const;
 
 export const ARCHITECTURE_OPTIONS = ["Transformer", "CNN", "RNN", "ViT", "Diffusion"];
 
 /** Mixed-precision formats, ordered fastest/smallest → most precise. */
-export const MIXED_PRECISION_OPTIONS = [
-  "fp4", "int8", "fp8", "bf16", "fp16", "tf32", "fp32",
-];
-
+export const MIXED_PRECISION_OPTIONS = ["fp4", "int8", "fp8", "bf16", "fp16", "tf32", "fp32"];

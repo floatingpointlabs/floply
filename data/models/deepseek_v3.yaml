@@ -1,7 +1,7 @@
 name: "DeepSeek V3"
 slug: "deepseek_v3"
 family: "transformer"
-parameter_count: 671000000000   # Total parameters
+parameter_count: 671000000000 # Total parameters
 architecture:
   num_layers: 61
   d_model: 7168
@@ -12,8 +12,8 @@ architecture:
   vocab_size: 129280
   moe:
     num_experts: 256
-    active_experts: 8            # Only 8 of 256 experts active per token
-    active_parameter_count: 37000000000  # ~37B active params per forward pass
+    active_experts: 8 # Only 8 of 256 experts active per token
+    active_parameter_count: 37000000000 # ~37B active params per forward pass
 source: "https://huggingface.co/deepseek-ai/DeepSeek-V3"
 notes: >
   DeepSeek V3. Mixture-of-Experts: 671B total, ~37B active per token.

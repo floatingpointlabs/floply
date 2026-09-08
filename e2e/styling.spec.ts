@@ -1,8 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("the unit select next to a scaled number is not stretched to full width", async ({
-  page,
-}) => {
+test("the unit select next to a scaled number is not stretched to full width", async ({ page }) => {
   await page.goto("/");
   const wrapper = page.locator("#budget").locator("xpath=..");
   const numberBox = await page.locator("#budget").boundingBox();
@@ -19,9 +17,7 @@ test("figures keep their tabular monospace inside a .control input", async ({ pa
   await page.goto("/");
   // `.control` sets `font-family: inherit`; `.num` must still win, or every numeric
   // field silently loses its tabular figures and jitters as values change.
-  const family = await page
-    .locator("#budget")
-    .evaluate((el) => getComputedStyle(el).fontFamily);
+  const family = await page.locator("#budget").evaluate((el) => getComputedStyle(el).fontFamily);
   expect(family.toLowerCase()).toContain("mono");
 });
 
@@ -36,8 +32,7 @@ test("a selected LoRA module pill actually looks selected", async ({ page }) => 
   await expect(off).toHaveAttribute("aria-pressed", "false");
 
   const colourOf = (el: typeof on) => el.evaluate((n) => getComputedStyle(n).color);
-  const borderOf = (el: typeof on) =>
-    el.evaluate((n) => getComputedStyle(n).borderTopColor);
+  const borderOf = (el: typeof on) => el.evaluate((n) => getComputedStyle(n).borderTopColor);
 
   expect(await colourOf(on)).not.toBe(await colourOf(off));
   expect(await borderOf(on)).not.toBe(await borderOf(off));

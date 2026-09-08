@@ -26,21 +26,31 @@ function requireNum(obj, key, where) {
 }
 
 const INSTANCE_NUMERIC = [
-  "gpu_count", "peak_flops_fp16", "peak_flops_fp32", "memory_per_gpu",
-  "total_gpu_memory", "vcpus", "system_memory", "network_bandwidth",
-  "hourly_cost", "typical_mfu",
+  "gpu_count",
+  "peak_flops_fp16",
+  "peak_flops_fp32",
+  "memory_per_gpu",
+  "total_gpu_memory",
+  "vcpus",
+  "system_memory",
+  "network_bandwidth",
+  "hourly_cost",
+  "typical_mfu"
 ];
 
 const instances = {};
 const instanceOrder = [];
 const storage = {};
 
-for (const file of readdirSync(join(DATA, "providers")).filter((f) => f.endsWith(".yaml")).sort()) {
+for (const file of readdirSync(join(DATA, "providers"))
+  .filter((f) => f.endsWith(".yaml"))
+  .sort()) {
   const doc = parse(readFileSync(join(DATA, "providers", file), "utf8"));
   for (const [name, spec] of Object.entries(doc.instances ?? {})) {
     if (instances[name]) fail(file, `duplicate instance "${name}"`);
     for (const k of INSTANCE_NUMERIC) requireNum(spec, k, `${file}:${name}`);
-    if (typeof spec.display_name !== "string") fail(`${file}:${name}`, "display_name must be a string");
+    if (typeof spec.display_name !== "string")
+      fail(`${file}:${name}`, "display_name must be a string");
     instances[name] = spec;
     instanceOrder.push(name);
   }
@@ -54,7 +64,9 @@ if (!instanceOrder.length) fail("data/providers", "no instances found");
 
 const models = [];
 
-for (const file of readdirSync(join(DATA, "models")).filter((f) => f.endsWith(".yaml")).sort()) {
+for (const file of readdirSync(join(DATA, "models"))
+  .filter((f) => f.endsWith(".yaml"))
+  .sort()) {
   const doc = parse(readFileSync(join(DATA, "models", file), "utf8"));
   const where = `data/models/${file}`;
   const slug = basename(file, ".yaml");
@@ -79,7 +91,7 @@ for (const file of readdirSync(join(DATA, "models")).filter((f) => f.endsWith(".
     parameter_count: doc.parameter_count,
     architecture: arch,
     source: doc.source ?? "",
-    notes: String(doc.notes ?? ""),
+    notes: String(doc.notes ?? "")
   });
 }
 

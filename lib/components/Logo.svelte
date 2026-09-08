@@ -21,8 +21,7 @@
   height={size}
   viewBox="0 0 64 64"
   xmlns="http://www.w3.org/2000/svg"
-  style="overflow: visible"
->
+  style="overflow: visible">
   <defs>
     <linearGradient id={wave} x1="0%" x2="100%" y1="0%" y2="0%">
       <stop offset="0%" stop-color="var(--color-indigo)" />
@@ -39,7 +38,6 @@
     fill="none"
     stroke="url(#{wave})"
     stroke-linejoin="round"
-    stroke-width="8.8"
-  />
+    stroke-width="8.8" />
   <circle cx="40.8" cy="22.2" r="5.1" fill="url(#{dot})" />
 </svg>

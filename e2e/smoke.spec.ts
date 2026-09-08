@@ -4,9 +4,7 @@ const ROUTES = ["/", "/minimum-data", "/training-budget", "/methodology"];
 
 /** Read a readout by its label. Figure.svelte renders <dt>label</dt><dd>value</dd>. */
 function figure(page: Page, label: string) {
-  return page
-    .getByText(label, { exact: true })
-    .locator("xpath=following-sibling::dd[1]");
+  return page.getByText(label, { exact: true }).locator("xpath=following-sibling::dd[1]");
 }
 
 test("every route loads and hydrates without console errors", async ({ page }) => {
@@ -49,9 +47,7 @@ test("the dataset slider recomputes the answer", async ({ page }) => {
   expect(Number.parseInt(used, 10)).toBeLessThanOrEqual(100);
 });
 
-test("schedule overrides survive a schedule edit but reset on a setup change", async ({
-  page,
-}) => {
+test("schedule overrides survive a schedule edit but reset on a setup change", async ({ page }) => {
   await page.goto("/");
   const epochs = page.locator("#epochs");
   await expect(epochs).toHaveValue("1"); // derived default for pre-training
@@ -66,9 +62,7 @@ test("schedule overrides survive a schedule edit but reset on a setup change", a
   await expect(epochs).toHaveValue("1");
 });
 
-test("training budget gates each section until the one above is answered", async ({
-  page,
-}) => {
+test("training budget gates each section until the one above is answered", async ({ page }) => {
   await page.goto("/training-budget");
   await expect(page.getByText("Choose a modality and dataset size to continue.")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Total project cost" })).toBeHidden();
@@ -79,9 +73,7 @@ test("training budget gates each section until the one above is answered", async
   await expect(figure(page, "Tokens per sample")).toHaveText("520");
 });
 
-test("training budget breaks compute down by run type and recaps the config", async ({
-  page,
-}) => {
+test("training budget breaks compute down by run type and recaps the config", async ({ page }) => {
   await page.goto("/training-budget");
   await page.locator("#modality").selectOption("Text");
 

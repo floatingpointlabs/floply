@@ -51,7 +51,7 @@ export function bytesPerImageSample(resolution: number): number {
 export function tokensPerAudioSample(
   clipDuration: number,
   baseRate: number,
-  numCodebooks = 1,
+  numCodebooks = 1
 ): number {
   return Math.trunc(clipDuration * baseRate * numCodebooks);
 }
@@ -64,18 +64,14 @@ export function tokensPerVideoSample(
   duration: number,
   fps: number,
   resolution: number,
-  patchSize: number,
+  patchSize: number
 ): number {
   const tokensPerFrame = tokensPerImageSample(resolution, patchSize);
   const numFrames = Math.trunc(duration * fps);
   return tokensPerFrame * numFrames;
 }
 
-export function bytesPerVideoSample(
-  duration: number,
-  fps: number,
-  resolution: number,
-): number {
+export function bytesPerVideoSample(duration: number, fps: number, resolution: number): number {
   const bytesPerFrame = bytesPerImageSample(resolution);
   const numFrames = Math.trunc(duration * fps);
   return bytesPerFrame * numFrames;

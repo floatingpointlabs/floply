@@ -6,14 +6,14 @@ instances:
     display_name: "p4d.24xlarge (8x A100 40GB)"
     gpu: "A100"
     gpu_count: 8
-    peak_flops_fp16: 312.0e12   # TFLOPS per GPU, FP16/BF16 without sparsity
+    peak_flops_fp16: 312.0e12 # TFLOPS per GPU, FP16/BF16 without sparsity
     peak_flops_fp32: 19.5e12
-    memory_per_gpu: 40          # GB HBM2e
+    memory_per_gpu: 40 # GB HBM2e
     total_gpu_memory: 320
     vcpus: 96
     system_memory: 1152
-    network_bandwidth: 400      # Gbps
-    hourly_cost: 26.87          # USD on-demand, avg across US regions
+    network_bandwidth: 400 # Gbps
+    hourly_cost: 26.87 # USD on-demand, avg across US regions
     typical_mfu: 0.45
     description: "NVIDIA A100 40GB (8 GPUs), optimized for deep learning training"
 
@@ -23,7 +23,7 @@ instances:
     gpu_count: 8
     peak_flops_fp16: 312.0e12
     peak_flops_fp32: 19.5e12
-    memory_per_gpu: 80          # GB HBM2e
+    memory_per_gpu: 80 # GB HBM2e
     total_gpu_memory: 640
     vcpus: 96
     system_memory: 1152
@@ -36,13 +36,13 @@ instances:
     display_name: "p5.48xlarge (8x H100 80GB)"
     gpu: "H100"
     gpu_count: 8
-    peak_flops_fp16: 989.0e12   # TFLOPS per GPU, FP16/BF16 without structured sparsity
+    peak_flops_fp16: 989.0e12 # TFLOPS per GPU, FP16/BF16 without structured sparsity
     peak_flops_fp32: 67.0e12
-    memory_per_gpu: 80          # GB HBM3
+    memory_per_gpu: 80 # GB HBM3
     total_gpu_memory: 640
     vcpus: 192
     system_memory: 2048
-    network_bandwidth: 3200     # Gbps (8x 400 Gbps EFA)
+    network_bandwidth: 3200 # Gbps (8x 400 Gbps EFA)
     hourly_cost: 66.64
     typical_mfu: 0.55
     description: "NVIDIA H100 80GB (8 GPUs), latest generation for large-scale training"
@@ -53,7 +53,7 @@ instances:
     gpu_count: 8
     peak_flops_fp16: 125.0e12
     peak_flops_fp32: 15.7e12
-    memory_per_gpu: 16          # GB HBM2
+    memory_per_gpu: 16 # GB HBM2
     total_gpu_memory: 128
     vcpus: 64
     system_memory: 488
@@ -68,7 +68,7 @@ instances:
     gpu_count: 8
     peak_flops_fp16: 125.0e12
     peak_flops_fp32: 15.7e12
-    memory_per_gpu: 32          # GB HBM2
+    memory_per_gpu: 32 # GB HBM2
     total_gpu_memory: 256
     vcpus: 96
     system_memory: 768
@@ -95,7 +95,7 @@ storage:
     description: "S3 Glacier"
 
 data_transfer:
-  data_in: 0.0                  # Free to upload
+  data_in: 0.0 # Free to upload
   data_out_first_10tb: 90.0
   data_out_next_40tb: 85.0
   data_out_next_100tb: 70.0

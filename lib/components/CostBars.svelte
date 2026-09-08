@@ -19,14 +19,16 @@
 </script>
 
 {#if total > 0}
-  <div class="flex h-7 w-full overflow-hidden rounded-sm" role="img"
-       aria-label="Compute cost split across run types">
+  <div
+    class="flex h-7 w-full overflow-hidden rounded-sm"
+    role="img"
+    aria-label="Compute cost split across run types">
     {#each shown as s (s.label)}
       <div
         class="h-full"
         style="width:{(s.value / total) * 100}%; background:{s.color}; opacity:0.9"
-        title="{s.label}: {money(s.value)}"
-      ></div>
+        title="{s.label}: {money(s.value)}">
+      </div>
     {/each}
   </div>
 

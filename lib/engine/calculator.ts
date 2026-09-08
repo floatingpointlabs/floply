@@ -26,13 +26,10 @@ const BASE_FLOPS_MULTIPLIERS: Record<string, number> = {
   cnn: 4.0,
   rnn: 8.0,
   vit: 6.0,
-  diffusion: 6.5,
+  diffusion: 6.5
 };
 
-export function getFlopsMultiplier(
-  architecture: string,
-  gradientCheckpointing: boolean,
-): number {
+export function getFlopsMultiplier(architecture: string, gradientCheckpointing: boolean): number {
   let multiplier = BASE_FLOPS_MULTIPLIERS[architecture.toLowerCase()] ?? 6.0;
   if (gradientCheckpointing) multiplier += 2.0;
   return multiplier;
@@ -43,7 +40,7 @@ export function calculateTrainingFlops(
   trainingTokens: number,
   architecture = "transformer",
   epochs = 1.0,
-  gradientCheckpointing = false,
+  gradientCheckpointing = false
 ): number {
   const multiplier = getFlopsMultiplier(architecture, gradientCheckpointing);
   return multiplier * parameterCount * trainingTokens * epochs;
@@ -55,7 +52,7 @@ export function estimateComputeCost(
   mfu: number,
   totalGpus: number,
   numInstances: number,
-  hourlyCost: number,
+  hourlyCost: number
 ): ComputeCost {
   const effectiveClusterFlops = peakFlopsPerGpu * mfu * totalGpus;
   // Python raises ZeroDivisionError here; returning zeroes keeps the UI from rendering
@@ -69,7 +66,7 @@ export function estimateComputeCost(
     wall_clock_hours: wallClockHours,
     gpu_hours: wallClockHours * totalGpus,
     compute_cost: wallClockHours * hourlyCost * numInstances,
-    wall_clock_days: wallClockHours / 24,
+    wall_clock_days: wallClockHours / 24
   };
 }
 
@@ -86,7 +83,7 @@ export function solveForParameterCount(
   hourlyCost: number,
   architecture = "transformer",
   epochs = 1.0,
-  gradientCheckpointing = false,
+  gradientCheckpointing = false
 ): number {
   const multiplier = getFlopsMultiplier(architecture, gradientCheckpointing);
   const totalTokens = trainingTokens * epochs;
@@ -110,7 +107,7 @@ export function solveForTrainingTokens(
   hourlyCost: number,
   architecture = "transformer",
   epochs = 1.0,
-  gradientCheckpointing = false,
+  gradientCheckpointing = false
 ): number {
   const multiplier = getFlopsMultiplier(architecture, gradientCheckpointing);
   const effectiveClusterFlops = peakFlopsPerGpu * mfu * totalGpus;
@@ -133,17 +130,15 @@ export function estimateGpuMemoryGb(
   numLayers: number,
   seqLen: number,
   batchSize: number,
-  gradientCheckpointing: boolean,
+  gradientCheckpointing: boolean
 ): GpuMemory {
   let modelMemoryBytes: number;
   if (ftMethod === "QLoRA") {
     modelMemoryBytes =
-      effectiveParams * BYTES_PER_PARAM_QLORA_BASE +
-      trainableParams * BYTES_PER_PARAM_TRAINABLE;
+      effectiveParams * BYTES_PER_PARAM_QLORA_BASE + trainableParams * BYTES_PER_PARAM_TRAINABLE;
   } else if (ftMethod === "LoRA") {
     modelMemoryBytes =
-      effectiveParams * BYTES_PER_PARAM_LORA_BASE +
-      trainableParams * BYTES_PER_PARAM_TRAINABLE;
+      effectiveParams * BYTES_PER_PARAM_LORA_BASE + trainableParams * BYTES_PER_PARAM_TRAINABLE;
   } else {
     modelMemoryBytes = effectiveParams * BYTES_PER_PARAM_FULL_FT;
   }
@@ -166,7 +161,7 @@ export function estimateGpuMemoryGb(
   return {
     weights_gb: weightsGb,
     activation_gb: activationGb,
-    memory_per_gpu_gb: weightsGb + activationGb,
+    memory_per_gpu_gb: weightsGb + activationGb
   };
 }
 
@@ -177,7 +172,7 @@ export function calculateLoraTrainableParams(
   dModel: number,
   numLayers: number,
   loraRank: number,
-  architecture: ModelArchitecture,
+  architecture: ModelArchitecture
 ): number | null {
   if (ftMethod === "Full Fine-Tuning") return baseParams;
 
@@ -197,7 +192,7 @@ export function calculateLoraTrainableParams(
       v_proj: [d, kvDim],
       o_proj: [d, d],
       up_proj: [d, ffn],
-      down_proj: [ffn, d],
+      down_proj: [ffn, d]
     };
     const total = targetModules.reduce((sum, mod) => {
       const [inD, outD] = moduleDims[mod] ?? [d, d];
@@ -215,7 +210,7 @@ export function calculateCheckpointStorageTb(
   numCheckpoints: number,
   numTrainingRuns: number,
   numHpTrials: number,
-  numAblations: number,
+  numAblations: number
 ): number {
   const totalBytes =
     checkpointParams * BYTES_PER_PARAM_CHECKPOINT * numCheckpoints * numTrainingRuns +
@@ -230,7 +225,7 @@ export function calculateProjectComputeCost(
   numHpTrials: number,
   hpFraction: number,
   numAblations: number,
-  ablationFraction: number,
+  ablationFraction: number
 ): number {
   return (
     singleRunCost * numTrainingRuns +
@@ -243,7 +238,7 @@ export function calculateProjectComputeCost(
 export function calculateStorageCost(
   datasetSizeTb: number,
   storageDurationMonths = 1.0,
-  storageClass = "standard",
+  storageClass = "standard"
 ): number {
   const costPerTbMonth = getStorageCost(storageClass);
   return datasetSizeTb * costPerTbMonth * storageDurationMonths;

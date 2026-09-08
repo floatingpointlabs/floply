@@ -13,13 +13,13 @@ export default defineConfig({
   reporter: "list",
   use: {
     baseURL: "http://localhost:4321",
-    trace: "on-first-retry",
+    trace: "on-first-retry"
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
     command: "pnpm build && PORT=4321 node build/index.js",
     port: 4321,
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+    timeout: 120_000
+  }
 });

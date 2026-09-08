@@ -1,9 +1,4 @@
-import {
-  AWS_GPU_INSTANCES,
-  INSTANCE_ORDER,
-  MODELS,
-  S3_STORAGE_PRICING,
-} from "../data/generated";
+import { AWS_GPU_INSTANCES, INSTANCE_ORDER, MODELS, S3_STORAGE_PRICING } from "../data/generated";
 import type { InstanceSpec, ModelDefinition } from "./types";
 
 export { AWS_GPU_INSTANCES, INSTANCE_ORDER, MODELS, S3_STORAGE_PRICING };
@@ -12,7 +7,7 @@ export function getGpuInstance(instanceType: string): InstanceSpec {
   const spec = AWS_GPU_INSTANCES[instanceType];
   if (!spec) {
     throw new Error(
-      `Unknown instance type "${instanceType}". Available: ${INSTANCE_ORDER.join(", ")}`,
+      `Unknown instance type "${instanceType}". Available: ${INSTANCE_ORDER.join(", ")}`
     );
   }
   return spec;
@@ -58,10 +53,7 @@ export const INT8_TENSOR_GPUS = new Set(["A100", "H100"]);
  * hardware understates cost, which is the dangerous direction for a budget estimate.
  * An unrecognised precision also falls back to fp16.
  */
-export function peakFlopsForPrecision(
-  instanceSpec: InstanceSpec,
-  mixedPrecision: string,
-): number {
+export function peakFlopsForPrecision(instanceSpec: InstanceSpec, mixedPrecision: string): number {
   const fp16 = instanceSpec.peak_flops_fp16;
   const fp32 = instanceSpec.peak_flops_fp32;
   const gpu = instanceSpec.gpu;
@@ -72,7 +64,7 @@ export function peakFlopsForPrecision(
     bf16: fp16,
     fp16: fp16,
     tf32: fp16 * 0.5,
-    fp32: fp32,
+    fp32: fp32
   };
   return table[mixedPrecision] ?? fp16;
 }
