@@ -23,9 +23,6 @@ test("figures keep their tabular monospace inside a .control input", async ({ pa
 
 test("a field hint is announced, not just rendered", async ({ page }) => {
   await page.goto("/");
-  // Field renders the hint with an id, but the control comes from the caller's snippet, so
-  // the association is wired at runtime. It was missing entirely until it was tested: the
-  // markup looked correct because the id was there, with nothing pointing at it.
   await expect(page.locator("#budget")).toHaveAttribute("aria-describedby", "budget-hint");
   await expect(page.locator("#budget-hint")).toHaveText(/GPU compute/);
 });
@@ -34,9 +31,6 @@ test("a hint that comes and goes takes its aria reference with it", async ({ pag
   await page.goto("/training-budget");
   await page.locator("#modality").selectOption("Text");
 
-  // The precision field only warns on a GPU with no hardware path for the format, so its
-  // hint appears and disappears. A reference left pointing at a removed element is worse
-  // than no reference at all.
   const precision = page.locator("#precision");
   await expect(precision).not.toHaveAttribute("aria-describedby");
 

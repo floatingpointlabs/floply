@@ -14,9 +14,6 @@
   $effect(() => {
     const el = document.getElementById(id);
     if (!el) return;
-    // Cleared as well as set: a hint can come and go (the precision field only warns on
-    // GPUs without a hardware path), and a stale reference to a removed element is worse
-    // than none at all.
     if (hint) el.setAttribute("aria-describedby", `${id}-hint`);
     else el.removeAttribute("aria-describedby");
   });

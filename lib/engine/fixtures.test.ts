@@ -1,10 +1,3 @@
-/**
- * The fixtures pin the engine's behaviour. They were generated from the Python
- * implementation and verified against the running Streamlit app; `scripts/gen-fixtures.mjs`
- * now regenerates them from this engine through the same dispatch table used here, so
- * regenerating is a deliberate act whose diff must be read.
- */
-
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -74,8 +67,6 @@ describe("engine.json", () => {
           return;
         }
 
-        // Only the storage-class lookup throws. The division guards return zeroes
-        // instead of raising, so those cases carry an ordinary expectation.
         if (c.raises) {
           expect(() => DISPATCH[group](c), where).toThrow();
           return;

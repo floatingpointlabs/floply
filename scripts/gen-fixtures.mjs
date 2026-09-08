@@ -1,14 +1,7 @@
 /**
- * Regenerates fixtures/*.json from the TypeScript engine.
- *
- * Run: pnpm gen-fixtures [outDir]
- *
  * The engine is TypeScript with extensionless relative imports, which Node cannot resolve
  * on its own, so the modules are loaded through Vite — the same resolution the app and the
  * test suite use, which means the generator cannot drift from what ships.
- *
- * Regenerating is a deliberate act: the fixtures are the only thing standing between a
- * behaviour change and a silent one, so read the diff before committing it.
  */
 
 import { mkdirSync, writeFileSync } from "node:fs";

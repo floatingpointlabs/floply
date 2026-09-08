@@ -1,11 +1,3 @@
-/**
- * Maps a fixture group name to the engine call it pins.
- *
- * Two callers: `fixtures.test.ts` replays the committed fixtures through this, and
- * `scripts/gen-fixtures.mjs` generates them through it. One table means a regenerated
- * fixture and the assertion that checks it can never drift apart.
- */
-
 import * as bo from "./budgetOptimizer";
 import * as calc from "./calculator";
 import * as ds from "./dataset";
@@ -60,7 +52,6 @@ const modelDefinition = (slug: string) => {
   };
 };
 
-/** The two-stage budget solve, with `ft_base_model` given as a slug rather than an object. */
 export const solveCase = (args: Record<string, any>, selection: Record<string, any>) => {
   const resolved = { ...args } as bo.OptimizerInputs & { ft_base_model?: any };
   if (typeof resolved.ft_base_model === "string") {

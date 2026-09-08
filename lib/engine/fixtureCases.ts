@@ -1,17 +1,3 @@
-/**
- * Builds the golden fixtures from the TypeScript engine.
- *
- * Ported from the original scripts/gen_fixtures.py, which generated them from the Python
- * implementation. The case enumeration is deliberately identical: it was ported alongside
- * the engine and validated by regenerating and diffing against the Python-produced files
- * while both stacks still existed.
- *
- * Conventions carried over from the Python original:
- *   - Args are always named, never positional, so a fixture diff is readable.
- *   - A case that throws records `raises` instead of `expect`.
- *   - Budgets are capped at $1e12, above which the numbers stop meaning anything.
- */
-
 import { DISPATCH, solveCase } from "./fixtureDispatch";
 import type { Case } from "./fixtureDispatch";
 import { INSTANCE_ORDER, MODELS } from "./gpuSpecs";
@@ -30,7 +16,6 @@ const STORAGE_CLASSES = [
 ];
 const LORA_MODULES = ["q_proj", "k_proj", "v_proj", "o_proj", "up_proj", "down_proj"];
 
-/** Call the engine through the shared dispatch, recording the result or the throw. */
 function record(group: string, args: Record<string, any>, extra: Record<string, any> = {}): Case {
   const probe: Case = { args, ...extra };
   try {
@@ -88,8 +73,6 @@ export function buildEngine(): Payload {
       ].map(([gpus, inst]) => cost(f, m, gpus, inst))
     )
   );
-  // Divergence markers: Python raised ZeroDivisionError here; the TS port returns zeroes
-  // so the UI can't render "$Infinity", so these now carry an ordinary expectation.
   out.estimate_compute_cost.push(cost(1e21, 0.0, 8, 1), cost(1e21, 0.5, 0, 1));
 
   const solverCommon = {
@@ -280,9 +263,6 @@ export function buildEngine(): Payload {
       lora_rank: 16,
       architecture: llama70b
     },
-    // Synthetic: d_model % num_heads != 0, so `//` and `/` genuinely disagree. Every real
-    // model divides evenly, so nothing realistic pins this — but a port using `/` instead
-    // of Math.floor produces a different number here.
     {
       ft_method: "LoRA",
       base_params: 7e9,
@@ -478,8 +458,6 @@ export function buildEngine(): Payload {
     (gpu_hours) => record("format_gpu_hours", { gpu_hours })
   );
 
-  // JSON cannot distinguish Python's 1000.0 from 1000, but displayValue formats them
-  // differently ("1.0K" vs "1,000"). The source type is recorded so the port can too.
   out.display_value = [
     [0.5, "float"],
     [3.7, "float"],
@@ -556,10 +534,7 @@ export function buildEngine(): Payload {
     )
   );
 
-  // Pins the wiring, not the maths. Verified against the running Streamlit Tab 3
-  // (10/10 rendered metrics) before these were first generated.
   out.training_budget = [
-    // The scenario checked against the live app.
     {
       modality: "Text",
       dataset_size: 100_000_000,
