@@ -64,7 +64,7 @@ export function formatE(value: number, precision: number): string {
  * Scientific when the exponent is < -4 or >= precision, fixed otherwise, and trailing
  * zeros are stripped in both cases.
  */
-export function formatG(value: number, precision: number): string {
+function formatG(value: number, precision: number): string {
   if (value === 0) return "0";
   if (!Number.isFinite(value)) return String(value);
 

@@ -6,12 +6,8 @@ build
 # Generated at build time from data/**.yaml
 lib/data/generated.ts
 
-# Python (removed once src/ is deleted)
+# Left over from the Streamlit implementation — safe to delete.
 .venv
-__pycache__
-**/__pycache__
-*.pyc
-*.pyo
 
 # Repo
 .git

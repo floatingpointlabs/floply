@@ -7,6 +7,9 @@ export const LORA_OPTIMAL_RATIO = 50;
 /**
  * All five clear 3:1 against the #0a0a0f ground for graphical use; storage, checkpoint,
  * warning and success also clear 4.5:1, so they are safe as text.
+ *
+ * Duplicated as --color-compute/storage/checkpoint/warning/success in app/app.css, which
+ * the Svelte components use for text tones. Change both.
  */
 export const CHART_COLORS = {
   compute: "#6366f1",

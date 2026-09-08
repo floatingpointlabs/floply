@@ -10,9 +10,9 @@ export default {
     // property the Streamlit deployment has today.
     adapter: adapter(),
 
-    // SvelteKit defaults to src/routes and src/lib, but src/ is the Python package
-    // until it is deleted in the final cleanup. Point the app elsewhere so the two
-    // coexist; lib/ already holds the ported engine, so $lib/engine/* resolves to it.
+    // Non-default locations: the app grew up beside a Python package that owned src/,
+    // and the paths stayed once it was removed. Renaming to SvelteKit's defaults would
+    // touch every import for no behavioural gain.
     files: {
       routes: "app/routes",
       lib: "lib",

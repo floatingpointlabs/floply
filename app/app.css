@@ -31,6 +31,8 @@
   --color-violet-pale: #c4b5fd;
   --color-purple-deep: #7c3aed;
 
+  /* Duplicated as CHART_COLORS in lib/engine/constants.ts, which the charts use for
+     fills and strokes. Change both. */
   --color-compute: #6366f1;
   --color-storage: #22d3ee;
   --color-checkpoint: #f59e0b;

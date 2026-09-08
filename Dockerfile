@@ -1,42 +1,51 @@
-FROM python:3.12-slim AS builder
+# Floply — SvelteKit (adapter-node).
 
-RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
-
-RUN pip install --no-cache-dir "poetry>=2.0.0,<3.0.0"
-
+FROM node:22-alpine AS deps
 WORKDIR /app
+RUN corepack enable
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# --frozen-lockfile so a drifted lockfile fails the build rather than silently resolving.
+# --ignore-scripts because the `prepare` script installs the git hooks, and this image has
+# neither a .git directory nor git itself.
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
-COPY pyproject.toml poetry.lock poetry.toml ./
 
-RUN poetry install --no-interaction --no-ansi --only main,common --no-root
-
-COPY . .
-
-RUN poetry install --no-interaction --no-ansi --only-root
-
-FROM python:3.12-slim
-
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
-
+FROM node:22-alpine AS build
 WORKDIR /app
+RUN corepack enable
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml svelte.config.js vite.config.ts tsconfig.json ./
+COPY scripts ./scripts
+# data/ must land before the build: prebuild runs scripts/build-data.mjs, which generates
+# lib/data/generated.ts from the YAML (that file is gitignored and never committed).
+COPY data ./data
+COPY lib ./lib
+COPY app ./app
+COPY static ./static
+RUN pnpm run build
 
-COPY --from=builder /app/.venv /app/.venv
-COPY --from=builder /app/src /app/src
-COPY --from=builder /app/data /app/data
-COPY --from=builder /app/.streamlit/config.toml /app/.streamlit/config.toml
 
-ENV PATH="/app/.venv/bin:$PATH"
+FROM node:22-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+# adapter-node reads these; 0.0.0.0 so the container is reachable from outside.
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
-# Live AWS pricing is cached here. Mount a volume over /app/.cache to keep it
-# across container replacements — otherwise every new container starts cold and
-# must reach AWS before it can price anything:
-#   docker run -v floply-cache:/app/.cache ...
-# No VOLUME instruction: that would create a fresh anonymous volume per run.
-RUN mkdir -p /app/.cache/floply
-ENV FLOPLY_CACHE_DIR=/app/.cache/floply
+RUN corepack enable
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# SvelteKit externalises anything in `dependencies` rather than bundling it, so the
+# server output imports those at runtime. Without this the app builds fine and then
+# 500s on the pages that use them.
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts && pnpm store prune
 
-EXPOSE 8501
+COPY --from=build /app/build ./build
 
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
+USER node
+EXPOSE 3000
 
-ENTRYPOINT ["streamlit", "run", "src/app/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# wget ships with alpine, so no extra layer just to install curl.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
+  CMD wget -qO- http://localhost:3000/api/health || exit 1
+
+CMD ["node", "build/index.js"]

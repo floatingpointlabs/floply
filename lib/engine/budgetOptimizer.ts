@@ -1,10 +1,9 @@
 /**
- * Budget Optimizer solve. Port of src/cost_modelling/budget_optimizer.py.
+ * Budget Optimizer solve.
  *
- * In Selection, `undefined` means "not overridden" and the derived default applies. That
- * is the port of Streamlit's `session_state.pop(key)`: absence, never a written-in
- * default. Writing the derived value into state looks identical on first render and is
- * wrong forever after.
+ * In Selection, `undefined` means "not overridden" and the derived default applies —
+ * absence, never a written-in default. Writing the derived value into state looks
+ * identical on first render and is wrong forever after.
  */
 
 import {

@@ -1,9 +1,8 @@
 /**
- * Scaling-law health assessments. Port of src/cost_modelling/scaling_laws.py.
+ * Scaling-law health assessments.
  *
- * Every message here must match Python's f-string output byte for byte — the fixtures
- * compare full strings, and `:.2f` maps to toFixed(2). Note the non-ASCII characters
- * (≥, —, ×) are load-bearing for that comparison.
+ * The fixtures compare these messages as whole strings, so every character is load-bearing
+ * — including the non-ASCII ≥, — and ×. Editing the wording is a fixture change.
  */
 
 import { CHINCHILLA_OPTIMAL_RATIO } from "./constants";

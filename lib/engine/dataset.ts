@@ -1,10 +1,8 @@
 /**
  * Modality-specific token count and storage size estimation.
- * Port of src/cost_modelling/dataset.py.
  *
- * Every `//` in the Python original is Math.floor here, and every `int()` is Math.trunc.
- * Using `/` instead would give plausible-but-wrong numbers: (336 // 32) ** 2 is 100,
- * not 110.25.
+ * Every division here floors. Using `/` instead would give plausible-but-wrong numbers:
+ * (336 // 32) ** 2 is 100, not 110.25.
  */
 
 /** Average BPE tokens per English word (GPT-2 / LLaMA tokeniser empirical average). */

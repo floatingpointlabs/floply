@@ -38,10 +38,16 @@ pnpm check      # svelte-check + TypeScript
 automatically before `dev`, `build`, `test` and `check`, and the generated file is
 gitignored — never commit it.
 
+`pnpm gen-fixtures` rewrites `fixtures/*.json` from the current engine. Unlike the above,
+this one is **not** automatic and should not be. The fixtures are committed, so `pnpm test`
+compares the engine against the behaviour it had when they were last generated — which is
+the only thing standing between a deliberate change to the maths and a silent one.
+Regenerating and committing without reading the diff blesses whatever changed.
+
 ## With Docker
 
 ```bash
-docker build -f Dockerfile.web -t floply .
+docker build -t floply .
 docker run -p 3000:3000 floply
 ```
 
