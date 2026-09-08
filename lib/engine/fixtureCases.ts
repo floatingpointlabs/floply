@@ -12,10 +12,10 @@
  *   - Budgets are capped at $1e12, above which the numbers stop meaning anything.
  */
 
-import { DISPATCH, solveCase } from "../lib/engine/fixtureDispatch";
-import type { Case } from "../lib/engine/fixtureDispatch";
-import { INSTANCE_ORDER, MODELS } from "../lib/engine/gpuSpecs";
-import { EXPLORE_LORA_RANK, EXPLORE_MODEL_TO_TOKENS } from "../lib/engine/budgetOptimizer";
+import { DISPATCH, solveCase } from "./fixtureDispatch";
+import type { Case } from "./fixtureDispatch";
+import { INSTANCE_ORDER, MODELS } from "./gpuSpecs";
+import { EXPLORE_LORA_RANK, EXPLORE_MODEL_TO_TOKENS } from "./budgetOptimizer";
 
 type Payload = Record<string, Case[]>;
 
@@ -49,14 +49,12 @@ export function buildEngine(): Payload {
     )
   );
 
-  out.calculate_training_flops = (
-    [
-      [7_000_000_000, 140_000_000_000],
-      [1, 1],
-      [0, 1_000],
-      [1_000, 0]
-    ] as const
-  ).flatMap(([parameter_count, training_tokens]) =>
+  out.calculate_training_flops = [
+    [7_000_000_000, 140_000_000_000],
+    [1, 1],
+    [0, 1_000],
+    [1_000, 0]
+  ].flatMap(([parameter_count, training_tokens]) =>
     ["transformer", "diffusion"].flatMap((architecture) =>
       [1.0, 3.0].flatMap((epochs) =>
         [false, true].map((gradient_checkpointing) =>
@@ -84,12 +82,10 @@ export function buildEngine(): Payload {
 
   out.estimate_compute_cost = [5.88e21, 1.0].flatMap((f) =>
     [0.05, 0.55].flatMap((m) =>
-      (
-        [
-          [8, 1],
-          [1024, 128]
-        ] as const
-      ).map(([gpus, inst]) => cost(f, m, gpus, inst))
+      [
+        [8, 1],
+        [1024, 128]
+      ].map(([gpus, inst]) => cost(f, m, gpus, inst))
     )
   );
   // Divergence markers: Python raised ZeroDivisionError here; the TS port returns zeroes
@@ -107,18 +103,16 @@ export function buildEngine(): Payload {
   };
 
   out.solve_for_parameter_count = [
-    ...(
-      [
-        [10_000.0, 140_000_000_000, 1.0],
-        [1_000_000.0, 1_000_000_000_000, 1.0],
-        [1_000_000_000_000.0, 1_000_000_000_000, 1.0], // $1e12 cap
-        [0.01, 1_000_000_000_000, 1.0], // tiny budget → 0
-        [10_000.0, 0, 1.0], // zero-guard: tokens
-        [10_000.0, 140_000_000_000, 0.0], // zero-guard: epochs→tokens
-        [10_000.0, 140_000_000_000, 3.0],
-        [10_000.0, 140_000_000_000, 0.5]
-      ] as const
-    ).map(([compute_budget_usd, training_tokens, epochs]) =>
+    ...[
+      [10_000.0, 140_000_000_000, 1.0],
+      [1_000_000.0, 1_000_000_000_000, 1.0],
+      [1_000_000_000_000.0, 1_000_000_000_000, 1.0], // $1e12 cap
+      [0.01, 1_000_000_000_000, 1.0], // tiny budget → 0
+      [10_000.0, 0, 1.0], // zero-guard: tokens
+      [10_000.0, 140_000_000_000, 0.0], // zero-guard: epochs→tokens
+      [10_000.0, 140_000_000_000, 3.0],
+      [10_000.0, 140_000_000_000, 0.5]
+    ].map(([compute_budget_usd, training_tokens, epochs]) =>
       record("solve_for_parameter_count", {
         compute_budget_usd,
         training_tokens,
@@ -143,18 +137,16 @@ export function buildEngine(): Payload {
   ];
 
   out.solve_for_training_tokens = [
-    ...(
-      [
-        [10_000.0, 7_000_000_000, 1.0],
-        [1_000_000.0, 70_000_000_000, 1.0],
-        [1_000_000_000_000.0, 7_000_000_000, 1.0],
-        [0.01, 7_000_000_000, 1.0],
-        [10_000.0, 0, 1.0], // zero-guard: params
-        [10_000.0, 7_000_000_000, 3.0],
-        [10_000.0, 7_000_000_000, 0.5], // exercises max(epochs, 1.0)
-        [10_000.0, 7_000_000_000, 0.0]
-      ] as const
-    ).map(([compute_budget_usd, parameter_count, epochs]) =>
+    ...[
+      [10_000.0, 7_000_000_000, 1.0],
+      [1_000_000.0, 70_000_000_000, 1.0],
+      [1_000_000_000_000.0, 7_000_000_000, 1.0],
+      [0.01, 7_000_000_000, 1.0],
+      [10_000.0, 0, 1.0], // zero-guard: params
+      [10_000.0, 7_000_000_000, 3.0],
+      [10_000.0, 7_000_000_000, 0.5], // exercises max(epochs, 1.0)
+      [10_000.0, 7_000_000_000, 0.0]
+    ].map(([compute_budget_usd, parameter_count, epochs]) =>
       record("solve_for_training_tokens", {
         compute_budget_usd,
         parameter_count,
@@ -178,21 +170,17 @@ export function buildEngine(): Payload {
     })
   ];
 
-  out.estimate_gpu_memory_gb = (
+  out.estimate_gpu_memory_gb = [
+    ["QLoRA", 13_631_488],
+    ["LoRA", 13_631_488],
+    ["Full Fine-Tuning", 7_000_000_000],
+    [null, 7_000_000_000]
+  ].flatMap(([ft_method, trainable_params]) =>
     [
-      ["QLoRA", 13_631_488],
-      ["LoRA", 13_631_488],
-      ["Full Fine-Tuning", 7_000_000_000],
-      [null, 7_000_000_000]
-    ] as const
-  ).flatMap(([ft_method, trainable_params]) =>
-    (
-      [
-        [4096, false],
-        [4096, true],
-        [0, false]
-      ] as const
-    ).flatMap(([d_model, gradient_checkpointing]) =>
+      [4096, false],
+      [4096, true],
+      [0, false]
+    ].flatMap(([d_model, gradient_checkpointing]) =>
       [1, 2, 4].map((rl_multiplier) =>
         record("estimate_gpu_memory_gb", {
           effective_params: 7_000_000_000,
@@ -355,14 +343,12 @@ export function buildEngine(): Payload {
     }
   ].map((c) => record("calculate_lora_trainable_params", c));
 
-  out.calculate_checkpoint_storage_tb = (
-    [
-      [7_000_000_000, 5, 1, 0, 0],
-      [7_000_000_000, 5, 3, 10, 2],
-      [13_631_488, 5, 1, 5, 0],
-      [0, 5, 1, 0, 0]
-    ] as const
-  ).map(([checkpoint_params, num_checkpoints, num_training_runs, num_hp_trials, num_ablations]) =>
+  out.calculate_checkpoint_storage_tb = [
+    [7_000_000_000, 5, 1, 0, 0],
+    [7_000_000_000, 5, 3, 10, 2],
+    [13_631_488, 5, 1, 5, 0],
+    [0, 5, 1, 0, 0]
+  ].map(([checkpoint_params, num_checkpoints, num_training_runs, num_hp_trials, num_ablations]) =>
     record("calculate_checkpoint_storage_tb", {
       checkpoint_params,
       num_checkpoints,
@@ -372,14 +358,12 @@ export function buildEngine(): Payload {
     })
   );
 
-  out.calculate_project_compute_cost = (
-    [
-      [10_000.0, 1, 0, 0.1, 0, 0.5],
-      [10_000.0, 3, 10, 0.1, 2, 0.5],
-      [0.0, 1, 1, 0.1, 1, 0.5],
-      [1.0, 1, 20, 0.05, 0, 0.5]
-    ] as const
-  ).map(
+  out.calculate_project_compute_cost = [
+    [10_000.0, 1, 0, 0.1, 0, 0.5],
+    [10_000.0, 3, 10, 0.1, 2, 0.5],
+    [0.0, 1, 1, 0.1, 1, 0.5],
+    [1.0, 1, 20, 0.05, 0, 0.5]
+  ].map(
     ([
       single_run_cost,
       num_training_runs,
@@ -431,53 +415,45 @@ export function buildEngine(): Payload {
   out.bytes_per_text_sample = [0, 1, 650, 1_000_000].map((tokens) =>
     record("bytes_per_text_sample", { tokens })
   );
-  out.tokens_per_image_sample = (
-    [
-      // 336 // 32 = 10 → 100, NOT 110.25
-      [224, 16],
-      [336, 32],
-      [224, 14],
-      [512, 16],
-      [255, 16],
-      [1, 16]
-    ] as const
-  ).map(([resolution, patch_size]) =>
+  out.tokens_per_image_sample = [
+    // 336 // 32 = 10 → 100, NOT 110.25
+    [224, 16],
+    [336, 32],
+    [224, 14],
+    [512, 16],
+    [255, 16],
+    [1, 16]
+  ].map(([resolution, patch_size]) =>
     record("tokens_per_image_sample", { resolution, patch_size })
   );
   out.bytes_per_image_sample = [224, 336, 512, 1, 3].map((resolution) =>
     record("bytes_per_image_sample", { resolution })
   );
-  out.tokens_per_audio_sample = (
-    [
-      [10.0, 75, 1],
-      [10.5, 75, 4],
-      [0.5, 50, 1],
-      [3.33, 50, 8],
-      [0.0, 75, 1]
-    ] as const
-  ).map(([clip_duration, base_rate, num_codebooks]) =>
+  out.tokens_per_audio_sample = [
+    [10.0, 75, 1],
+    [10.5, 75, 4],
+    [0.5, 50, 1],
+    [3.33, 50, 8],
+    [0.0, 75, 1]
+  ].map(([clip_duration, base_rate, num_codebooks]) =>
     record("tokens_per_audio_sample", { clip_duration, base_rate, num_codebooks })
   );
   out.bytes_per_audio_sample = [10.0, 0.5, 3.33, 0.0].map((clip_duration) =>
     record("bytes_per_audio_sample", { clip_duration })
   );
-  out.tokens_per_video_sample = (
-    [
-      [10.0, 30, 224, 16],
-      [2.5, 24, 336, 32],
-      [0.5, 30, 224, 16],
-      [0.0, 30, 224, 16]
-    ] as const
-  ).map(([duration, fps, resolution, patch_size]) =>
+  out.tokens_per_video_sample = [
+    [10.0, 30, 224, 16],
+    [2.5, 24, 336, 32],
+    [0.5, 30, 224, 16],
+    [0.0, 30, 224, 16]
+  ].map(([duration, fps, resolution, patch_size]) =>
     record("tokens_per_video_sample", { duration, fps, resolution, patch_size })
   );
-  out.bytes_per_video_sample = (
-    [
-      [10.0, 30, 224],
-      [2.5, 24, 336],
-      [0.04, 30, 512]
-    ] as const
-  ).map(([duration, fps, resolution]) =>
+  out.bytes_per_video_sample = [
+    [10.0, 30, 224],
+    [2.5, 24, 336],
+    [0.04, 30, 512]
+  ].map(([duration, fps, resolution]) =>
     record("bytes_per_video_sample", { duration, fps, resolution })
   );
 
@@ -504,27 +480,25 @@ export function buildEngine(): Payload {
 
   // JSON cannot distinguish Python's 1000.0 from 1000, but displayValue formats them
   // differently ("1.0K" vs "1,000"). The source type is recorded so the port can too.
-  out.display_value = (
-    [
-      [0.5, "float"],
-      [3.7, "float"],
-      [999.0, "float"],
-      [1_000.0, "float"],
-      [1.5e6, "float"],
-      [2.5e9, "float"],
-      [1e12, "float"],
-      [5e12, "float"],
-      [true, "bool"],
-      [false, "bool"],
-      [0, "int"],
-      [42, "int"],
-      [999, "int"],
-      [1_000, "int"],
-      [1_500_000, "int"],
-      ["standard", "str"],
-      ["p5.48xlarge", "str"]
-    ] as const
-  ).map(([val, arg_type]) => record("display_value", { val }, { arg_type }));
+  out.display_value = [
+    [0.5, "float"],
+    [3.7, "float"],
+    [999.0, "float"],
+    [1_000.0, "float"],
+    [1.5e6, "float"],
+    [2.5e9, "float"],
+    [1e12, "float"],
+    [5e12, "float"],
+    [true, "bool"],
+    [false, "bool"],
+    [0, "int"],
+    [42, "int"],
+    [999, "int"],
+    [1_000, "int"],
+    [1_500_000, "int"],
+    ["standard", "str"],
+    ["p5.48xlarge", "str"]
+  ].map(([val, arg_type]) => record("display_value", { val }, { arg_type }));
 
   const ratios = [
     0.05, 0.09, 0.1, 0.5, 0.99, 1.0, 1.5, 5.0, 9.99, 10.0, 20.0, 30.0, 30.1, 100.0, 200.0, 200.1,
@@ -533,14 +507,12 @@ export function buildEngine(): Payload {
   const n = 1_000_000_000;
   out.assess_training_config = [
     ...ratios.flatMap((r) =>
-      (
-        [
-          [null, 0, n, 0],
-          ["Full Fine-Tuning", n, 0, 0],
-          ["LoRA", 8_000_000_000, 0, n],
-          ["QLoRA", 8_000_000_000, 0, n]
-        ] as const
-      ).map(([ft_method, base_params, pre_params, adapter_params]) =>
+      [
+        [null, 0, n, 0],
+        ["Full Fine-Tuning", n, 0, 0],
+        ["LoRA", 8_000_000_000, 0, n],
+        ["QLoRA", 8_000_000_000, 0, n]
+      ].map(([ft_method, base_params, pre_params, adapter_params]) =>
         record("assess_training_config", {
           total_tokens: Math.trunc(r * n),
           ft_method,
@@ -550,16 +522,14 @@ export function buildEngine(): Payload {
         })
       )
     ),
-    ...(
-      [
-        [0, null, 0, 1_000, 0],
-        [-5, null, 0, 1_000, 0],
-        [100, null, 0, 0, 0],
-        [100, "Full Fine-Tuning", 0, 0, 0],
-        [100, "LoRA", 0, 0, 0],
-        [100, "LoRA", 1_000, 0, 0]
-      ] as const
-    ).map(([total_tokens, ft_method, base_params, pre_params, adapter_params]) =>
+    ...[
+      [0, null, 0, 1_000, 0],
+      [-5, null, 0, 1_000, 0],
+      [100, null, 0, 0, 0],
+      [100, "Full Fine-Tuning", 0, 0, 0],
+      [100, "LoRA", 0, 0, 0],
+      [100, "LoRA", 1_000, 0, 0]
+    ].map(([total_tokens, ft_method, base_params, pre_params, adapter_params]) =>
       record("assess_training_config", {
         total_tokens,
         ft_method,
@@ -889,13 +859,11 @@ export function buildBudgetOptimizer(): Payload {
     10_000_000.0
   ].flatMap((compute_budget) =>
     ["Text (LLM)", "Diffusion (Image Gen)"].flatMap((modality) =>
-      (
-        [
-          ["Pre-Training", null],
-          ["Fine-Tuning", "LoRA"],
-          ["Fine-Tuning", "Full Fine-Tuning (SFT)"]
-        ] as const
-      ).flatMap(([training_type, ft_method]) =>
+      [
+        ["Pre-Training", null],
+        ["Fine-Tuning", "LoRA"],
+        ["Fine-Tuning", "Full Fine-Tuning (SFT)"]
+      ].flatMap(([training_type, ft_method]) =>
         [1e8, 6e8, 5e9, 50e9].map((quick_n) =>
           record("derive_schedule_defaults", {
             compute_budget,
@@ -912,15 +880,13 @@ export function buildBudgetOptimizer(): Payload {
   return {
     solve,
     derive_schedule_defaults: schedule,
-    logspace: (
-      [
-        [1.0, 3.0, 3],
-        [6.0, 12.0, 5],
-        [9.0, 13.0, 2],
-        [1.0, 2.0, 1],
-        [1.0, 2.0, 0]
-      ] as const
-    ).map(([start, stop, num]) => record("logspace", { start, stop, num })),
+    logspace: [
+      [1.0, 3.0, 3],
+      [6.0, 12.0, 5],
+      [9.0, 13.0, 2],
+      [1.0, 2.0, 1],
+      [1.0, 2.0, 0]
+    ].map(([start, stop, num]) => record("logspace", { start, stop, num })),
     budget_curve_n: [
       record("budget_curve_n", {
         d_tokens: [1e9, 1e11, 1e13],
@@ -935,14 +901,3 @@ export function buildBudgetOptimizer(): Payload {
     ]
   };
 }
-
-/*
- * The Python generator carried an `exceeds_float64_safe_int` flag so the suite could
- * compare a handful of cases with a loose tolerance: Python ints are arbitrary-precision
- * and float64 is not, so the two stacks genuinely disagreed above 2^53 on four cases.
- *
- * That flag is gone. Expectations and engine output are now both float64 from the same
- * code, so they agree exactly and the distinction has nothing left to describe. It also
- * cannot be reconstructed here — JS has one number type, so `Number.isInteger(5.88e21)`
- * is true and the old rule flagged 90 cases rather than 4.
- */

@@ -18,37 +18,41 @@ const load = (name: string) =>
 
 const REL_TOL = 1e-12;
 
-/** Compared exactly rather than with a tolerance: these are labels and exact integers. */
+/**
+ * Compared with toEqual rather than approx(): approx only walks the keys present in the
+ * expectation, so it cannot see an extra key the engine started returning. These two groups
+ * are whole-object snapshots where that matters.
+ */
 const EXACT_GROUPS = new Set(["tiers", "model_definitions"]);
 
-function approx(got: unknown, want: unknown, tol: number, path = ""): void {
+function approx(got: unknown, want: unknown, path = ""): void {
   if (typeof want === "number" && typeof got === "number") {
     if (Number.isNaN(want) || Number.isNaN(got)) {
       expect(Number.isNaN(got), path).toBe(Number.isNaN(want));
       return;
     }
     if (want === 0) {
-      expect(Math.abs(got), path).toBeLessThanOrEqual(tol);
+      expect(Math.abs(got), path).toBeLessThanOrEqual(REL_TOL);
       return;
     }
     expect(
       Math.abs(got - want) / Math.abs(want),
       `${path} (got ${got}, want ${want})`
-    ).toBeLessThanOrEqual(tol);
+    ).toBeLessThanOrEqual(REL_TOL);
     return;
   }
   if (Array.isArray(want)) {
     expect(Array.isArray(got), path).toBe(true);
     const g = got as unknown[];
     expect(g.length, path).toBe(want.length);
-    want.forEach((w, i) => approx(g[i], w, tol, `${path}[${i}]`));
+    want.forEach((w, i) => approx(g[i], w, `${path}[${i}]`));
     return;
   }
   if (want !== null && typeof want === "object") {
     expect(got !== null && typeof got === "object", path).toBe(true);
     const g = got as Record<string, unknown>;
     for (const [k, w] of Object.entries(want as Record<string, unknown>)) {
-      approx(g[k], w, tol, `${path}.${k}`);
+      approx(g[k], w, `${path}.${k}`);
     }
     return;
   }
@@ -77,7 +81,7 @@ describe("engine.json", () => {
           return;
         }
 
-        approx(DISPATCH[group](c), c.expect, REL_TOL, where);
+        approx(DISPATCH[group](c), c.expect, where);
       });
     });
   }
@@ -88,15 +92,14 @@ describe("budget_optimizer.json", () => {
 
   it(`solve (${data.solve.length} scenarios)`, () => {
     for (const c of data.solve as Case[]) {
-      approx(solveCase(c.args, c.selection ?? {}), c.expect, REL_TOL, c.name ?? "");
+      approx(solveCase(c.args, c.selection ?? {}), c.expect, c.name ?? "");
     }
   });
 
   for (const group of ["derive_schedule_defaults", "logspace", "budget_curve_n"]) {
     it(`${group} (${data[group].length} cases)`, () => {
       (data[group] as Case[]).forEach((c, i) => {
-        if (c.raises) return;
-        approx(DISPATCH[group](c), c.expect, REL_TOL, `${group}[${i}]`);
+        approx(DISPATCH[group](c), c.expect, `${group}[${i}]`);
       });
     });
   }

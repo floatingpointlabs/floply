@@ -11,7 +11,6 @@
  * behaviour change and a silent one, so read the diff before committing it.
  */
 
-import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,14 +18,6 @@ import { createServer } from "vite";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = resolve(process.argv[2] ?? join(ROOT, "fixtures"));
-
-function gitSha() {
-  try {
-    return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT }).toString().trim();
-  } catch {
-    return "unknown";
-  }
-}
 
 const server = await createServer({
   root: ROOT,
@@ -37,11 +28,11 @@ const server = await createServer({
 });
 
 try {
-  const { buildEngine, buildBudgetOptimizer } = await server.ssrLoadModule("/scripts/fixtures.ts");
+  const { buildEngine, buildBudgetOptimizer } = await server.ssrLoadModule(
+    "/lib/engine/fixtureCases.ts"
+  );
 
   const meta = {
-    generated_from: gitSha(),
-    node: process.versions.node,
     note: "Golden fixtures for the engine. Regenerate with `pnpm gen-fixtures`, and read the diff."
   };
 

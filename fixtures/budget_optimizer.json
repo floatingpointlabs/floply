@@ -1,7 +1,5 @@
 {
   "_meta": {
-    "generated_from": "869c90121c5869d37578c01d4b7c397da805ab75",
-    "node": "26.5.0",
     "note": "Golden fixtures for the engine. Regenerate with `pnpm gen-fixtures`, and read the diff."
   },
   "solve": [

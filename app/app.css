@@ -8,6 +8,8 @@
  * indigo→violet ramp, the same indigo-tinted borders, the same type.
  */
 @theme {
+  /* app/error.html inlines ground, ink, ink-muted, indigo and violet as literals: it
+     renders when the app could not, so it cannot reach a stylesheet. Change both. */
   --color-ground: #0a0a0f;
   --color-surface: #0d0d1a;
 

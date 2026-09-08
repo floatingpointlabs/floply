@@ -44,12 +44,12 @@ const TIER_TABLES: Record<string, Tier[]> = {
  * but the hex is presentation and has to be free to change with branding. Pinning it would
  * make a re-theme fail the maths tests.
  */
-export const tiersWithoutColor = (table: string) =>
+const tiersWithoutColor = (table: string) =>
   TIER_TABLES[table].map(({ color: _color, ...rest }) => rest);
 
 const modelsBySlug = new Map(MODELS.map((m) => [m.slug, m]));
 
-export const modelDefinition = (slug: string) => {
+const modelDefinition = (slug: string) => {
   const m = modelsBySlug.get(slug)!;
   return {
     name: m.name,
@@ -66,9 +66,8 @@ export const solveCase = (args: Record<string, any>, selection: Record<string, a
   if (typeof resolved.ft_base_model === "string") {
     resolved.ft_base_model = modelsBySlug.get(resolved.ft_base_model)!;
   }
-  const inputs: bo.OptimizerInputs = { ...resolved, hardware: bo.autoConfigureHardware() };
-  const optimum = bo.solveBudgetOptimum(inputs);
-  return { optimum, selection: bo.resolveSelection(inputs, optimum, selection) };
+  const optimum = bo.solveBudgetOptimum(resolved);
+  return { optimum, selection: bo.resolveSelection(resolved, optimum, selection) };
 };
 
 export const DISPATCH: Record<string, (c: Case) => unknown> = {
