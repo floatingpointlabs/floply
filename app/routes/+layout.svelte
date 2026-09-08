@@ -40,10 +40,10 @@
     <div class="mx-auto flex max-w-6xl flex-wrap items-baseline gap-x-6 gap-y-2 px-6 py-6">
       <a
         href="/"
-        class="font-[family-name:var(--font-display)] text-[1.6rem] font-semibold lowercase
+        class="font-[family-name:var(--font-display)] text-[1.6rem] font-bold lowercase
                leading-none tracking-[-0.03em] no-underline"
       >
-        flo<span class="brand-gradient-text">ply.</span>
+        flop<span class="brand-gradient-text">ly.</span>
       </a>
       <p class="text-sm text-[var(--color-ink-muted)]">
         What a training run costs, before you commit the budget.
