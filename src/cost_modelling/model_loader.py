@@ -10,7 +10,7 @@ from typing import Any
 
 import yaml
 
-MODELS_DIR = Path(__file__).parent.parent / "data" / "models"
+MODELS_DIR = Path(__file__).parent.parent.parent / "data" / "models"
 
 
 @dataclass

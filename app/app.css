@@ -1,0 +1,149 @@
+@import "tailwindcss";
+
+/*
+ * Floply — Floating Point Labs house style.
+ *
+ * Tokens are taken from the FPL design system (floatingpointlabs.github.io,
+ * src/styles/global.css) so this reads as the same house: the same ground, the same
+ * indigo→violet ramp, the same indigo-tinted borders, the same type.
+ */
+@theme {
+  --color-ground: #0a0a0f;
+  --color-surface: #0d0d1a;
+
+  --color-rule: rgba(99, 102, 241, 0.18);
+  --color-rule-strong: rgba(99, 102, 241, 0.4);
+
+  /*
+   * Text. All three clear WCAG AA on the ground: 16.0:1, 7.7:1, 5.7:1.
+   *
+   * Floply needs a third, fainter level that the FPL site does not (captions under
+   * figures, axis ticks, table category labels). The obvious next step down the slate
+   * ramp is #64748b — but that is exactly the value FPL measured at 4.15:1 and
+   * abandoned, so #7c8ba1 is used instead: still visibly quieter, still passing.
+   */
+  --color-ink: #e2e8f0;
+  --color-ink-muted: #94a3b8;
+  --color-ink-faint: #7c8ba1;
+
+  --color-indigo: #6366f1;
+  --color-violet: #a78bfa;
+  --color-violet-pale: #c4b5fd;
+  --color-purple-deep: #7c3aed;
+
+  --color-compute: #6366f1;
+  --color-storage: #22d3ee;
+  --color-checkpoint: #f59e0b;
+  --color-warning: #fb7185;
+  --color-success: #34d399;
+
+  --font-display: "Anek Telugu", "Geist", system-ui, sans-serif;
+  --font-sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --radius-field: 10px;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  background: var(--color-ground);
+}
+
+body {
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
+}
+
+/*
+ * Figures use tabular, lining numerals so digits hold their column as values change.
+ * Without this, dragging a slider makes the whole readout jitter sideways.
+ *
+ * Deliberately unlayered, unlike the component classes below: this must win over
+ * `.control`'s `font-family: inherit` on inputs marked `class="control num"`, and a
+ * figure should never lose its tabular numerals to a stray font utility.
+ */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+
+/*
+ * These live in the `components` layer on purpose. Tailwind utilities sit in a later
+ * layer, and unlayered CSS beats layered CSS regardless of source order — so as plain
+ * rules these would silently defeat the per-instance overrides beside them
+ * (`w-auto` on the unit select, `text-…` on a selected pill).
+ */
+@layer components {
+  .brand-gradient {
+    background: linear-gradient(135deg, var(--color-indigo), var(--color-violet));
+  }
+
+  .brand-gradient-text {
+    background: linear-gradient(135deg, var(--color-indigo), var(--color-violet));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .control {
+    background: var(--color-ground);
+    border: 1px solid var(--color-rule-strong);
+    border-radius: var(--radius-field);
+    color: var(--color-ink);
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 0.55rem 0.75rem;
+    width: 100%;
+  }
+
+  .control:focus {
+    border-color: var(--color-violet);
+    outline: none;
+  }
+
+  .pill {
+    border: 1px solid var(--color-rule-strong);
+    border-radius: 999px;
+    color: var(--color-ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    padding: 0.25rem 0.7rem;
+  }
+}
+
+input[type="range"],
+input[type="checkbox"] {
+  accent-color: var(--color-indigo);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-violet);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

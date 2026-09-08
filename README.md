@@ -1,43 +1,71 @@
 # Floply
 
-Floply is an open-source, Streamlit-based ML training cost estimator. Given a dataset's dimensions, a model architecture, and a compute cluster, it calculates total GPU hours, wall-clock time, memory requirements, storage costs, and full project cost across training runs, hyperparameter trials, and ablations — all without writing any code.
+Floply is an open-source ML training cost estimator. Given a dataset's dimensions, a model architecture, and a compute cluster, it calculates total GPU hours, wall-clock time, memory requirements, storage costs, and full project cost across training runs, hyperparameter trials, and ablations — all without writing any code.
+
+Four tools:
+
+| | |
+|---|---|
+| **Budget optimizer** | Given a budget, the largest model and dataset you can afford, and where the scaling-law optimum sits |
+| **Minimum data** | How much data a model needs, from Chinchilla and practical fine-tuning thresholds |
+| **Training budget** | Bottom-up cost for a whole project: compute, storage, sweeps and ablations |
+| **Methodology** | Every formula behind the estimates, and what they assume |
 
 ## Setup
 
-**Prerequisites:** [pyenv](https://github.com/pyenv/pyenv), [direnv](https://direnv.net/), and [Poetry](https://python-poetry.org/).
+**Prerequisites:** Node 22+ and [pnpm](https://pnpm.io/) (via `corepack enable`).
 
 ```bash
-git clone https://github.com/your-org/floply.git
+git clone https://github.com/floatingpointlabs/floply.git
 cd floply
-
-# Install Python 3.12.6 via pyenv if not already present
-pyenv install 3.12.6
-
-# Allow direnv — this creates .venv, activates it, and runs poetry install automatically
-direnv allow
+pnpm install
+pnpm dev
 ```
 
-direnv reads `.envrc` on every `cd` into the project, so the virtualenv stays active and dependencies stay in sync without any manual steps.
+Then open `http://localhost:5173`.
 
-## Quick start
-
-**Run locally** (after setup above):
+## Commands
 
 ```bash
-streamlit run src/app/app.py
+pnpm dev        # dev server
+pnpm build      # production build (adapter-node)
+pnpm preview    # serve the production build
+pnpm test       # engine tests against the golden fixtures
+pnpm check      # svelte-check + TypeScript
 ```
 
-**With Docker** (no local Python setup needed):
+`pnpm build-data` regenerates `lib/data/generated.ts` from the YAML in `data/`. It runs
+automatically before `dev`, `build`, `test` and `check`, and the generated file is
+gitignored — never commit it.
+
+## With Docker
 
 ```bash
-docker build -t floply .
-docker run -p 8501:8501 \
-  -v floply-cache:/app/.cache \
-  -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY \
+docker build -f Dockerfile.web -t floply .
+docker run -p 3000:3000 floply
+```
+
+Then open `http://localhost:3000`. Health check is at `/api/health`.
+
+Analytics are optional and read at **request** time, so one image can be deployed to
+several environments:
+
+```bash
+docker run -p 3000:3000 \
+  -e UMAMI_URL=https://analytics.example.com/script.js \
+  -e UMAMI_WEBSITE_ID=your-site-id \
   floply
 ```
 
-Then open `http://localhost:8501` in your browser.
+## How it's built
+
+- **`lib/engine/`** — the cost model: FLOPs, scaling laws, memory, storage, pricing. Pure TypeScript with no UI dependencies.
+- **`lib/components/`** — shared UI. Charts are drawn directly with `d3-scale` and SVG; there is no charting library.
+- **`app/routes/`** — the four pages.
+- **`data/`** — model and provider definitions as YAML, compiled to TypeScript at build time.
+- **`fixtures/`** — golden test fixtures pinning every engine function's output. `pnpm test` replays them.
+
+The engine is deliberately framework-agnostic: it is exercised by the fixtures with no DOM, so the UI layer can change without touching the maths.
 
 Both paths need AWS credentials — see below.
 
@@ -127,18 +155,18 @@ the real throughput.
 
 ## Adding a model
 
-Model definitions live in `src/data/models/`. Each file is a YAML that describes an architecture. The app picks up every `.yaml` in that directory automatically — no Python changes needed.
+Model definitions live in `data/models/`. Each file is a YAML that describes an architecture. The app picks up every `.yaml` in that directory automatically — no TypeScript changes needed.
 
 To contribute a new model:
 
-1. Create `src/data/models/<slug>.yaml` following the format below
-2. Verify it appears in the **Fine-Tuning → Base Model** dropdown when you run the app
-3. Open a pull request
+1. Create `data/models/<slug>.yaml` following the format below
+2. Run `pnpm dev` and confirm it appears in the **Base model** dropdown
+3. Open a pull request containing only the YAML
 
 ### Minimal example (dense transformer)
 
 ```yaml
-# src/data/models/my_model_7b.yaml
+# data/models/my_model_7b.yaml
 name: "My Model 7B"
 slug: "my_model_7b"
 family: "transformer"
@@ -159,7 +187,7 @@ notes: "Short description shown as a caption in the UI."
 
 ### Mixture-of-Experts example
 
-MoE models must include `moe.active_parameter_count`. Floply uses this value — not `parameter_count` — when computing FLOPs, since only a subset of experts is active per forward pass.
+MoE models must include `moe.active_parameter_count`. Floply uses this value — not `parameter_count` — when computing FLOPs, since only a subset of experts is active per forward pass. Checkpoint size and GPU memory still use the total.
 
 ```yaml
 name: "My MoE Model"
@@ -183,6 +211,10 @@ architecture:
 source: "https://huggingface.co/..."
 notes: "Brief description."
 ```
+
+The build validates these files and fails loudly on a malformed one — a missing
+`active_parameter_count` on an MoE model, a slug that doesn't match the filename, or a
+numeric field that parsed as a string.
 
 ### Field reference
 
@@ -223,3 +255,18 @@ Including these fields enables GQA-aware LoRA parameter counting and accurate ac
 |---|---|
 | `source` | URL to the HuggingFace model page or paper (informational) |
 | `notes` | Short description shown as a caption below the model selector |
+
+## Adding a provider or instance
+
+Instance pricing and specs live in `data/providers/*.yaml`. Add an instance there and it
+appears in the cluster selector, in the methodology reference table, and in every
+estimate — there is no second place to update.
+
+Note that low-precision speedups are per-GPU-family and declared in
+`lib/engine/gpuSpecs.ts`: FP8 requires Hopper, FP4 requires Blackwell. A precision the
+GPU cannot accelerate is costed at its FP16 rate rather than being given a speedup it
+does not have.
+
+## Licence
+
+Apache 2.0. See [LICENSE](LICENSE).

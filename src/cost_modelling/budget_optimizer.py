@@ -29,15 +29,11 @@ from src.cost_modelling.gpu_specs import (
     list_available_instances,
     peak_flops_for_precision,
 )
+from src.cost_modelling.constants import (
+    CHINCHILLA_OPTIMAL_RATIO,
+    LORA_OPTIMAL_RATIO,
+)
 from src.cost_modelling.model_loader import ModelDefinition
-
-# Chinchilla scaling-law optimal ratio (Hoffmann et al. 2022).
-# Compute-optimal pre-training requires ~20 tokens per parameter.
-CHINCHILLA_OPTIMAL_RATIO = 20
-
-# LoRA efficiency optimal token-to-adapter-param ratio.
-# Empirical sweet spot: ~50 tokens per trainable adapter parameter.
-LORA_OPTIMAL_RATIO = 50
 
 ARCH_MULTIPLIERS = {
     "Transformer": 6.0,

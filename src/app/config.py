@@ -4,7 +4,7 @@ import streamlit as st
 
 # Scaling-law ratios are owned by the engine; re-exported here so UI modules can keep
 # importing them from config without a second definition drifting out of sync.
-from src.cost_modelling.budget_optimizer import (
+from src.cost_modelling.constants import (
     CHINCHILLA_OPTIMAL_RATIO,
     LORA_OPTIMAL_RATIO,
 )

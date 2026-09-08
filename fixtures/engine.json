@@ -1,0 +1,4820 @@
+{
+  "_meta": {
+    "generated_from": "d1a46a097c2b3e2828e59714eb74174ab8bce788",
+    "python": "3.12.6",
+    "note": "Golden fixtures for the TypeScript port. Regenerate with scripts/gen_fixtures.py."
+  },
+  "_get_flops_multiplier": [
+    {
+      "args": {
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 6.0
+    },
+    {
+      "args": {
+        "architecture": "transformer",
+        "gradient_checkpointing": true
+      },
+      "expect": 8.0
+    },
+    {
+      "args": {
+        "architecture": "cnn",
+        "gradient_checkpointing": false
+      },
+      "expect": 4.0
+    },
+    {
+      "args": {
+        "architecture": "cnn",
+        "gradient_checkpointing": true
+      },
+      "expect": 6.0
+    },
+    {
+      "args": {
+        "architecture": "rnn",
+        "gradient_checkpointing": false
+      },
+      "expect": 8.0
+    },
+    {
+      "args": {
+        "architecture": "rnn",
+        "gradient_checkpointing": true
+      },
+      "expect": 10.0
+    },
+    {
+      "args": {
+        "architecture": "vit",
+        "gradient_checkpointing": false
+      },
+      "expect": 6.0
+    },
+    {
+      "args": {
+        "architecture": "vit",
+        "gradient_checkpointing": true
+      },
+      "expect": 8.0
+    },
+    {
+      "args": {
+        "architecture": "diffusion",
+        "gradient_checkpointing": false
+      },
+      "expect": 6.5
+    },
+    {
+      "args": {
+        "architecture": "diffusion",
+        "gradient_checkpointing": true
+      },
+      "expect": 8.5
+    },
+    {
+      "args": {
+        "architecture": "definitely_not_an_arch",
+        "gradient_checkpointing": false
+      },
+      "expect": 6.0
+    },
+    {
+      "args": {
+        "architecture": "definitely_not_an_arch",
+        "gradient_checkpointing": true
+      },
+      "expect": 8.0
+    }
+  ],
+  "calculate_training_flops": [
+    {
+      "args": {
+        "parameter_count": 7000000000,
+        "training_tokens": 140000000000,
+        "architecture": "transformer",
+        "epochs": 1.0,
+        "gradient_checkpointing": false
+      },
+      "expect": 5.88e+21
+    },
+    {
+      "args": {
+        "parameter_count": 7000000000,
+        "training_tokens": 140000000000,
+        "architecture": "transformer",
+        "epochs": 1.0,
+        "gradient_checkpointing": true
+      },
+      "expect": 7.84e+21
+    },
+    {
+      "args": {
+        "parameter_count": 7000000000,
+        "training_tokens": 140000000000,
+        "architecture": "transformer",
+        "epochs": 3.0,
+        "gradient_checkpointing": false
+      },
+      "expect": 1.764e+22
+    },
+    {
+      "args": {
+        "parameter_count": 7000000000,
+        "training_tokens": 140000000000,
+        "architecture": "transformer",
+        "epochs": 3.0,
+        "gradient_checkpointing": true
+      },
+      "expect": 2.352e+22
+    },
+    {
+      "args": {
+        "parameter_count": 7000000000,
+        "training_tokens": 140000000000,
+        "architecture": "diffusion",
+        "epochs": 1.0,
+        "gradient_checkpointing": false
+      },
+      "expect": 6.37e+21
+    },
+    {
+      "args": {
+        "parameter_count": 7000000000,
+        "training_tokens": 140000000000,
+        "architecture": "diffusion",
+        "epochs": 1.0,
+        "gradient_checkpointing": true
+      },
+      "expect": 8.33e+21
+    },
+    {
+      "args": {
+        "parameter_count": 7000000000,
+        "training_tokens": 140000000000,
+        "architecture": "diffusion",
+        "epochs": 3.0,
+        "gradient_checkpointing": false
+      },
+      "expect": 1.911e+22
+    },
+    {
+      "args": {
+        "parameter_count": 7000000000,
+        "training_tokens": 140000000000,
+        "architecture": "diffusion",
+        "epochs": 3.0,
+        "gradient_checkpointing": true
+      },
+      "expect": 2.499e+22
+    },
+    {
+      "args": {
+        "parameter_count": 1,
+        "training_tokens": 1,
+        "architecture": "transformer",
+        "epochs": 1.0,
+        "gradient_checkpointing": false
+      },
+      "expect": 6.0
+    },
+    {
+      "args": {
+        "parameter_count": 1,
+        "training_tokens": 1,
+        "architecture": "transformer",
+        "epochs": 1.0,
+        "gradient_checkpointing": true
+      },
+      "expect": 8.0
+    },
+    {
+      "args": {
+        "parameter_count": 1,
+        "training_tokens": 1,
+        "architecture": "transformer",
+        "epochs": 3.0,
+        "gradient_checkpointing": false
+      },
+      "expect": 18.0
+    },
+    {
+      "args": {
+        "parameter_count": 1,
+        "training_tokens": 1,
+        "architecture": "transformer",
+        "epochs": 3.0,
+        "gradient_checkpointing": true
+      },
+      "expect": 24.0
+    },
+    {
+      "args": {
+        "parameter_count": 1,
+        "training_tokens": 1,
+        "architecture": "diffusion",
+        "epochs": 1.0,
+        "gradient_checkpointing": false
+      },
+      "expect": 6.5
+    },
+    {
+      "args": {
+        "parameter_count": 1,
+        "training_tokens": 1,
+        "architecture": "diffusion",
+        "epochs": 1.0,
+        "gradient_checkpointing": true
+      },
+      "expect": 8.5
+    },
+    {
+      "args": {
+        "parameter_count": 1,
+        "training_tokens": 1,
+        "architecture": "diffusion",
+        "epochs": 3.0,
+        "gradient_checkpointing": false
+      },
+      "expect": 19.5
+    },
+    {
+      "args": {
+        "parameter_count": 1,
+        "training_tokens": 1,
+        "architecture": "diffusion",
+        "epochs": 3.0,
+        "gradient_checkpointing": true
+      },
+      "expect": 25.5
+    },
+    {
+      "args": {
+        "parameter_count": 0,
+        "training_tokens": 1000,
+        "architecture": "transformer",
+        "epochs": 1.0,
+        "gradient_checkpointing": false
+      },
+      "expect": 0.0
+    },
+    {
+      "args": {
+        "parameter_count": 0,
+        "training_tokens": 1000,
+        "architecture": "transformer",
+        "epochs": 1.0,
+        "gradient_checkpointing": true
+      },
+      "expect": 0.0
+    },
+    {
+      "args": {
+        "parameter_count": 0,
+        "training_tokens": 1000,
+        "architecture": "transformer",
+        "epochs": 3.0,
+        "gradient_checkpointing": false
+      },
+      "expect": 0.0
+    },
+    {
+      "args": {
+        "parameter_count": 0,
+        "training_tokens": 1000,
+        "architecture": "transformer",
+        "epochs": 3.0,
+        "gradient_checkpointing": true
+      },
+      "expect": 0.0
+    },
+    {
+      "args": {
+        "parameter_count": 0,
+        "training_tokens": 1000,
+        "architecture": "diffusion",
+        "epochs": 1.0,
+        "gradient_checkpointing": false
+      },
+      "expect": 0.0
+    },
+    {
+      "args": {
+        "parameter_count": 0,
+        "training_tokens": 1000,
+        "architecture": "diffusion",
+        "epochs": 1.0,
+        "gradient_checkpointing": true
+      },
+      "expect": 0.0
+    },
+    {
+      "args": {
+        "parameter_count": 0,
+        "training_tokens": 1000,
+        "architecture": "diffusion",
+        "epochs": 3.0,
+        "gradient_checkpointing": false
+      },
+      "expect": 0.0
+    },
+    {
+      "args": {
+        "parameter_count": 0,
+        "training_tokens": 1000,
+        "architecture": "diffusion",
+        "epochs": 3.0,
+        "gradient_checkpointing": true
+      },
+      "expect": 0.0
+    },
+    {
+      "args": {
+        "parameter_count": 1000,
+        "training_tokens": 0,
+        "architecture": "transformer",
+        "epochs": 1.0,
+        "gradient_checkpointing": false
+      },
+      "expect": 0.0
+    },
+    {
+      "args": {
+        "parameter_count": 1000,
+        "training_tokens": 0,
+        "architecture": "transformer",
+        "epochs": 1.0,
+        "gradient_checkpointing": true
+      },
+      "expect": 0.0
+    },
+    {
+      "args": {
+        "parameter_count": 1000,
+        "training_tokens": 0,
+        "architecture": "transformer",
+        "epochs": 3.0,
+        "gradient_checkpointing": false
+      },
+      "expect": 0.0
+    },
+    {
+      "args": {
+        "parameter_count": 1000,
+        "training_tokens": 0,
+        "architecture": "transformer",
+        "epochs": 3.0,
+        "gradient_checkpointing": true
+      },
+      "expect": 0.0
+    },
+    {
+      "args": {
+        "parameter_count": 1000,
+        "training_tokens": 0,
+        "architecture": "diffusion",
+        "epochs": 1.0,
+        "gradient_checkpointing": false
+      },
+      "expect": 0.0
+    },
+    {
+      "args": {
+        "parameter_count": 1000,
+        "training_tokens": 0,
+        "architecture": "diffusion",
+        "epochs": 1.0,
+        "gradient_checkpointing": true
+      },
+      "expect": 0.0
+    },
+    {
+      "args": {
+        "parameter_count": 1000,
+        "training_tokens": 0,
+        "architecture": "diffusion",
+        "epochs": 3.0,
+        "gradient_checkpointing": false
+      },
+      "expect": 0.0
+    },
+    {
+      "args": {
+        "parameter_count": 1000,
+        "training_tokens": 0,
+        "architecture": "diffusion",
+        "epochs": 3.0,
+        "gradient_checkpointing": true
+      },
+      "expect": 0.0
+    }
+  ],
+  "estimate_compute_cost": [
+    {
+      "args": {
+        "total_flops": 5.88e+21,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.05,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64
+      },
+      "expect": {
+        "wall_clock_hours": 4128.749578699022,
+        "gpu_hours": 33029.99662959218,
+        "compute_cost": 275139.87192450283,
+        "wall_clock_days": 172.0312324457926
+      }
+    },
+    {
+      "args": {
+        "total_flops": 5.88e+21,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.05,
+        "total_gpus": 1024,
+        "num_instances": 128,
+        "hourly_cost": 66.64
+      },
+      "expect": {
+        "wall_clock_hours": 32.25585608358611,
+        "gpu_hours": 33029.99662959218,
+        "compute_cost": 275139.87192450283,
+        "wall_clock_days": 1.3439940034827547
+      }
+    },
+    {
+      "args": {
+        "total_flops": 5.88e+21,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64
+      },
+      "expect": {
+        "wall_clock_hours": 375.3408707908202,
+        "gpu_hours": 3002.7269663265615,
+        "compute_cost": 25012.715629500257,
+        "wall_clock_days": 15.639202949617507
+      }
+    },
+    {
+      "args": {
+        "total_flops": 5.88e+21,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 1024,
+        "num_instances": 128,
+        "hourly_cost": 66.64
+      },
+      "expect": {
+        "wall_clock_hours": 2.9323505530532827,
+        "gpu_hours": 3002.7269663265615,
+        "compute_cost": 25012.715629500257,
+        "wall_clock_days": 0.12218127304388678
+      }
+    },
+    {
+      "args": {
+        "total_flops": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.05,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64
+      },
+      "expect": {
+        "wall_clock_hours": 7.021682956971127e-19,
+        "gpu_hours": 5.617346365576901e-18,
+        "compute_cost": 4.679249522525559e-17,
+        "wall_clock_days": 2.925701232071303e-20
+      }
+    },
+    {
+      "args": {
+        "total_flops": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.05,
+        "total_gpus": 1024,
+        "num_instances": 128,
+        "hourly_cost": 66.64
+      },
+      "expect": {
+        "wall_clock_hours": 5.485689810133693e-21,
+        "gpu_hours": 5.617346365576901e-18,
+        "compute_cost": 4.679249522525559e-17,
+        "wall_clock_days": 2.2857040875557053e-22
+      }
+    },
+    {
+      "args": {
+        "total_flops": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64
+      },
+      "expect": {
+        "wall_clock_hours": 6.383348142701025e-20,
+        "gpu_hours": 5.10667851416082e-19,
+        "compute_cost": 4.2538632022959625e-18,
+        "wall_clock_days": 2.6597283927920936e-21
+      }
+    },
+    {
+      "args": {
+        "total_flops": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 1024,
+        "num_instances": 128,
+        "hourly_cost": 66.64
+      },
+      "expect": {
+        "wall_clock_hours": 4.986990736485175e-22,
+        "gpu_hours": 5.10667851416082e-19,
+        "compute_cost": 4.2538632022959625e-18,
+        "wall_clock_days": 2.077912806868823e-23
+      }
+    },
+    {
+      "args": {
+        "total_flops": 1e+21,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.0,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64
+      },
+      "raises": "ZeroDivisionError"
+    },
+    {
+      "args": {
+        "total_flops": 1e+21,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.5,
+        "total_gpus": 0,
+        "num_instances": 1,
+        "hourly_cost": 66.64
+      },
+      "raises": "ZeroDivisionError"
+    }
+  ],
+  "solve_for_parameter_count": [
+    {
+      "args": {
+        "compute_budget_usd": 10000.0,
+        "training_tokens": 140000000000,
+        "epochs": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 2798576573
+    },
+    {
+      "args": {
+        "compute_budget_usd": 1000000.0,
+        "training_tokens": 1000000000000,
+        "epochs": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 39180072028
+    },
+    {
+      "args": {
+        "compute_budget_usd": 1000000000000.0,
+        "training_tokens": 1000000000000,
+        "epochs": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 39180072028811528,
+      "exceeds_float64_safe_int": true
+    },
+    {
+      "args": {
+        "compute_budget_usd": 0.01,
+        "training_tokens": 1000000000000,
+        "epochs": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 391
+    },
+    {
+      "args": {
+        "compute_budget_usd": 10000.0,
+        "training_tokens": 0,
+        "epochs": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 0
+    },
+    {
+      "args": {
+        "compute_budget_usd": 10000.0,
+        "training_tokens": 140000000000,
+        "epochs": 0.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 0
+    },
+    {
+      "args": {
+        "compute_budget_usd": 10000.0,
+        "training_tokens": 140000000000,
+        "epochs": 3.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 932858857
+    },
+    {
+      "args": {
+        "compute_budget_usd": 10000.0,
+        "training_tokens": 140000000000,
+        "epochs": 0.5,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 5597153146
+    },
+    {
+      "args": {
+        "compute_budget_usd": 10000.0,
+        "training_tokens": 1000000000,
+        "epochs": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 0.0,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 0
+    },
+    {
+      "args": {
+        "compute_budget_usd": 10000.0,
+        "training_tokens": 1000000000,
+        "epochs": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 0,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 0
+    }
+  ],
+  "solve_for_training_tokens": [
+    {
+      "args": {
+        "compute_budget_usd": 10000.0,
+        "parameter_count": 7000000000,
+        "epochs": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 55971531469
+    },
+    {
+      "args": {
+        "compute_budget_usd": 1000000.0,
+        "parameter_count": 70000000000,
+        "epochs": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 559715314697
+    },
+    {
+      "args": {
+        "compute_budget_usd": 1000000000000.0,
+        "parameter_count": 7000000000,
+        "epochs": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 5597153146973075456,
+      "exceeds_float64_safe_int": true
+    },
+    {
+      "args": {
+        "compute_budget_usd": 0.01,
+        "parameter_count": 7000000000,
+        "epochs": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 55971
+    },
+    {
+      "args": {
+        "compute_budget_usd": 10000.0,
+        "parameter_count": 0,
+        "epochs": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 0
+    },
+    {
+      "args": {
+        "compute_budget_usd": 10000.0,
+        "parameter_count": 7000000000,
+        "epochs": 3.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 18657177156
+    },
+    {
+      "args": {
+        "compute_budget_usd": 10000.0,
+        "parameter_count": 7000000000,
+        "epochs": 0.5,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 55971531469
+    },
+    {
+      "args": {
+        "compute_budget_usd": 10000.0,
+        "parameter_count": 7000000000,
+        "epochs": 0.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 55971531469
+    },
+    {
+      "args": {
+        "compute_budget_usd": 10000.0,
+        "parameter_count": 7000000000,
+        "epochs": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 1,
+        "hourly_cost": 0.0,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 0
+    },
+    {
+      "args": {
+        "compute_budget_usd": 10000.0,
+        "parameter_count": 7000000000,
+        "epochs": 1.0,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "mfu": 0.55,
+        "total_gpus": 8,
+        "num_instances": 0,
+        "hourly_cost": 66.64,
+        "architecture": "transformer",
+        "gradient_checkpointing": false
+      },
+      "expect": 0
+    }
+  ],
+  "estimate_gpu_memory_gb": [
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "QLoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 1,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 0.464762976,
+        "activation_gb": 4.294967296,
+        "memory_per_gpu_gb": 4.7597302720000005
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "QLoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 2,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 0.929525952,
+        "activation_gb": 4.294967296,
+        "memory_per_gpu_gb": 5.224493248
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "QLoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 4,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 1.859051904,
+        "activation_gb": 4.294967296,
+        "memory_per_gpu_gb": 6.1540192000000005
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "QLoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 1,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": true
+      },
+      "expect": {
+        "weights_gb": 0.464762976,
+        "activation_gb": 0.134217728,
+        "memory_per_gpu_gb": 0.598980704
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "QLoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 2,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": true
+      },
+      "expect": {
+        "weights_gb": 0.929525952,
+        "activation_gb": 0.134217728,
+        "memory_per_gpu_gb": 1.06374368
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "QLoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 4,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": true
+      },
+      "expect": {
+        "weights_gb": 1.859051904,
+        "activation_gb": 0.134217728,
+        "memory_per_gpu_gb": 1.993269632
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "QLoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 1,
+        "d_model": 0,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 0.464762976,
+        "activation_gb": 0.0,
+        "memory_per_gpu_gb": 0.464762976
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "QLoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 2,
+        "d_model": 0,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 0.929525952,
+        "activation_gb": 0.0,
+        "memory_per_gpu_gb": 0.929525952
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "QLoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 4,
+        "d_model": 0,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 1.859051904,
+        "activation_gb": 0.0,
+        "memory_per_gpu_gb": 1.859051904
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "LoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 1,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 1.777262976,
+        "activation_gb": 4.294967296,
+        "memory_per_gpu_gb": 6.0722302720000005
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "LoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 2,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 3.554525952,
+        "activation_gb": 4.294967296,
+        "memory_per_gpu_gb": 7.849493248
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "LoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 4,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 7.109051904,
+        "activation_gb": 4.294967296,
+        "memory_per_gpu_gb": 11.4040192
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "LoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 1,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": true
+      },
+      "expect": {
+        "weights_gb": 1.777262976,
+        "activation_gb": 0.134217728,
+        "memory_per_gpu_gb": 1.9114807040000001
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "LoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 2,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": true
+      },
+      "expect": {
+        "weights_gb": 3.554525952,
+        "activation_gb": 0.134217728,
+        "memory_per_gpu_gb": 3.68874368
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "LoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 4,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": true
+      },
+      "expect": {
+        "weights_gb": 7.109051904,
+        "activation_gb": 0.134217728,
+        "memory_per_gpu_gb": 7.2432696320000005
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "LoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 1,
+        "d_model": 0,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 1.777262976,
+        "activation_gb": 0.0,
+        "memory_per_gpu_gb": 1.777262976
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "LoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 2,
+        "d_model": 0,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 3.554525952,
+        "activation_gb": 0.0,
+        "memory_per_gpu_gb": 3.554525952
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 13631488,
+        "ft_method": "LoRA",
+        "total_gpus": 8,
+        "rl_multiplier": 4,
+        "d_model": 0,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 7.109051904,
+        "activation_gb": 0.0,
+        "memory_per_gpu_gb": 7.109051904
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": "Full Fine-Tuning",
+        "total_gpus": 8,
+        "rl_multiplier": 1,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 14.0,
+        "activation_gb": 4.294967296,
+        "memory_per_gpu_gb": 18.294967296
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": "Full Fine-Tuning",
+        "total_gpus": 8,
+        "rl_multiplier": 2,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 28.0,
+        "activation_gb": 4.294967296,
+        "memory_per_gpu_gb": 32.294967296
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": "Full Fine-Tuning",
+        "total_gpus": 8,
+        "rl_multiplier": 4,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 56.0,
+        "activation_gb": 4.294967296,
+        "memory_per_gpu_gb": 60.294967296
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": "Full Fine-Tuning",
+        "total_gpus": 8,
+        "rl_multiplier": 1,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": true
+      },
+      "expect": {
+        "weights_gb": 14.0,
+        "activation_gb": 0.134217728,
+        "memory_per_gpu_gb": 14.134217728
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": "Full Fine-Tuning",
+        "total_gpus": 8,
+        "rl_multiplier": 2,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": true
+      },
+      "expect": {
+        "weights_gb": 28.0,
+        "activation_gb": 0.134217728,
+        "memory_per_gpu_gb": 28.134217728
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": "Full Fine-Tuning",
+        "total_gpus": 8,
+        "rl_multiplier": 4,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": true
+      },
+      "expect": {
+        "weights_gb": 56.0,
+        "activation_gb": 0.134217728,
+        "memory_per_gpu_gb": 56.134217728
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": "Full Fine-Tuning",
+        "total_gpus": 8,
+        "rl_multiplier": 1,
+        "d_model": 0,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 14.0,
+        "activation_gb": 0.0,
+        "memory_per_gpu_gb": 14.0
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": "Full Fine-Tuning",
+        "total_gpus": 8,
+        "rl_multiplier": 2,
+        "d_model": 0,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 28.0,
+        "activation_gb": 0.0,
+        "memory_per_gpu_gb": 28.0
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": "Full Fine-Tuning",
+        "total_gpus": 8,
+        "rl_multiplier": 4,
+        "d_model": 0,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 56.0,
+        "activation_gb": 0.0,
+        "memory_per_gpu_gb": 56.0
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": null,
+        "total_gpus": 8,
+        "rl_multiplier": 1,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 14.0,
+        "activation_gb": 4.294967296,
+        "memory_per_gpu_gb": 18.294967296
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": null,
+        "total_gpus": 8,
+        "rl_multiplier": 2,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 28.0,
+        "activation_gb": 4.294967296,
+        "memory_per_gpu_gb": 32.294967296
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": null,
+        "total_gpus": 8,
+        "rl_multiplier": 4,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 56.0,
+        "activation_gb": 4.294967296,
+        "memory_per_gpu_gb": 60.294967296
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": null,
+        "total_gpus": 8,
+        "rl_multiplier": 1,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": true
+      },
+      "expect": {
+        "weights_gb": 14.0,
+        "activation_gb": 0.134217728,
+        "memory_per_gpu_gb": 14.134217728
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": null,
+        "total_gpus": 8,
+        "rl_multiplier": 2,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": true
+      },
+      "expect": {
+        "weights_gb": 28.0,
+        "activation_gb": 0.134217728,
+        "memory_per_gpu_gb": 28.134217728
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": null,
+        "total_gpus": 8,
+        "rl_multiplier": 4,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": true
+      },
+      "expect": {
+        "weights_gb": 56.0,
+        "activation_gb": 0.134217728,
+        "memory_per_gpu_gb": 56.134217728
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": null,
+        "total_gpus": 8,
+        "rl_multiplier": 1,
+        "d_model": 0,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 14.0,
+        "activation_gb": 0.0,
+        "memory_per_gpu_gb": 14.0
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": null,
+        "total_gpus": 8,
+        "rl_multiplier": 2,
+        "d_model": 0,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 28.0,
+        "activation_gb": 0.0,
+        "memory_per_gpu_gb": 28.0
+      }
+    },
+    {
+      "args": {
+        "effective_params": 7000000000,
+        "trainable_params": 7000000000,
+        "ft_method": null,
+        "total_gpus": 8,
+        "rl_multiplier": 4,
+        "d_model": 0,
+        "num_layers": 32,
+        "seq_len": 4096,
+        "batch_size": 8,
+        "gradient_checkpointing": false
+      },
+      "expect": {
+        "weights_gb": 56.0,
+        "activation_gb": 0.0,
+        "memory_per_gpu_gb": 56.0
+      }
+    }
+  ],
+  "calculate_lora_trainable_params": [
+    {
+      "args": {
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 7000000000,
+        "target_modules": [],
+        "d_model": 0,
+        "num_layers": 0,
+        "lora_rank": 0,
+        "architecture": {}
+      },
+      "expect": 7000000000
+    },
+    {
+      "args": {
+        "ft_method": "LoRA",
+        "base_params": 7000000000.0,
+        "target_modules": [],
+        "d_model": 4096,
+        "num_layers": 32,
+        "lora_rank": 16,
+        "architecture": {
+          "num_layers": 32,
+          "d_model": 4096,
+          "num_heads": 32,
+          "num_kv_heads": 32,
+          "ffn_intermediate": 11008
+        }
+      },
+      "expect": null
+    },
+    {
+      "args": {
+        "ft_method": "LoRA",
+        "base_params": 7000000000.0,
+        "target_modules": [
+          "q_proj"
+        ],
+        "d_model": 0,
+        "num_layers": 32,
+        "lora_rank": 16,
+        "architecture": {}
+      },
+      "expect": null
+    },
+    {
+      "args": {
+        "ft_method": "LoRA",
+        "base_params": 7000000000.0,
+        "target_modules": [
+          "q_proj"
+        ],
+        "d_model": 4096,
+        "num_layers": 0,
+        "lora_rank": 16,
+        "architecture": {
+          "num_layers": 32,
+          "d_model": 4096,
+          "num_heads": 32,
+          "num_kv_heads": 32,
+          "ffn_intermediate": 11008
+        }
+      },
+      "expect": null
+    },
+    {
+      "args": {
+        "ft_method": "LoRA",
+        "base_params": 7000000000.0,
+        "target_modules": [
+          "q_proj"
+        ],
+        "d_model": 4096,
+        "num_layers": 32,
+        "lora_rank": 0,
+        "architecture": {
+          "num_layers": 32,
+          "d_model": 4096,
+          "num_heads": 32,
+          "num_kv_heads": 32,
+          "ffn_intermediate": 11008
+        }
+      },
+      "expect": null
+    },
+    {
+      "args": {
+        "ft_method": "LoRA",
+        "base_params": 70000000000.0,
+        "target_modules": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj"
+        ],
+        "d_model": 8192,
+        "num_layers": 80,
+        "lora_rank": 16,
+        "architecture": {
+          "num_layers": 80,
+          "d_model": 8192,
+          "num_heads": 64,
+          "num_kv_heads": 8,
+          "ffn_intermediate": 28672
+        }
+      },
+      "expect": 65536000
+    },
+    {
+      "args": {
+        "ft_method": "LoRA",
+        "base_params": 7000000000.0,
+        "target_modules": [
+          "k_proj",
+          "v_proj"
+        ],
+        "d_model": 4096,
+        "num_layers": 32,
+        "lora_rank": 16,
+        "architecture": {
+          "num_layers": 32,
+          "d_model": 4096,
+          "num_heads": 30,
+          "num_kv_heads": 6,
+          "ffn_intermediate": 11008
+        }
+      },
+      "expect": 5029888
+    },
+    {
+      "args": {
+        "ft_method": "LoRA",
+        "base_params": 7000000000.0,
+        "target_modules": [
+          "q_proj",
+          "k_proj"
+        ],
+        "d_model": 4096,
+        "num_layers": 32,
+        "lora_rank": 16,
+        "architecture": {}
+      },
+      "expect": 8388608
+    },
+    {
+      "args": {
+        "ft_method": "QLoRA",
+        "base_params": 7000000000.0,
+        "target_modules": [
+          "k_proj"
+        ],
+        "d_model": 4096,
+        "num_layers": 32,
+        "lora_rank": 8,
+        "architecture": {
+          "num_layers": 32,
+          "d_model": 4096,
+          "num_heads": 0
+        }
+      },
+      "expect": 1048576
+    },
+    {
+      "args": {
+        "ft_method": "LoRA",
+        "base_params": 7000000000.0,
+        "target_modules": [
+          "mystery_proj"
+        ],
+        "d_model": 4096,
+        "num_layers": 32,
+        "lora_rank": 16,
+        "architecture": {
+          "num_layers": 32,
+          "d_model": 4096,
+          "num_heads": 32,
+          "num_kv_heads": 32,
+          "ffn_intermediate": 11008
+        }
+      },
+      "expect": 4194304
+    },
+    {
+      "args": {
+        "ft_method": "LoRA",
+        "base_params": 7000000000.0,
+        "target_modules": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj",
+          "up_proj",
+          "down_proj"
+        ],
+        "d_model": 4096,
+        "num_layers": 32,
+        "lora_rank": 64,
+        "architecture": {
+          "num_layers": 32,
+          "d_model": 4096,
+          "num_heads": 32,
+          "num_kv_heads": 32,
+          "ffn_intermediate": 11008
+        }
+      },
+      "expect": 128974848
+    },
+    {
+      "args": {
+        "ft_method": "LoRA",
+        "base_params": 7000000000.0,
+        "target_modules": [
+          "up_proj",
+          "down_proj"
+        ],
+        "d_model": 4096,
+        "num_layers": 32,
+        "lora_rank": 16,
+        "architecture": {
+          "d_model": 4096,
+          "num_heads": 32
+        }
+      },
+      "expect": 20971520
+    }
+  ],
+  "calculate_checkpoint_storage_tb": [
+    {
+      "args": {
+        "checkpoint_params": 7000000000,
+        "num_checkpoints": 5,
+        "num_training_runs": 1,
+        "num_hp_trials": 0,
+        "num_ablations": 0
+      },
+      "expect": 0.49
+    },
+    {
+      "args": {
+        "checkpoint_params": 7000000000,
+        "num_checkpoints": 5,
+        "num_training_runs": 3,
+        "num_hp_trials": 10,
+        "num_ablations": 2
+      },
+      "expect": 2.646
+    },
+    {
+      "args": {
+        "checkpoint_params": 13631488,
+        "num_checkpoints": 5,
+        "num_training_runs": 1,
+        "num_hp_trials": 5,
+        "num_ablations": 0
+      },
+      "expect": 0.00190840832
+    },
+    {
+      "args": {
+        "checkpoint_params": 0,
+        "num_checkpoints": 5,
+        "num_training_runs": 1,
+        "num_hp_trials": 0,
+        "num_ablations": 0
+      },
+      "expect": 0.0
+    }
+  ],
+  "calculate_project_compute_cost": [
+    {
+      "args": {
+        "single_run_cost": 10000.0,
+        "num_training_runs": 1,
+        "num_hp_trials": 0,
+        "hp_fraction": 0.1,
+        "num_ablations": 0,
+        "ablation_fraction": 0.5
+      },
+      "expect": 10000.0
+    },
+    {
+      "args": {
+        "single_run_cost": 10000.0,
+        "num_training_runs": 3,
+        "num_hp_trials": 10,
+        "hp_fraction": 0.1,
+        "num_ablations": 2,
+        "ablation_fraction": 0.5
+      },
+      "expect": 50000.0
+    },
+    {
+      "args": {
+        "single_run_cost": 0.0,
+        "num_training_runs": 1,
+        "num_hp_trials": 1,
+        "hp_fraction": 0.1,
+        "num_ablations": 1,
+        "ablation_fraction": 0.5
+      },
+      "expect": 0.0
+    },
+    {
+      "args": {
+        "single_run_cost": 1.0,
+        "num_training_runs": 1,
+        "num_hp_trials": 20,
+        "hp_fraction": 0.05,
+        "num_ablations": 0,
+        "ablation_fraction": 0.5
+      },
+      "expect": 2.0
+    }
+  ],
+  "calculate_storage_cost": [
+    {
+      "args": {
+        "dataset_size_tb": 10.0,
+        "storage_duration_months": 3.0,
+        "storage_class": "standard"
+      },
+      "expect": 690.0
+    },
+    {
+      "args": {
+        "dataset_size_tb": 10.0,
+        "storage_duration_months": 3.0,
+        "storage_class": "intelligent_tiering"
+      },
+      "expect": 690.0
+    },
+    {
+      "args": {
+        "dataset_size_tb": 10.0,
+        "storage_duration_months": 3.0,
+        "storage_class": "standard_ia"
+      },
+      "expect": 414.0
+    },
+    {
+      "args": {
+        "dataset_size_tb": 10.0,
+        "storage_duration_months": 3.0,
+        "storage_class": "one_zone_ia"
+      },
+      "expect": 330.0
+    },
+    {
+      "args": {
+        "dataset_size_tb": 10.0,
+        "storage_duration_months": 3.0,
+        "storage_class": "glacier"
+      },
+      "expect": 120.0
+    },
+    {
+      "args": {
+        "dataset_size_tb": 10.0,
+        "storage_duration_months": 3.0,
+        "storage_class": "not_a_storage_class"
+      },
+      "raises": "ValueError"
+    },
+    {
+      "args": {
+        "dataset_size_tb": 0.0,
+        "storage_duration_months": 1.0,
+        "storage_class": "standard"
+      },
+      "expect": 0.0
+    }
+  ],
+  "peak_flops_for_precision": [
+    {
+      "args": {
+        "instance_type": "p4d.24xlarge",
+        "mixed_precision": "fp4"
+      },
+      "expect": 312000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p4d.24xlarge",
+        "mixed_precision": "int8"
+      },
+      "expect": 624000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p4d.24xlarge",
+        "mixed_precision": "fp8"
+      },
+      "expect": 312000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p4d.24xlarge",
+        "mixed_precision": "bf16"
+      },
+      "expect": 312000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p4d.24xlarge",
+        "mixed_precision": "fp16"
+      },
+      "expect": 312000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p4d.24xlarge",
+        "mixed_precision": "tf32"
+      },
+      "expect": 156000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p4d.24xlarge",
+        "mixed_precision": "fp32"
+      },
+      "expect": 19500000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p4de.24xlarge",
+        "mixed_precision": "fp4"
+      },
+      "expect": 312000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p4de.24xlarge",
+        "mixed_precision": "int8"
+      },
+      "expect": 624000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p4de.24xlarge",
+        "mixed_precision": "fp8"
+      },
+      "expect": 312000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p4de.24xlarge",
+        "mixed_precision": "bf16"
+      },
+      "expect": 312000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p4de.24xlarge",
+        "mixed_precision": "fp16"
+      },
+      "expect": 312000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p4de.24xlarge",
+        "mixed_precision": "tf32"
+      },
+      "expect": 156000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p4de.24xlarge",
+        "mixed_precision": "fp32"
+      },
+      "expect": 19500000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p5.48xlarge",
+        "mixed_precision": "fp4"
+      },
+      "expect": 989000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p5.48xlarge",
+        "mixed_precision": "int8"
+      },
+      "expect": 1978000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p5.48xlarge",
+        "mixed_precision": "fp8"
+      },
+      "expect": 1978000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p5.48xlarge",
+        "mixed_precision": "bf16"
+      },
+      "expect": 989000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p5.48xlarge",
+        "mixed_precision": "fp16"
+      },
+      "expect": 989000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p5.48xlarge",
+        "mixed_precision": "tf32"
+      },
+      "expect": 494500000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p5.48xlarge",
+        "mixed_precision": "fp32"
+      },
+      "expect": 67000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p3.16xlarge",
+        "mixed_precision": "fp4"
+      },
+      "expect": 125000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p3.16xlarge",
+        "mixed_precision": "int8"
+      },
+      "expect": 112500000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p3.16xlarge",
+        "mixed_precision": "fp8"
+      },
+      "expect": 125000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p3.16xlarge",
+        "mixed_precision": "bf16"
+      },
+      "expect": 125000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p3.16xlarge",
+        "mixed_precision": "fp16"
+      },
+      "expect": 125000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p3.16xlarge",
+        "mixed_precision": "tf32"
+      },
+      "expect": 62500000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p3.16xlarge",
+        "mixed_precision": "fp32"
+      },
+      "expect": 15700000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p3dn.24xlarge",
+        "mixed_precision": "fp4"
+      },
+      "expect": 125000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p3dn.24xlarge",
+        "mixed_precision": "int8"
+      },
+      "expect": 112500000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p3dn.24xlarge",
+        "mixed_precision": "fp8"
+      },
+      "expect": 125000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p3dn.24xlarge",
+        "mixed_precision": "bf16"
+      },
+      "expect": 125000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p3dn.24xlarge",
+        "mixed_precision": "fp16"
+      },
+      "expect": 125000000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p3dn.24xlarge",
+        "mixed_precision": "tf32"
+      },
+      "expect": 62500000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p3dn.24xlarge",
+        "mixed_precision": "fp32"
+      },
+      "expect": 15700000000000.0
+    },
+    {
+      "args": {
+        "instance_type": "p5.48xlarge",
+        "mixed_precision": "not_a_precision"
+      },
+      "expect": 989000000000000.0
+    }
+  ],
+  "tokens_per_text_sample": [
+    {
+      "args": {
+        "avg_seq_len_words": 0
+      },
+      "expect": 0
+    },
+    {
+      "args": {
+        "avg_seq_len_words": 1
+      },
+      "expect": 1
+    },
+    {
+      "args": {
+        "avg_seq_len_words": 100
+      },
+      "expect": 130
+    },
+    {
+      "args": {
+        "avg_seq_len_words": 500
+      },
+      "expect": 650
+    },
+    {
+      "args": {
+        "avg_seq_len_words": 999
+      },
+      "expect": 1298
+    }
+  ],
+  "bytes_per_text_sample": [
+    {
+      "args": {
+        "tokens": 0
+      },
+      "expect": 0
+    },
+    {
+      "args": {
+        "tokens": 1
+      },
+      "expect": 4
+    },
+    {
+      "args": {
+        "tokens": 650
+      },
+      "expect": 2600
+    },
+    {
+      "args": {
+        "tokens": 1000000
+      },
+      "expect": 4000000
+    }
+  ],
+  "tokens_per_image_sample": [
+    {
+      "args": {
+        "resolution": 224,
+        "patch_size": 16
+      },
+      "expect": 196
+    },
+    {
+      "args": {
+        "resolution": 336,
+        "patch_size": 32
+      },
+      "expect": 100
+    },
+    {
+      "args": {
+        "resolution": 224,
+        "patch_size": 14
+      },
+      "expect": 256
+    },
+    {
+      "args": {
+        "resolution": 512,
+        "patch_size": 16
+      },
+      "expect": 1024
+    },
+    {
+      "args": {
+        "resolution": 255,
+        "patch_size": 16
+      },
+      "expect": 225
+    },
+    {
+      "args": {
+        "resolution": 1,
+        "patch_size": 16
+      },
+      "expect": 0
+    }
+  ],
+  "bytes_per_image_sample": [
+    {
+      "args": {
+        "resolution": 224
+      },
+      "expect": 15052
+    },
+    {
+      "args": {
+        "resolution": 336
+      },
+      "expect": 33868
+    },
+    {
+      "args": {
+        "resolution": 512
+      },
+      "expect": 78643
+    },
+    {
+      "args": {
+        "resolution": 1
+      },
+      "expect": 0
+    },
+    {
+      "args": {
+        "resolution": 3
+      },
+      "expect": 2
+    }
+  ],
+  "tokens_per_audio_sample": [
+    {
+      "args": {
+        "clip_duration": 10.0,
+        "base_rate": 75,
+        "num_codebooks": 1
+      },
+      "expect": 750
+    },
+    {
+      "args": {
+        "clip_duration": 10.5,
+        "base_rate": 75,
+        "num_codebooks": 4
+      },
+      "expect": 3150
+    },
+    {
+      "args": {
+        "clip_duration": 0.5,
+        "base_rate": 50,
+        "num_codebooks": 1
+      },
+      "expect": 25
+    },
+    {
+      "args": {
+        "clip_duration": 3.33,
+        "base_rate": 50,
+        "num_codebooks": 8
+      },
+      "expect": 1332
+    },
+    {
+      "args": {
+        "clip_duration": 0.0,
+        "base_rate": 75,
+        "num_codebooks": 1
+      },
+      "expect": 0
+    }
+  ],
+  "bytes_per_audio_sample": [
+    {
+      "args": {
+        "clip_duration": 10.0
+      },
+      "expect": 320000
+    },
+    {
+      "args": {
+        "clip_duration": 0.5
+      },
+      "expect": 16000
+    },
+    {
+      "args": {
+        "clip_duration": 3.33
+      },
+      "expect": 106560
+    },
+    {
+      "args": {
+        "clip_duration": 0.0
+      },
+      "expect": 0
+    }
+  ],
+  "tokens_per_video_sample": [
+    {
+      "args": {
+        "duration": 10.0,
+        "fps": 30,
+        "resolution": 224,
+        "patch_size": 16
+      },
+      "expect": 58800
+    },
+    {
+      "args": {
+        "duration": 2.5,
+        "fps": 24,
+        "resolution": 336,
+        "patch_size": 32
+      },
+      "expect": 6000
+    },
+    {
+      "args": {
+        "duration": 0.5,
+        "fps": 30,
+        "resolution": 224,
+        "patch_size": 16
+      },
+      "expect": 2940
+    },
+    {
+      "args": {
+        "duration": 0.0,
+        "fps": 30,
+        "resolution": 224,
+        "patch_size": 16
+      },
+      "expect": 0
+    }
+  ],
+  "bytes_per_video_sample": [
+    {
+      "args": {
+        "duration": 10.0,
+        "fps": 30,
+        "resolution": 224
+      },
+      "expect": 4515600
+    },
+    {
+      "args": {
+        "duration": 2.5,
+        "fps": 24,
+        "resolution": 336
+      },
+      "expect": 2032080
+    },
+    {
+      "args": {
+        "duration": 0.04,
+        "fps": 30,
+        "resolution": 512
+      },
+      "expect": 78643
+    }
+  ],
+  "fmt_tokens": [
+    {
+      "args": {
+        "n": 0
+      },
+      "expect": "0"
+    },
+    {
+      "args": {
+        "n": 1
+      },
+      "expect": "1"
+    },
+    {
+      "args": {
+        "n": 999
+      },
+      "expect": "999"
+    },
+    {
+      "args": {
+        "n": 1000
+      },
+      "expect": "1.0K"
+    },
+    {
+      "args": {
+        "n": 1001
+      },
+      "expect": "1.0K"
+    },
+    {
+      "args": {
+        "n": 999999
+      },
+      "expect": "1000.0K"
+    },
+    {
+      "args": {
+        "n": 1000000
+      },
+      "expect": "1.00M"
+    },
+    {
+      "args": {
+        "n": 1500000
+      },
+      "expect": "1.50M"
+    },
+    {
+      "args": {
+        "n": 999999999
+      },
+      "expect": "1000.00M"
+    },
+    {
+      "args": {
+        "n": 1000000000
+      },
+      "expect": "1.00B"
+    },
+    {
+      "args": {
+        "n": 7000000000
+      },
+      "expect": "7.00B"
+    },
+    {
+      "args": {
+        "n": 999999999999
+      },
+      "expect": "1000.00B"
+    },
+    {
+      "args": {
+        "n": 1000000000000
+      },
+      "expect": "1.00T"
+    },
+    {
+      "args": {
+        "n": 671000000000
+      },
+      "expect": "671.00B"
+    }
+  ],
+  "fmt_samples": [
+    {
+      "args": {
+        "n": 0
+      },
+      "expect": "0"
+    },
+    {
+      "args": {
+        "n": 1
+      },
+      "expect": "1"
+    },
+    {
+      "args": {
+        "n": 999
+      },
+      "expect": "999"
+    },
+    {
+      "args": {
+        "n": 1000
+      },
+      "expect": "1.0K"
+    },
+    {
+      "args": {
+        "n": 1001
+      },
+      "expect": "1.0K"
+    },
+    {
+      "args": {
+        "n": 999999
+      },
+      "expect": "1000.0K"
+    },
+    {
+      "args": {
+        "n": 1000000
+      },
+      "expect": "1.00M"
+    },
+    {
+      "args": {
+        "n": 1500000
+      },
+      "expect": "1.50M"
+    },
+    {
+      "args": {
+        "n": 999999999
+      },
+      "expect": "1000.00M"
+    },
+    {
+      "args": {
+        "n": 1000000000
+      },
+      "expect": "1.00B"
+    },
+    {
+      "args": {
+        "n": 7000000000
+      },
+      "expect": "7.00B"
+    },
+    {
+      "args": {
+        "n": 999999999999
+      },
+      "expect": "1000.00B"
+    },
+    {
+      "args": {
+        "n": 1000000000000
+      },
+      "expect": "1000.00B"
+    },
+    {
+      "args": {
+        "n": 671000000000
+      },
+      "expect": "671.00B"
+    }
+  ],
+  "format_wall_clock_time": [
+    {
+      "args": {
+        "wall_clock_days": 0.0
+      },
+      "expect": "0.0 min"
+    },
+    {
+      "args": {
+        "wall_clock_days": 0.0005
+      },
+      "expect": "0.7 min"
+    },
+    {
+      "args": {
+        "wall_clock_days": 0.041666665666666665
+      },
+      "expect": "60.0 min"
+    },
+    {
+      "args": {
+        "wall_clock_days": 0.041666666666666664
+      },
+      "expect": "1.00 hrs"
+    },
+    {
+      "args": {
+        "wall_clock_days": 0.5
+      },
+      "expect": "12.00 hrs"
+    },
+    {
+      "args": {
+        "wall_clock_days": 0.999
+      },
+      "expect": "23.98 hrs"
+    },
+    {
+      "args": {
+        "wall_clock_days": 1.0
+      },
+      "expect": "1.00 days"
+    },
+    {
+      "args": {
+        "wall_clock_days": 5.176
+      },
+      "expect": "5.18 days"
+    },
+    {
+      "args": {
+        "wall_clock_days": 365.0
+      },
+      "expect": "365.00 days"
+    }
+  ],
+  "format_gpu_hours": [
+    {
+      "args": {
+        "gpu_hours": 0.0
+      },
+      "expect": "0.0"
+    },
+    {
+      "args": {
+        "gpu_hours": 1.0
+      },
+      "expect": "1.0"
+    },
+    {
+      "args": {
+        "gpu_hours": 999.9
+      },
+      "expect": "999.9"
+    },
+    {
+      "args": {
+        "gpu_hours": 1000.0
+      },
+      "expect": "1.0K"
+    },
+    {
+      "args": {
+        "gpu_hours": 999999.0
+      },
+      "expect": "1000.0K"
+    },
+    {
+      "args": {
+        "gpu_hours": 1000000.0
+      },
+      "expect": "1.00M"
+    },
+    {
+      "args": {
+        "gpu_hours": 2500000.0
+      },
+      "expect": "2.50M"
+    }
+  ],
+  "display_value": [
+    {
+      "args": {
+        "val": 0.5
+      },
+      "expect": "0.5",
+      "arg_type": "float"
+    },
+    {
+      "args": {
+        "val": 3.7
+      },
+      "expect": "3.7",
+      "arg_type": "float"
+    },
+    {
+      "args": {
+        "val": 999.0
+      },
+      "expect": "999",
+      "arg_type": "float"
+    },
+    {
+      "args": {
+        "val": 1000.0
+      },
+      "expect": "1.0K",
+      "arg_type": "float"
+    },
+    {
+      "args": {
+        "val": 1500000.0
+      },
+      "expect": "1.50M",
+      "arg_type": "float"
+    },
+    {
+      "args": {
+        "val": 2500000000.0
+      },
+      "expect": "2.50B",
+      "arg_type": "float"
+    },
+    {
+      "args": {
+        "val": 1000000000000.0
+      },
+      "expect": "1.00e+12",
+      "arg_type": "float"
+    },
+    {
+      "args": {
+        "val": 5000000000000.0
+      },
+      "expect": "5.00e+12",
+      "arg_type": "float"
+    },
+    {
+      "args": {
+        "val": true
+      },
+      "expect": "Yes",
+      "arg_type": "bool"
+    },
+    {
+      "args": {
+        "val": false
+      },
+      "expect": "No",
+      "arg_type": "bool"
+    },
+    {
+      "args": {
+        "val": 0
+      },
+      "expect": "0",
+      "arg_type": "int"
+    },
+    {
+      "args": {
+        "val": 42
+      },
+      "expect": "42",
+      "arg_type": "int"
+    },
+    {
+      "args": {
+        "val": 999
+      },
+      "expect": "999",
+      "arg_type": "int"
+    },
+    {
+      "args": {
+        "val": 1000
+      },
+      "expect": "1,000",
+      "arg_type": "int"
+    },
+    {
+      "args": {
+        "val": 1500000
+      },
+      "expect": "1,500,000",
+      "arg_type": "int"
+    },
+    {
+      "args": {
+        "val": "standard"
+      },
+      "expect": "standard",
+      "arg_type": "str"
+    },
+    {
+      "args": {
+        "val": "p5.48xlarge"
+      },
+      "expect": "p5.48xlarge",
+      "arg_type": "str"
+    }
+  ],
+  "assess_training_config": [
+    {
+      "args": {
+        "total_tokens": 50000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "error",
+        "message": "**Dataset critically undersized.** 0.05 tok/param \u2014 fewer tokens than parameters. Chinchilla-optimal requires **20.00B tokens** (20x N). Training will likely diverge or severely underfit."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 50000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "error",
+        "message": "**Dataset too small for full fine-tuning.** 0.050 tok/param. You need at least ~0.5\u20131 tok/param (**500.00M tokens**) to see meaningful adaptation."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 50000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for LoRA.** 0.1 tok/adapter_param (0.01 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 50000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for QLoRA.** 0.1 tok/adapter_param (0.01 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 90000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "error",
+        "message": "**Dataset critically undersized.** 0.09 tok/param \u2014 fewer tokens than parameters. Chinchilla-optimal requires **20.00B tokens** (20x N). Training will likely diverge or severely underfit."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 90000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "error",
+        "message": "**Dataset too small for full fine-tuning.** 0.090 tok/param. You need at least ~0.5\u20131 tok/param (**500.00M tokens**) to see meaningful adaptation."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 90000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for LoRA.** 0.1 tok/adapter_param (0.01 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 90000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for QLoRA.** 0.1 tok/adapter_param (0.01 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 100000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "error",
+        "message": "**Dataset critically undersized.** 0.10 tok/param \u2014 fewer tokens than parameters. Chinchilla-optimal requires **20.00B tokens** (20x N). Training will likely diverge or severely underfit."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 100000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Likely undertrained for full fine-tuning.** 0.10 tok/param. Aim for 1\u20135 tok/param (**1.00B\u20135.00B tokens**) for stable full-parameter adaptation."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 100000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for LoRA.** 0.1 tok/adapter_param (0.01 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 100000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for QLoRA.** 0.1 tok/adapter_param (0.01 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 500000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "error",
+        "message": "**Dataset critically undersized.** 0.50 tok/param \u2014 fewer tokens than parameters. Chinchilla-optimal requires **20.00B tokens** (20x N). Training will likely diverge or severely underfit."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 500000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Likely undertrained for full fine-tuning.** 0.50 tok/param. Aim for 1\u20135 tok/param (**1.00B\u20135.00B tokens**) for stable full-parameter adaptation."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 500000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for LoRA.** 0.5 tok/adapter_param (0.06 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 500000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for QLoRA.** 0.5 tok/adapter_param (0.06 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 990000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "error",
+        "message": "**Dataset critically undersized.** 0.99 tok/param \u2014 fewer tokens than parameters. Chinchilla-optimal requires **20.00B tokens** (20x N). Training will likely diverge or severely underfit."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 990000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Likely undertrained for full fine-tuning.** 0.99 tok/param. Aim for 1\u20135 tok/param (**1.00B\u20135.00B tokens**) for stable full-parameter adaptation."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 990000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for LoRA.** 1.0 tok/adapter_param (0.12 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 990000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for QLoRA.** 1.0 tok/adapter_param (0.12 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 1000000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Undertrained (below Chinchilla-optimal).** 1.0 tok/param. Need \u2265 20 tok/param for compute efficiency \u2014 at least **20.00B tokens**. Consider more data or a smaller model."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 1000000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Good range for full fine-tuning.** 1.0 tok/param \u2014 standard for supervised fine-tuning of large models."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 1000000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for LoRA.** 1.0 tok/adapter_param (0.12 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 1000000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for QLoRA.** 1.0 tok/adapter_param (0.12 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 1500000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Undertrained (below Chinchilla-optimal).** 1.5 tok/param. Need \u2265 20 tok/param for compute efficiency \u2014 at least **20.00B tokens**. Consider more data or a smaller model."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 1500000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Good range for full fine-tuning.** 1.5 tok/param \u2014 standard for supervised fine-tuning of large models."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 1500000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for LoRA.** 1.5 tok/adapter_param (0.19 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 1500000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for QLoRA.** 1.5 tok/adapter_param (0.19 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 5000000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Undertrained (below Chinchilla-optimal).** 5.0 tok/param. Need \u2265 20 tok/param for compute efficiency \u2014 at least **20.00B tokens**. Consider more data or a smaller model."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 5000000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Good range for full fine-tuning.** 5.0 tok/param \u2014 standard for supervised fine-tuning of large models."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 5000000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for LoRA.** 5.0 tok/adapter_param (0.62 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 5000000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for QLoRA.** 5.0 tok/adapter_param (0.62 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 9990000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Undertrained (below Chinchilla-optimal).** 10.0 tok/param. Need \u2265 20 tok/param for compute efficiency \u2014 at least **20.00B tokens**. Consider more data or a smaller model."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 9990000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Generous dataset for full fine-tuning.** 10.0 tok/param. Effective, but watch for catastrophic forgetting of the base model's general capabilities at high token counts."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 9990000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for LoRA.** 10.0 tok/adapter_param (1.25 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 9990000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Possibly too little data for QLoRA.** 10.0 tok/adapter_param (1.25 tok/base_param, 12.50% trainable). Aim for \u2265 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 10000000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Chinchilla-optimal.** 10.0 tok/param \u2014 within the 10-30x compute-optimal zone (Hoffmann et al. 2022)."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 10000000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Generous dataset for full fine-tuning.** 10.0 tok/param. Effective, but watch for catastrophic forgetting of the base model's general capabilities at high token counts."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 10000000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Good range for LoRA.** 10 tok/adapter_param (1.25 tok/base_param, 12.50% trainable). The frozen base model provides strong priors \u2014 far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 10000000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Good range for QLoRA.** 10 tok/adapter_param (1.25 tok/base_param, 12.50% trainable). The frozen base model provides strong priors \u2014 far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 20000000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Chinchilla-optimal.** 20.0 tok/param \u2014 within the 10-30x compute-optimal zone (Hoffmann et al. 2022)."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 20000000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Generous dataset for full fine-tuning.** 20.0 tok/param. Effective, but watch for catastrophic forgetting of the base model's general capabilities at high token counts."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 20000000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Good range for LoRA.** 20 tok/adapter_param (2.50 tok/base_param, 12.50% trainable). The frozen base model provides strong priors \u2014 far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 20000000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Good range for QLoRA.** 20 tok/adapter_param (2.50 tok/base_param, 12.50% trainable). The frozen base model provides strong priors \u2014 far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 30000000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Chinchilla-optimal.** 30.0 tok/param \u2014 within the 10-30x compute-optimal zone (Hoffmann et al. 2022)."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 30000000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Very large dataset for full fine-tuning (30 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 30000000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Good range for LoRA.** 30 tok/adapter_param (3.75 tok/base_param, 12.50% trainable). The frozen base model provides strong priors \u2014 far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 30000000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Good range for QLoRA.** 30 tok/adapter_param (3.75 tok/base_param, 12.50% trainable). The frozen base model provides strong priors \u2014 far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 30100000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Inference-optimal (over-trained vs Chinchilla).** 30.1 tok/param. Training smaller models longer reduces inference cost \u2014 the LLaMA / Mistral strategy. Fine if you expect high inference volume."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 30100000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Very large dataset for full fine-tuning (30 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 30100000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Good range for LoRA.** 30 tok/adapter_param (3.76 tok/base_param, 12.50% trainable). The frozen base model provides strong priors \u2014 far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 30100000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Good range for QLoRA.** 30 tok/adapter_param (3.76 tok/base_param, 12.50% trainable). The frozen base model provides strong priors \u2014 far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 100000000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Inference-optimal (over-trained vs Chinchilla).** 100.0 tok/param. Training smaller models longer reduces inference cost \u2014 the LLaMA / Mistral strategy. Fine if you expect high inference volume."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 100000000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Very large dataset for full fine-tuning (100 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 100000000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Good range for LoRA.** 100 tok/adapter_param (12.50 tok/base_param, 12.50% trainable). The frozen base model provides strong priors \u2014 far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 100000000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Good range for QLoRA.** 100 tok/adapter_param (12.50 tok/base_param, 12.50% trainable). The frozen base model provides strong priors \u2014 far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 200000000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Inference-optimal (over-trained vs Chinchilla).** 200.0 tok/param. Training smaller models longer reduces inference cost \u2014 the LLaMA / Mistral strategy. Fine if you expect high inference volume."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 200000000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Very large dataset for full fine-tuning (200 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 200000000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Large dataset relative to LoRA adapter size.** 200 tok/adapter_param. This is fine \u2014 LoRA adapters don't suffer catastrophic forgetting, so training longer generally helps. Consider increasing LoRA rank (r) to give the adapter more capacity."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 200000000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Large dataset relative to QLoRA adapter size.** 200 tok/adapter_param. This is fine \u2014 LoRA adapters don't suffer catastrophic forgetting, so training longer generally helps. Consider increasing LoRA rank (r) to give the adapter more capacity."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 200100000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Heavily over-trained relative to model size.** 200 tok/param (> 200x). Diminishing returns; consider scaling the model up."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 200100000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Very large dataset for full fine-tuning (200 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 200100000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Large dataset relative to LoRA adapter size.** 200 tok/adapter_param. This is fine \u2014 LoRA adapters don't suffer catastrophic forgetting, so training longer generally helps. Consider increasing LoRA rank (r) to give the adapter more capacity."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 200100000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Large dataset relative to QLoRA adapter size.** 200 tok/adapter_param. This is fine \u2014 LoRA adapters don't suffer catastrophic forgetting, so training longer generally helps. Consider increasing LoRA rank (r) to give the adapter more capacity."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 999000000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Heavily over-trained relative to model size.** 999 tok/param (> 200x). Diminishing returns; consider scaling the model up."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 999000000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Very large dataset for full fine-tuning (999 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 999000000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Large dataset relative to LoRA adapter size.** 999 tok/adapter_param. This is fine \u2014 LoRA adapters don't suffer catastrophic forgetting, so training longer generally helps. Consider increasing LoRA rank (r) to give the adapter more capacity."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 999000000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Large dataset relative to QLoRA adapter size.** 999 tok/adapter_param. This is fine \u2014 LoRA adapters don't suffer catastrophic forgetting, so training longer generally helps. Consider increasing LoRA rank (r) to give the adapter more capacity."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 1000000000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Heavily over-trained relative to model size.** 1000 tok/param (> 200x). Diminishing returns; consider scaling the model up."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 1000000000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Very large dataset for full fine-tuning (1000 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 1000000000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Large dataset relative to LoRA adapter size.** 1000 tok/adapter_param. This is fine \u2014 LoRA adapters don't suffer catastrophic forgetting, so training longer generally helps. Consider increasing LoRA rank (r) to give the adapter more capacity."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 1000000000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Large dataset relative to QLoRA adapter size.** 1000 tok/adapter_param. This is fine \u2014 LoRA adapters don't suffer catastrophic forgetting, so training longer generally helps. Consider increasing LoRA rank (r) to give the adapter more capacity."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 1000100000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Heavily over-trained relative to model size.** 1000 tok/param (> 200x). Diminishing returns; consider scaling the model up."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 1000100000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Very large dataset for full fine-tuning (1000 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 1000100000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Very large dataset for LoRA adapter size (1000 tok/adapter_param).** At this scale the adapter may be the bottleneck \u2014 consider full fine-tuning or significantly increasing LoRA rank (r)."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 1000100000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Very large dataset for QLoRA adapter size (1000 tok/adapter_param).** At this scale the adapter may be the bottleneck \u2014 consider full fine-tuning or significantly increasing LoRA rank (r)."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 5000000000000,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000000000,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Heavily over-trained relative to model size.** 5000 tok/param (> 200x). Diminishing returns; consider scaling the model up."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 5000000000000,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 1000000000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Very large dataset for full fine-tuning (5000 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 5000000000000,
+        "ft_method": "LoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Very large dataset for LoRA adapter size (5000 tok/adapter_param).** At this scale the adapter may be the bottleneck \u2014 consider full fine-tuning or significantly increasing LoRA rank (r)."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 5000000000000,
+        "ft_method": "QLoRA",
+        "base_params": 8000000000,
+        "pre_params": 0,
+        "adapter_params": 1000000000
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Very large dataset for QLoRA adapter size (5000 tok/adapter_param).** At this scale the adapter may be the bottleneck \u2014 consider full fine-tuning or significantly increasing LoRA rank (r)."
+      }
+    },
+    {
+      "args": {
+        "total_tokens": 0,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000,
+        "adapter_params": 0
+      },
+      "expect": null
+    },
+    {
+      "args": {
+        "total_tokens": -5,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 1000,
+        "adapter_params": 0
+      },
+      "expect": null
+    },
+    {
+      "args": {
+        "total_tokens": 100,
+        "ft_method": null,
+        "base_params": 0,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": null
+    },
+    {
+      "args": {
+        "total_tokens": 100,
+        "ft_method": "Full Fine-Tuning",
+        "base_params": 0,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": null
+    },
+    {
+      "args": {
+        "total_tokens": 100,
+        "ft_method": "LoRA",
+        "base_params": 0,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": null
+    },
+    {
+      "args": {
+        "total_tokens": 100,
+        "ft_method": "LoRA",
+        "base_params": 1000,
+        "pre_params": 0,
+        "adapter_params": 0
+      },
+      "expect": null
+    }
+  ],
+  "assess_lora_ratio": [
+    {
+      "args": {
+        "ratio": 0.5
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Below LoRA sweet spot.** 0.5 tok/adapter_param (target: 10\u2013100\u00d7). Use more data or reduce rank."
+      }
+    },
+    {
+      "args": {
+        "ratio": 5.0
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Below LoRA sweet spot.** 5.0 tok/adapter_param (target: 10\u2013100\u00d7). Use more data or reduce rank."
+      }
+    },
+    {
+      "args": {
+        "ratio": 9.99
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Below LoRA sweet spot.** 10.0 tok/adapter_param (target: 10\u2013100\u00d7). Use more data or reduce rank."
+      }
+    },
+    {
+      "args": {
+        "ratio": 10.0
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Within LoRA sweet spot.** 10.0 tok/adapter_param \u2014 good range."
+      }
+    },
+    {
+      "args": {
+        "ratio": 25.0
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Within LoRA sweet spot.** 25.0 tok/adapter_param \u2014 good range."
+      }
+    },
+    {
+      "args": {
+        "ratio": 50.0
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Within LoRA sweet spot.** 50.0 tok/adapter_param \u2014 good range."
+      }
+    },
+    {
+      "args": {
+        "ratio": 99.9
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Within LoRA sweet spot.** 99.9 tok/adapter_param \u2014 good range."
+      }
+    },
+    {
+      "args": {
+        "ratio": 100.0
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Within LoRA sweet spot.** 100.0 tok/adapter_param \u2014 good range."
+      }
+    },
+    {
+      "args": {
+        "ratio": 100.1
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Above LoRA sweet spot.** 100.1 tok/adapter_param. Consider increasing rank or reducing dataset."
+      }
+    },
+    {
+      "args": {
+        "ratio": 500.0
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Above LoRA sweet spot.** 500.0 tok/adapter_param. Consider increasing rank or reducing dataset."
+      }
+    },
+    {
+      "args": {
+        "ratio": 5000.0
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Above LoRA sweet spot.** 5000.0 tok/adapter_param. Consider increasing rank or reducing dataset."
+      }
+    }
+  ],
+  "assess_chinchilla_ratio": [
+    {
+      "args": {
+        "ratio": 0.5,
+        "optimal_tokens": 20000000000,
+        "fix_hint": ""
+      },
+      "expect": {
+        "level": "error",
+        "message": "**Extremely data-sparse.** 0.50 tok/param \u2014 fewer tokens than parameters."
+      }
+    },
+    {
+      "args": {
+        "ratio": 0.5,
+        "optimal_tokens": 20000000000,
+        "fix_hint": "Move the slider toward the star."
+      },
+      "expect": {
+        "level": "error",
+        "message": "**Extremely data-sparse.** 0.50 tok/param \u2014 fewer tokens than parameters. Move the slider toward the star."
+      }
+    },
+    {
+      "args": {
+        "ratio": 0.99,
+        "optimal_tokens": 20000000000,
+        "fix_hint": ""
+      },
+      "expect": {
+        "level": "error",
+        "message": "**Extremely data-sparse.** 0.99 tok/param \u2014 fewer tokens than parameters."
+      }
+    },
+    {
+      "args": {
+        "ratio": 0.99,
+        "optimal_tokens": 20000000000,
+        "fix_hint": "Move the slider toward the star."
+      },
+      "expect": {
+        "level": "error",
+        "message": "**Extremely data-sparse.** 0.99 tok/param \u2014 fewer tokens than parameters. Move the slider toward the star."
+      }
+    },
+    {
+      "args": {
+        "ratio": 1.0,
+        "optimal_tokens": 20000000000,
+        "fix_hint": ""
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Undertrained vs. Chinchilla-optimal.** 1.0 tok/param. For compute-efficient training aim for \u2265 20 tok/param (**20.00B tokens**)."
+      }
+    },
+    {
+      "args": {
+        "ratio": 1.0,
+        "optimal_tokens": 20000000000,
+        "fix_hint": "Move the slider toward the star."
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Undertrained vs. Chinchilla-optimal.** 1.0 tok/param. For compute-efficient training aim for \u2265 20 tok/param (**20.00B tokens**). Move the slider toward the star."
+      }
+    },
+    {
+      "args": {
+        "ratio": 5.0,
+        "optimal_tokens": 20000000000,
+        "fix_hint": ""
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Undertrained vs. Chinchilla-optimal.** 5.0 tok/param. For compute-efficient training aim for \u2265 20 tok/param (**20.00B tokens**)."
+      }
+    },
+    {
+      "args": {
+        "ratio": 5.0,
+        "optimal_tokens": 20000000000,
+        "fix_hint": "Move the slider toward the star."
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Undertrained vs. Chinchilla-optimal.** 5.0 tok/param. For compute-efficient training aim for \u2265 20 tok/param (**20.00B tokens**). Move the slider toward the star."
+      }
+    },
+    {
+      "args": {
+        "ratio": 9.99,
+        "optimal_tokens": 20000000000,
+        "fix_hint": ""
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Undertrained vs. Chinchilla-optimal.** 10.0 tok/param. For compute-efficient training aim for \u2265 20 tok/param (**20.00B tokens**)."
+      }
+    },
+    {
+      "args": {
+        "ratio": 9.99,
+        "optimal_tokens": 20000000000,
+        "fix_hint": "Move the slider toward the star."
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Undertrained vs. Chinchilla-optimal.** 10.0 tok/param. For compute-efficient training aim for \u2265 20 tok/param (**20.00B tokens**). Move the slider toward the star."
+      }
+    },
+    {
+      "args": {
+        "ratio": 10.0,
+        "optimal_tokens": 20000000000,
+        "fix_hint": ""
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Chinchilla-optimal.** 10.0 tok/param \u2014 within the 10\u201330\u00d7 compute-optimal zone This is a well-balanced configuration."
+      }
+    },
+    {
+      "args": {
+        "ratio": 10.0,
+        "optimal_tokens": 20000000000,
+        "fix_hint": "Move the slider toward the star."
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Chinchilla-optimal.** 10.0 tok/param \u2014 within the 10\u201330\u00d7 compute-optimal zone This is a well-balanced configuration."
+      }
+    },
+    {
+      "args": {
+        "ratio": 25.0,
+        "optimal_tokens": 20000000000,
+        "fix_hint": ""
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Chinchilla-optimal.** 25.0 tok/param \u2014 within the 10\u201330\u00d7 compute-optimal zone This is a well-balanced configuration."
+      }
+    },
+    {
+      "args": {
+        "ratio": 25.0,
+        "optimal_tokens": 20000000000,
+        "fix_hint": "Move the slider toward the star."
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Chinchilla-optimal.** 25.0 tok/param \u2014 within the 10\u201330\u00d7 compute-optimal zone This is a well-balanced configuration."
+      }
+    },
+    {
+      "args": {
+        "ratio": 30.0,
+        "optimal_tokens": 20000000000,
+        "fix_hint": ""
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Chinchilla-optimal.** 30.0 tok/param \u2014 within the 10\u201330\u00d7 compute-optimal zone This is a well-balanced configuration."
+      }
+    },
+    {
+      "args": {
+        "ratio": 30.0,
+        "optimal_tokens": 20000000000,
+        "fix_hint": "Move the slider toward the star."
+      },
+      "expect": {
+        "level": "success",
+        "message": "**Chinchilla-optimal.** 30.0 tok/param \u2014 within the 10\u201330\u00d7 compute-optimal zone This is a well-balanced configuration."
+      }
+    },
+    {
+      "args": {
+        "ratio": 30.1,
+        "optimal_tokens": 20000000000,
+        "fix_hint": ""
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Inference-optimal (over-trained vs. Chinchilla).** 30.1 tok/param. Training smaller models longer reduces inference cost \u2014 the LLaMA / Mistral strategy."
+      }
+    },
+    {
+      "args": {
+        "ratio": 30.1,
+        "optimal_tokens": 20000000000,
+        "fix_hint": "Move the slider toward the star."
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Inference-optimal (over-trained vs. Chinchilla).** 30.1 tok/param. Training smaller models longer reduces inference cost \u2014 the LLaMA / Mistral strategy."
+      }
+    },
+    {
+      "args": {
+        "ratio": 150.0,
+        "optimal_tokens": 20000000000,
+        "fix_hint": ""
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Inference-optimal (over-trained vs. Chinchilla).** 150.0 tok/param. Training smaller models longer reduces inference cost \u2014 the LLaMA / Mistral strategy."
+      }
+    },
+    {
+      "args": {
+        "ratio": 150.0,
+        "optimal_tokens": 20000000000,
+        "fix_hint": "Move the slider toward the star."
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Inference-optimal (over-trained vs. Chinchilla).** 150.0 tok/param. Training smaller models longer reduces inference cost \u2014 the LLaMA / Mistral strategy."
+      }
+    },
+    {
+      "args": {
+        "ratio": 200.0,
+        "optimal_tokens": 20000000000,
+        "fix_hint": ""
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Inference-optimal (over-trained vs. Chinchilla).** 200.0 tok/param. Training smaller models longer reduces inference cost \u2014 the LLaMA / Mistral strategy."
+      }
+    },
+    {
+      "args": {
+        "ratio": 200.0,
+        "optimal_tokens": 20000000000,
+        "fix_hint": "Move the slider toward the star."
+      },
+      "expect": {
+        "level": "info",
+        "message": "**Inference-optimal (over-trained vs. Chinchilla).** 200.0 tok/param. Training smaller models longer reduces inference cost \u2014 the LLaMA / Mistral strategy."
+      }
+    },
+    {
+      "args": {
+        "ratio": 200.1,
+        "optimal_tokens": 20000000000,
+        "fix_hint": ""
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Heavily over-trained relative to model size.** 200 tok/param (> 200\u00d7). Diminishing returns; consider scaling the model up."
+      }
+    },
+    {
+      "args": {
+        "ratio": 200.1,
+        "optimal_tokens": 20000000000,
+        "fix_hint": "Move the slider toward the star."
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Heavily over-trained relative to model size.** 200 tok/param (> 200\u00d7). Diminishing returns; consider scaling the model up. Move the slider toward the star."
+      }
+    },
+    {
+      "args": {
+        "ratio": 10000.0,
+        "optimal_tokens": 20000000000,
+        "fix_hint": ""
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Heavily over-trained relative to model size.** 10000 tok/param (> 200\u00d7). Diminishing returns; consider scaling the model up."
+      }
+    },
+    {
+      "args": {
+        "ratio": 10000.0,
+        "optimal_tokens": 20000000000,
+        "fix_hint": "Move the slider toward the star."
+      },
+      "expect": {
+        "level": "warning",
+        "message": "**Heavily over-trained relative to model size.** 10000 tok/param (> 200\u00d7). Diminishing returns; consider scaling the model up. Move the slider toward the star."
+      }
+    }
+  ],
+  "training_budget": [
+    {
+      "args": {
+        "modality": "Text",
+        "dataset_size": 100000000,
+        "tokens_per_sample": 520,
+        "bytes_per_sample": 2080,
+        "storage_months": 3,
+        "architecture": "Transformer",
+        "parameter_count": 7000000000,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 520,
+        "epochs": 1,
+        "instance_type": "p4d.24xlarge",
+        "num_instances": 1,
+        "mixed_precision": "bf16",
+        "mfu": 0.3,
+        "batch_size": 1024
+      },
+      "expect": {
+        "total_tokens": 52000000000,
+        "dataset_size_tb": 0.208,
+        "total_gpus": 8,
+        "peak_flops_per_gpu": 312000000000000.0,
+        "hourly_cost": 26.87,
+        "total_flops": 2.184e+21,
+        "wall_clock_hours": 810.1851851851851,
+        "wall_clock_days": 33.757716049382715,
+        "gpu_hours": 6481.481481481481,
+        "compute_cost": 21769.675925925923,
+        "weights_gb": 14.0,
+        "activation_gb": 69.79321856,
+        "memory_per_gpu_gb": 83.79321856,
+        "vram_per_gpu": 40,
+        "memory_fits": false,
+        "checkpoint_storage_tb": 0.49,
+        "total_compute_cost": 21769.675925925923,
+        "dataset_storage_cost": 14.352,
+        "checkpoint_storage_cost": 33.81,
+        "total_project_cost": 21817.837925925924,
+        "total_experiment_runs": 1
+      }
+    },
+    {
+      "args": {
+        "modality": "Text",
+        "dataset_size": 1000000,
+        "tokens_per_sample": 650,
+        "bytes_per_sample": 2600,
+        "storage_months": 6,
+        "architecture": "Transformer",
+        "base_params": 7000000000,
+        "base_flops_params": 7000000000,
+        "ft_method": "Full Fine-Tuning",
+        "trainable_params": 7000000000,
+        "d_model": 4096,
+        "num_layers": 32,
+        "seq_len": 650,
+        "epochs": 3,
+        "instance_type": "p5.48xlarge",
+        "num_instances": 2,
+        "mixed_precision": "fp8",
+        "mfu": 0.45,
+        "batch_size": 64,
+        "num_training_runs": 2,
+        "num_hp_trials": 4,
+        "storage_class": "standard_ia"
+      },
+      "expect": {
+        "total_tokens": 650000000,
+        "dataset_size_tb": 0.0026,
+        "total_gpus": 16,
+        "peak_flops_per_gpu": 1978000000000000.0,
+        "hourly_cost": 66.64,
+        "total_flops": 8.19e+19,
+        "wall_clock_hours": 1.5974328727109315,
+        "wall_clock_days": 0.06655970302962215,
+        "gpu_hours": 25.558925963374904,
+        "compute_cost": 212.90585327491294,
+        "weights_gb": 7.0,
+        "activation_gb": 2.7262976,
+        "memory_per_gpu_gb": 9.7262976,
+        "vram_per_gpu": 80,
+        "memory_fits": true,
+        "checkpoint_storage_tb": 1.372,
+        "total_compute_cost": 681.2987304797214,
+        "dataset_storage_cost": 0.21528000000000003,
+        "checkpoint_storage_cost": 113.60160000000002,
+        "total_project_cost": 795.1156104797215,
+        "total_experiment_runs": 6
+      }
+    },
+    {
+      "args": {
+        "modality": "Text",
+        "dataset_size": 500000,
+        "tokens_per_sample": 520,
+        "bytes_per_sample": 2080,
+        "storage_months": 1,
+        "architecture": "Transformer",
+        "base_params": 70000000000,
+        "base_flops_params": 70000000000,
+        "ft_method": "LoRA",
+        "trainable_params": 13631488,
+        "d_model": 8192,
+        "num_layers": 80,
+        "seq_len": 520,
+        "epochs": 5,
+        "instance_type": "p5.48xlarge",
+        "num_instances": 4,
+        "mixed_precision": "bf16",
+        "mfu": 0.4,
+        "batch_size": 16,
+        "num_hp_trials": 8,
+        "num_ablations": 2
+      },
+      "expect": {
+        "total_tokens": 260000000,
+        "dataset_size_tb": 0.00104,
+        "total_gpus": 32,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "hourly_cost": 66.64,
+        "total_flops": 5.46e+20,
+        "wall_clock_hours": 11.980746545331986,
+        "wall_clock_days": 0.4991977727221661,
+        "gpu_hours": 383.38388945062354,
+        "compute_cost": 3193.587799123694,
+        "weights_gb": 4.381815744,
+        "activation_gb": 1.3631488,
+        "memory_per_gpu_gb": 5.744964544,
+        "vram_per_gpu": 80,
+        "memory_fits": true,
+        "checkpoint_storage_tb": 0.00286261248,
+        "total_compute_cost": 14051.786316144253,
+        "dataset_storage_cost": 0.023919999999999997,
+        "checkpoint_storage_cost": 0.06584008704,
+        "total_project_cost": 14051.876076231292,
+        "total_experiment_runs": 11
+      }
+    },
+    {
+      "args": {
+        "modality": "Text",
+        "dataset_size": 2000000,
+        "tokens_per_sample": 520,
+        "bytes_per_sample": 2080,
+        "storage_months": 12,
+        "architecture": "Transformer",
+        "base_params": 671000000000,
+        "base_flops_params": 37000000000,
+        "ft_method": "QLoRA",
+        "trainable_params": 27262976,
+        "d_model": 7168,
+        "num_layers": 61,
+        "seq_len": 520,
+        "epochs": 2,
+        "instance_type": "p5.48xlarge",
+        "num_instances": 8,
+        "mixed_precision": "bf16",
+        "mfu": 0.5,
+        "batch_size": 8,
+        "storage_class": "glacier"
+      },
+      "expect": {
+        "total_tokens": 1040000000,
+        "dataset_size_tb": 0.00416,
+        "total_gpus": 64,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "hourly_cost": 66.64,
+        "total_flops": 4.6176e+20,
+        "wall_clock_hours": 4.052915402763734,
+        "wall_clock_days": 0.16887147511515557,
+        "gpu_hours": 259.386585776879,
+        "compute_cost": 2160.690259521402,
+        "weights_gb": 5.249003244,
+        "activation_gb": 0.22736896,
+        "memory_per_gpu_gb": 5.476372204,
+        "vram_per_gpu": 80,
+        "memory_fits": true,
+        "checkpoint_storage_tb": 0.00190840832,
+        "total_compute_cost": 2160.690259521402,
+        "dataset_storage_cost": 0.19967999999999997,
+        "checkpoint_storage_cost": 0.09160359936,
+        "total_project_cost": 2160.981543120762,
+        "total_experiment_runs": 1
+      }
+    },
+    {
+      "args": {
+        "modality": "Image",
+        "dataset_size": 10000000,
+        "tokens_per_sample": 196,
+        "bytes_per_sample": 15052,
+        "storage_months": 3,
+        "architecture": "ViT",
+        "parameter_count": 1000000000,
+        "d_model": 1024,
+        "num_layers": 24,
+        "seq_len": 196,
+        "rl_multiplier": 4,
+        "epochs": 1,
+        "instance_type": "p3.16xlarge",
+        "num_instances": 16,
+        "mixed_precision": "fp16",
+        "mfu": 0.25,
+        "batch_size": 256,
+        "num_training_runs": 3,
+        "num_ablations": 5,
+        "ablation_fraction": 0.25
+      },
+      "expect": {
+        "total_tokens": 1960000000,
+        "dataset_size_tb": 0.15052,
+        "total_gpus": 128,
+        "peak_flops_per_gpu": 125000000000000.0,
+        "hourly_cost": 24.48,
+        "total_flops": 1.176e+19,
+        "wall_clock_hours": 0.8166666666666667,
+        "wall_clock_days": 0.034027777777777775,
+        "gpu_hours": 104.53333333333333,
+        "compute_cost": 319.872,
+        "weights_gb": 0.5,
+        "activation_gb": 0.077070336,
+        "memory_per_gpu_gb": 0.577070336,
+        "vram_per_gpu": 16,
+        "memory_fits": true,
+        "checkpoint_storage_tb": 0.28,
+        "total_compute_cost": 1359.4560000000001,
+        "dataset_storage_cost": 10.385879999999998,
+        "checkpoint_storage_cost": 19.32,
+        "total_project_cost": 1389.16188,
+        "total_experiment_runs": 8
+      }
+    },
+    {
+      "args": {
+        "modality": "Text",
+        "dataset_size": 0,
+        "tokens_per_sample": 0,
+        "bytes_per_sample": 0,
+        "parameter_count": 1000000000
+      },
+      "expect": {
+        "total_tokens": 0,
+        "dataset_size_tb": 0.0,
+        "total_gpus": 8,
+        "peak_flops_per_gpu": 989000000000000.0,
+        "hourly_cost": 66.64,
+        "total_flops": 0.0,
+        "wall_clock_hours": 0.0,
+        "wall_clock_days": 0.0,
+        "gpu_hours": 0.0,
+        "compute_cost": 0.0,
+        "weights_gb": 2.0,
+        "activation_gb": 0.0,
+        "memory_per_gpu_gb": 2.0,
+        "vram_per_gpu": 80,
+        "memory_fits": true,
+        "checkpoint_storage_tb": 0.07,
+        "total_compute_cost": 0.0,
+        "dataset_storage_cost": 0.0,
+        "checkpoint_storage_cost": 4.83,
+        "total_project_cost": 4.83,
+        "total_experiment_runs": 1
+      }
+    }
+  ],
+  "tiers": [
+    {
+      "args": {
+        "table": "PRE_TRAINING_TIERS"
+      },
+      "expect": [
+        {
+          "tier": "Hard floor",
+          "ratio_min": 0,
+          "ratio_max": 1,
+          "ratio_min_chart": 0.1,
+          "label": "< 1 tok/param",
+          "meaning": "Fewer tokens than parameters \u2014 training will likely diverge or severely underfit."
+        },
+        {
+          "tier": "Practical minimum",
+          "ratio_min": 1,
+          "ratio_max": 10,
+          "ratio_min_chart": 1,
+          "label": "1\u201310 tok/param",
+          "meaning": "Usable but significantly undertrained \u2014 expect poor generalisation and high loss."
+        },
+        {
+          "tier": "Compute-optimal",
+          "ratio_min": 10,
+          "ratio_max": 30,
+          "ratio_min_chart": 10,
+          "label": "10\u201330 tok/param",
+          "meaning": "Chinchilla-optimal zone (Hoffmann et al. 2022) \u2014 best loss per FLOP."
+        },
+        {
+          "tier": "Inference-optimal",
+          "ratio_min": 30,
+          "ratio_max": 200,
+          "ratio_min_chart": 30,
+          "label": "30\u2013200 tok/param",
+          "meaning": "Training smaller models longer reduces inference cost \u2014 the LLaMA / Mistral strategy."
+        }
+      ]
+    },
+    {
+      "args": {
+        "table": "FULL_FT_TIERS"
+      },
+      "expect": [
+        {
+          "tier": "Too small",
+          "ratio_min": 0,
+          "ratio_max": 0.5,
+          "ratio_min_chart": 0.05,
+          "label": "< 0.5 tok/param",
+          "meaning": "Likely insufficient for meaningful task adaptation \u2014 model may not converge on the target task."
+        },
+        {
+          "tier": "Minimum viable",
+          "ratio_min": 0.5,
+          "ratio_max": 1,
+          "ratio_min_chart": 0.5,
+          "label": "0.5\u20131 tok/param",
+          "meaning": "Lower bound for stable full-parameter fine-tuning \u2014 expect some instability."
+        },
+        {
+          "tier": "Sweet spot",
+          "ratio_min": 1,
+          "ratio_max": 5,
+          "ratio_min_chart": 1,
+          "label": "1\u20135 tok/param",
+          "meaning": "Standard supervised fine-tuning range for large models \u2014 stable and effective."
+        },
+        {
+          "tier": "Forgetting risk",
+          "ratio_min": 5,
+          "ratio_max": 20,
+          "ratio_min_chart": 5,
+          "label": "5\u201320 tok/param",
+          "meaning": "Generous dataset \u2014 effective, but monitor for catastrophic forgetting of base model capabilities."
+        }
+      ]
+    },
+    {
+      "args": {
+        "table": "LORA_TIERS"
+      },
+      "expect": [
+        {
+          "tier": "Too small",
+          "ratio_min": 0,
+          "ratio_max": 10,
+          "ratio_min_chart": 1,
+          "label": "< 10 tok/adapter_param",
+          "meaning": "Adapter likely won't converge reliably \u2014 insufficient signal for low-rank matrices."
+        },
+        {
+          "tier": "Minimum viable",
+          "ratio_min": 10,
+          "ratio_max": 50,
+          "ratio_min_chart": 10,
+          "label": "10\u201350 tok/adapter_param",
+          "meaning": "Lower bound of the convergence zone \u2014 reliable but not yet in the ideal range."
+        },
+        {
+          "tier": "Sweet spot",
+          "ratio_min": 50,
+          "ratio_max": 100,
+          "ratio_min_chart": 50,
+          "label": "50\u2013100 tok/adapter_param",
+          "meaning": "Practical sweet spot for task adaptation \u2014 strong convergence with low forgetting risk."
+        },
+        {
+          "tier": "Consider full FT",
+          "ratio_min": 100,
+          "ratio_max": 1000,
+          "ratio_min_chart": 100,
+          "label": "100\u20131000 tok/adapter_param",
+          "meaning": "Large dataset relative to adapter size \u2014 consider increasing LoRA rank or switching to full fine-tuning."
+        }
+      ]
+    }
+  ],
+  "model_definitions": [
+    {
+      "args": {
+        "slug": "mistral_7b"
+      },
+      "expect": {
+        "name": "Mistral 7B",
+        "family": "transformer",
+        "parameter_count": 7240000000,
+        "effective_parameter_count": 7240000000,
+        "display_name": "Mistral 7B (7.2B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "llama3_8b"
+      },
+      "expect": {
+        "name": "LLaMA 3 8B",
+        "family": "transformer",
+        "parameter_count": 8030000000,
+        "effective_parameter_count": 8030000000,
+        "display_name": "LLaMA 3 8B (8.0B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "gemma2_9b"
+      },
+      "expect": {
+        "name": "Gemma 2 9B",
+        "family": "transformer",
+        "parameter_count": 9240000000,
+        "effective_parameter_count": 9240000000,
+        "display_name": "Gemma 2 9B (9.2B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "phi4_14b"
+      },
+      "expect": {
+        "name": "Phi-4 14B",
+        "family": "transformer",
+        "parameter_count": 14000000000,
+        "effective_parameter_count": 14000000000,
+        "display_name": "Phi-4 14B (14.0B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "llama3_70b"
+      },
+      "expect": {
+        "name": "LLaMA 3 70B",
+        "family": "transformer",
+        "parameter_count": 70600000000,
+        "effective_parameter_count": 70600000000,
+        "display_name": "LLaMA 3 70B (70.6B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "qwen25_72b"
+      },
+      "expect": {
+        "name": "Qwen 2.5 72B",
+        "family": "transformer",
+        "parameter_count": 72700000000,
+        "effective_parameter_count": 72700000000,
+        "display_name": "Qwen 2.5 72B (72.7B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "gpt3_175b"
+      },
+      "expect": {
+        "name": "GPT-3 175B",
+        "family": "transformer",
+        "parameter_count": 175000000000,
+        "effective_parameter_count": 175000000000,
+        "display_name": "GPT-3 175B (175.0B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "deepseek_v3"
+      },
+      "expect": {
+        "name": "DeepSeek V3",
+        "family": "transformer",
+        "parameter_count": 671000000000,
+        "effective_parameter_count": 37000000000,
+        "display_name": "DeepSeek V3 (671.0B params)"
+      }
+    }
+  ]
+}

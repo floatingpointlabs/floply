@@ -1,13 +1,21 @@
+# Node
+node_modules
+.svelte-kit
+build
+
+# Generated at build time from data/**.yaml
+lib/data/generated.ts
+
+# Python (removed once src/ is deleted)
 .venv
 __pycache__
 **/__pycache__
 *.pyc
 *.pyo
+
+# Repo
 .git
 .gitignore
 .env
 *.env
-.cache
-.direnv
-.devcontainer
-tests
+.claude

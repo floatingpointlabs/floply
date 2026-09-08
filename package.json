@@ -1,0 +1,40 @@
+{
+  "name": "floply",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.24.0",
+  "description": "ML training cost estimator",
+  "scripts": {
+    "build-data": "node scripts/build-data.mjs",
+    "predev": "pnpm run build-data",
+    "prebuild": "pnpm run build-data",
+    "pretest": "pnpm run build-data",
+    "precheck": "pnpm run build-data",
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@sveltejs/adapter-node": "^5.5.7",
+    "@sveltejs/kit": "^2.70.3",
+    "@sveltejs/vite-plugin-svelte": "^7.3.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/d3-scale": "^4.0.9",
+    "@types/node": "^26.5.0",
+    "svelte": "^5.57.0",
+    "svelte-check": "^4.7.6",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.2.2",
+    "vitest": "^5.0.0",
+    "yaml": "^2.9.0"
+  },
+  "type": "module",
+  "dependencies": {
+    "d3-scale": "^4.0.2"
+  }
+}
