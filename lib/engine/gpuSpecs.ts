@@ -1,72 +1,95 @@
-import { AWS_GPU_INSTANCES, INSTANCE_ORDER, MODELS, S3_STORAGE_PRICING } from "../data/generated";
-import type { InstanceSpec, ModelDefinition } from "./types";
+import { GPU_ALIASES, GPU_HARDWARE, INSTANCE_OVERRIDES, MODELS } from "../data/generated";
+import type { Catalog, GpuHardware, InstanceSpec, ModelDefinition } from "./types";
 
-export { AWS_GPU_INSTANCES, INSTANCE_ORDER, MODELS, S3_STORAGE_PRICING };
+export { GPU_HARDWARE, MODELS };
 
-export function getGpuInstance(instanceType: string): InstanceSpec {
-  const spec = AWS_GPU_INSTANCES[instanceType];
+const PRECISION_ORDER = ["fp4", "int8", "fp8", "bf16", "fp16", "tf32", "fp32"];
+
+export class UnsupportedPrecisionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "UnsupportedPrecisionError";
+  }
+}
+
+/**
+ * Curated facts for a GPU as AWS names it, or null when uncurated.
+ *
+ * `GpuInfo.Gpus[].Name` is not a die identifier, so the alias table maps the strings AWS
+ * actually returns ("A100-SXM4-80GB") onto one canonical entry. A GPU with no entry is
+ * quarantined by the caller rather than guessed at — a made-up FLOPs figure produces a
+ * confidently wrong cost.
+ */
+export function resolveGpu(gpuName: string): GpuHardware | null {
+  const canonical = GPU_ALIASES[gpuName];
+  return canonical ? GPU_HARDWARE[canonical] : null;
+}
+
+export function curatedFieldsFor(gpuName: string, instanceType = ""): Partial<InstanceSpec> | null {
+  const hardware = resolveGpu(gpuName);
+  if (!hardware) return null;
+  return {
+    peak_flops_fp16: hardware.peak_flops_fp16,
+    peak_flops_fp32: hardware.peak_flops_fp32,
+    typical_mfu: hardware.typical_mfu,
+    precision_multipliers: { ...hardware.precision_multipliers },
+    ...INSTANCE_OVERRIDES[instanceType]
+  };
+}
+
+export function getGpuInstance(catalog: Catalog, instanceType: string): InstanceSpec {
+  const spec = catalog.instances[instanceType];
   if (!spec) {
+    const available = catalog.order.join(", ") || "none";
     throw new Error(
-      `Unknown instance type "${instanceType}". Available: ${INSTANCE_ORDER.join(", ")}`
+      `Unknown instance type "${instanceType}" in ${catalog.region}. Available: ${available}`
     );
   }
   return spec;
 }
 
-/** Get the per-TB-month cost for an S3 storage class. */
-export function getStorageCost(storageClass = "standard"): number {
-  const cost = S3_STORAGE_PRICING[storageClass];
+/** Get the per-TB-month cost for an S3 storage class. Region-dependent. */
+export function getStorageCost(catalog: Catalog, storageClass = "standard"): number {
+  const cost = catalog.storage[storageClass];
   if (cost === undefined) {
-    const available = Object.keys(S3_STORAGE_PRICING).join(", ");
-    throw new Error(`Unknown storage class "${storageClass}". Available: ${available}`);
+    const available = Object.keys(catalog.storage).join(", ") || "none";
+    throw new Error(
+      `Unknown storage class "${storageClass}" in ${catalog.region}. Available: ${available}`
+    );
   }
   return cost;
 }
 
-/** Instance types in YAML order — the default selection is the first entry. */
-export function listAvailableInstances(): string[] {
-  return [...INSTANCE_ORDER];
+/** Instance types, most capable first — the default selection is the first entry. */
+export function listAvailableInstances(catalog: Catalog): string[] {
+  return [...catalog.order];
+}
+
+export function listStorageClasses(catalog: Catalog): string[] {
+  return Object.keys(catalog.storage).sort();
+}
+
+export function supportedPrecisions(instanceSpec: InstanceSpec): string[] {
+  const multipliers = instanceSpec.precision_multipliers ?? {};
+  return PRECISION_ORDER.filter((p) => p in multipliers);
 }
 
 /**
- * Which GPUs have hardware acceleration for each low-precision format.
- *
- * FP4 is Blackwell-only (B100/B200/GB200), so no GPU currently in data/providers
- * supports it. The set is kept rather than deleted so adding a Blackwell instance is a
- * one-line change here.
- *
- * FP8 arrived with Hopper (Transformer Engine); Ampere and Volta have no FP8 path.
- * INT8 tensor cores arrived with Turing/Ampere; Volta only has the slower DP4A path.
- */
-export const FP4_GPUS = new Set<string>();
-export const FP8_GPUS = new Set(["H100"]);
-export const INT8_TENSOR_GPUS = new Set(["A100", "H100"]);
-
-/**
- * Effective peak FLOPs/s for an instance at a given numeric precision.
- *
- * Sources: A100 fp16/bf16 312 TFLOPS, tf32 156, fp32 19.5, int8 624 TOPS;
- * H100 fp16/bf16 989, fp8 ~1979; V100 fp16 125, int8 limited (~0.9x fp16).
- *
- * A precision the GPU cannot accelerate falls back to its FP16 rate — the honest
- * reading being "you would run this in FP16 instead". Inventing a speedup for absent
- * hardware understates cost, which is the dangerous direction for a budget estimate.
- * An unrecognised precision also falls back to fp16.
+ * @throws {UnsupportedPrecisionError} if the die has no hardware support for the format
+ *   (fp4 on Ampere or Hopper, bf16 on Volta, and so on).
  */
 export function peakFlopsForPrecision(instanceSpec: InstanceSpec, mixedPrecision: string): number {
-  const fp16 = instanceSpec.peak_flops_fp16;
-  const fp32 = instanceSpec.peak_flops_fp32;
-  const gpu = instanceSpec.gpu;
-  const table: Record<string, number> = {
-    fp4: fp16 * (FP4_GPUS.has(gpu) ? 2.0 : 1.0),
-    int8: fp16 * (INT8_TENSOR_GPUS.has(gpu) ? 2.0 : 0.9),
-    fp8: fp16 * (FP8_GPUS.has(gpu) ? 2.0 : 1.0),
-    bf16: fp16,
-    fp16: fp16,
-    tf32: fp16 * 0.5,
-    fp32: fp32
-  };
-  return table[mixedPrecision] ?? fp16;
+  const multipliers = instanceSpec.precision_multipliers ?? {};
+  if (!(mixedPrecision in multipliers)) {
+    throw new UnsupportedPrecisionError(
+      `${instanceSpec.gpu || "This GPU"} has no hardware support for ${mixedPrecision}. ` +
+        `Supported: ${supportedPrecisions(instanceSpec).join(", ")}`
+    );
+  }
+  const multiplier = multipliers[mixedPrecision];
+  return multiplier === null
+    ? instanceSpec.peak_flops_fp32
+    : instanceSpec.peak_flops_fp16 * multiplier;
 }
 
 /**

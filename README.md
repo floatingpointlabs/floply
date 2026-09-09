@@ -6,8 +6,8 @@ Four tools:
 
 |                      |                                                                                                      |
 | -------------------- | ---------------------------------------------------------------------------------------------------- |
-| **Budget optimizer** | Given a budget, the largest model and dataset you can afford, and where the scaling-law optimum sits |
 | **Minimum data**     | How much data a model needs, from Chinchilla and practical fine-tuning thresholds                    |
+| **Budget optimizer** | Given a budget, the largest model and dataset you can afford, and where the scaling-law optimum sits |
 | **Training budget**  | Bottom-up cost for a whole project: compute, storage, sweeps and ablations                           |
 | **Methodology**      | Every formula behind the estimates, and what they assume                                             |
 
@@ -48,10 +48,17 @@ Regenerating and committing without reading the diff blesses whatever changed.
 
 ```bash
 docker build -t floply .
-docker run -p 3000:3000 floply
+docker run -p 3000:3000 \
+  -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_REGION \
+  -v floply-cache:/app/.cache \
+  floply
 ```
 
 Then open `http://localhost:3000`. Health check is at `/api/health`.
+
+The volume holds the fetched price cache — without it every container replacement
+re-fetches from AWS, and an AWS outage during one leaves the app unable to price.
+To run with no credentials at all, set `FLOPLY_PRICING_FIXTURE=1` (see below).
 
 Analytics are optional and read at **request** time, so one image can be deployed to
 several environments:
@@ -67,11 +74,12 @@ docker run -p 3000:3000 \
 
 - **`lib/engine/`** — the cost model: FLOPs, scaling laws, memory, storage, pricing. Pure TypeScript with no UI dependencies.
 - **`lib/components/`** — shared UI. Charts are drawn directly with `d3-scale` and SVG; there is no charting library.
+- **`lib/server/`** — the AWS pricing layer: fetch, validate, cache, resolve. Server-only; never imported by a page.
 - **`app/routes/`** — the four pages.
-- **`data/`** — model and provider definitions as YAML, compiled to TypeScript at build time.
+- **`data/`** — model definitions and curated GPU facts as YAML, compiled to TypeScript at build time. Prices are _not_ here — they come from AWS at request time.
 - **`fixtures/`** — golden test fixtures pinning every engine function's output. `pnpm test` replays them.
 
-The engine is deliberately framework-agnostic: it is exercised by the fixtures with no DOM, so the UI layer can change without touching the maths.
+The engine is deliberately framework-agnostic: it is exercised by the fixtures with no DOM, so the UI layer can change without touching the maths. It takes the priced `Catalog` as an argument rather than importing one, because pages are server-rendered and a module-level catalog would leak one visitor's region into another's request.
 
 Both paths need AWS credentials — see below.
 
@@ -81,9 +89,12 @@ Floply reads instance prices and hardware specs live from the AWS Price List and
 EC2 APIs. **There is no bundled price snapshot**: a cost estimator quoting
 months-old prices is worse than one that says it cannot price at all.
 
+Pricing is resolved **server-side** in the layout load function and handed to the
+pages as plain data, so credentials never reach the browser.
+
 ### Credentials
 
-Standard boto3 resolution — environment variables, `~/.aws/credentials`, or an
+Standard AWS SDK resolution — environment variables, `~/.aws/credentials`, or an
 instance/task role. The required policy is read-only and grants no access to
 your account's data:
 
@@ -91,52 +102,53 @@ your account's data:
 {
   "Version": "2012-10-17",
   "Statement": [
-    {"Effect": "Allow", "Action": ["pricing:GetProducts"], "Resource": "*"},
-    {"Effect": "Allow",
-     "Action": ["ec2:DescribeInstanceTypes", "ec2:DescribeInstanceTypeOfferings"],
-     "Resource": "*"}
+    { "Effect": "Allow", "Action": ["pricing:GetProducts"], "Resource": "*" },
+    {
+      "Effect": "Allow",
+      "Action": ["ec2:DescribeInstanceTypes", "ec2:DescribeInstanceTypeOfferings"],
+      "Resource": "*"
+    }
   ]
 }
 ```
 
-A cheap credential check runs at startup so a bad policy surfaces at deploy time
-rather than to a user mid-form.
+A bad policy surfaces on the first page load: the region chip in the header shows
+where the numbers came from, and expands to the full warning and quarantine list.
 
 ### Caching
 
-Prices are fetched lazily — nothing calls AWS until a price is actually needed,
-so loading the app or reading the About tab costs nothing. Results are cached per
-region (30 days by default) with hardware specs cached separately (90 days),
-which keeps a cold start to one region's worth of calls rather than all of them.
+Results are cached per region (30 days by default) with hardware specs cached
+separately (90 days), which keeps a cold start to one region's worth of calls
+rather than all of them. The first request after a cold start pays that fetch;
+everything after it is served from the memoised catalog.
 
-The TTL means *"try to refresh"*, never *"delete"*. If AWS is unreachable, cached
-prices keep being served behind a prominent staleness warning; the app only
-refuses to price when it has nothing cached at all. **Mount a volume over
-`/app/.cache`** so this survives container replacement.
-
-Prime or inspect the cache directly:
-
-```bash
-python -m src.cost_modelling.pricing.refresh_cli            # refresh stale entries
-python -m src.cost_modelling.pricing.refresh_cli --force    # refresh everything
-python -m src.cost_modelling.pricing.refresh_cli --probe-only  # check credentials
-```
+The TTL means _"try to refresh"_, never _"delete"_. If AWS is unreachable, cached
+prices keep being served behind a staleness warning and the refresh happens off
+the render path, so no request waits on a failing endpoint; the app only refuses
+to price when it has nothing cached at all. **Mount a volume over `/app/.cache`**
+so this survives container replacement.
 
 ### Configuration
 
 All settings are environment variables; the common ones:
 
-| Variable | Default | Purpose |
-|---|---|---|
-| `FLOPLY_AWS_REGIONS` | six common regions | Regions offered in the selector |
-| `FLOPLY_DEFAULT_REGION` | `us-east-1` | Initial selection |
-| `FLOPLY_PRICING_TTL_DAYS` | `30` | Price refresh threshold |
-| `FLOPLY_SPECS_TTL_DAYS` | `90` | Hardware spec refresh threshold |
-| `FLOPLY_CACHE_DIR` | `.cache/floply` | Cache location |
-| `FLOPLY_INSTANCE_FAMILY_ALLOWLIST` | `p` | Instance families eligible for discovery |
-| `FLOPLY_DISCOVER_MIN_GPUS` | `4` | Minimum GPUs for a discovered instance |
+| Variable                           | Default            | Purpose                                            |
+| ---------------------------------- | ------------------ | -------------------------------------------------- |
+| `FLOPLY_AWS_REGIONS`               | six common regions | Regions offered in the selector                    |
+| `FLOPLY_DEFAULT_REGION`            | `us-east-1`        | Initial selection                                  |
+| `FLOPLY_PRICING_TTL_DAYS`          | `30`               | Price refresh threshold                            |
+| `FLOPLY_SPECS_TTL_DAYS`            | `90`               | Hardware spec refresh threshold                    |
+| `FLOPLY_CACHE_DIR`                 | `.cache/floply`    | Cache location                                     |
+| `FLOPLY_INSTANCE_FAMILY_ALLOWLIST` | `p`                | Instance families eligible for discovery           |
+| `FLOPLY_DISCOVER_MIN_GPUS`         | `4`                | Minimum GPUs for a discovered instance             |
+| `FLOPLY_PRICING_FIXTURE`           | unset              | Serve frozen fixture prices instead of calling AWS |
 
-See `src/cost_modelling/pricing/settings.py` for the full list.
+See `buildSettings()` in `lib/server/pricing.ts` for the full list.
+
+`FLOPLY_PRICING_FIXTURE=1` is what lets the e2e suite assert exact dollar figures,
+and lets you run the app with no credentials. It is opt-in and never a fallback —
+a misconfigured deployment shows _"pricing unavailable"_ rather than quietly
+serving numbers that look real and are not.
 
 > Prices shown are **on-demand list prices** (Linux, shared tenancy). Real
 > training spend usually goes through Capacity Blocks, Savings Plans, or Spot,
@@ -146,16 +158,17 @@ See `src/cost_modelling/pricing/settings.py` for the full list.
 
 Throughput (`peak_flops_*`) and `typical_mfu` come from NVIDIA datasheets and
 empirical measurement — AWS publishes neither, so they are curated in
-`src/data/gpu_hardware.yaml`, keyed by GPU model.
+`data/gpu_hardware.yaml`, keyed by GPU model as `ec2:DescribeInstanceTypes`
+reports it. Adding a GPU generation is a YAML edit, not a code change.
 
 This is what makes instance discovery safe: when AWS starts offering a new
 family, Floply picks up its specs and price automatically, but **quarantines it**
-until its GPU has a curated entry. A quarantined instance is listed in the
-sidebar's *Pricing data source* panel with the exact key to add, rather than
-appearing with guessed throughput.
+until its GPU has a curated entry. A quarantined instance is listed behind the
+region chip in the header with the exact key to add, rather than appearing with
+guessed throughput.
 
-An absent entry in `precision_multipliers` means the die has *no hardware
-support* for that format — not that it runs at 1×. That distinction is why
+An absent entry in `precision_multipliers` means the die has _no hardware
+support_ for that format — not that it runs at 1×. That distinction is why
 selecting fp4 on an A100 is now rejected instead of silently reporting double
 the real throughput.
 
@@ -262,16 +275,17 @@ Including these fields enables GQA-aware LoRA parameter counting and accurate ac
 | `source` | URL to the HuggingFace model page or paper (informational)    |
 | `notes`  | Short description shown as a caption below the model selector |
 
-## Adding a provider or instance
+## Adding an instance
 
-Instance pricing and specs live in `data/providers/*.yaml`. Add an instance there and it
-appears in the cluster selector, in the methodology reference table, and in every
-estimate — there is no second place to update.
+You don't. Instance types and prices are discovered from AWS — add a GPU to
+`data/gpu_hardware.yaml` (above) and any instance carrying it is picked up in
+every region that sells it, in the cluster selector, in the methodology reference
+table, and in every estimate.
 
-Note that low-precision speedups are per-GPU-family and declared in
-`lib/engine/gpuSpecs.ts`: FP8 requires Hopper, FP4 requires Blackwell. A precision the
-GPU cannot accelerate is costed at its FP16 rate rather than being given a speedup it
-does not have.
+Low-precision support is declared per GPU in that same file, as
+`precision_multipliers` relative to `peak_flops_fp16`. `null` means "use
+`peak_flops_fp32`"; an **absent** key means the die has no hardware for that
+format, and asking for it raises rather than quietly falling back.
 
 ## Licence
 

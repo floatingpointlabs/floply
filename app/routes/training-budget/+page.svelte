@@ -37,15 +37,17 @@
   // Line items carry cents; the headline figures elsewhere do not.
   const moneyCents = (n: number) => money(n, true);
   import {
-    INSTANCE_ORDER,
     MODELS,
-    S3_STORAGE_PRICING,
     getGpuInstance,
-    peakFlopsForPrecision
+    listStorageClasses,
+    supportedPrecisions
   } from "$lib/engine/gpuSpecs";
   import { assessTrainingConfig } from "$lib/engine/scalingLaws";
   import { estimateTrainingBudget } from "$lib/engine/trainingBudget";
   import type { FineTuningMethod } from "$lib/engine/types";
+  import type { PageProps } from "./$types";
+
+  let { data }: PageProps = $props();
 
   let modality = $state<"Text" | "Image" | "Audio" | "Video" | "">("");
   let datasetSize = $state(100);
@@ -138,29 +140,37 @@
 
   let epochs = $state(1);
   let gradientCheckpointing = $state(false);
-  let instanceType = $state(INSTANCE_ORDER[0]);
+  let instanceOverride = $state<string | null>(null);
   let numInstances = $state(1);
-  let mixedPrecision = $state("bf16");
+  let precisionOverride = $state<string | null>(null);
   let mfuPct = $state(30);
   let batchSize = $state(1024);
 
   const preParamCount = $derived(Math.trunc(preParams * UNIT_MULTIPLIERS[preUnit]));
-  const instanceSpec = $derived(getGpuInstance(instanceType));
+  const instanceType = $derived(
+    instanceOverride && data.catalog.instances[instanceOverride]
+      ? instanceOverride
+      : data.catalog.order[0]
+  );
+  const instanceSpec = $derived(getGpuInstance(data.catalog, instanceType));
+
+  const precisions = $derived(
+    MIXED_PRECISION_OPTIONS.filter((p) => supportedPrecisions(instanceSpec).includes(p))
+  );
 
   /**
-   * Whether this GPU actually has hardware for a precision. The estimate already falls
-   * back to the FP16 rate when it doesn't, but silently — so say so in the selector
-   * rather than letting someone pick a format expecting a speedup that cannot happen.
+   * `override ?? derived` again, and it has to be a derived rather than an effect that
+   * clamps: switching to a V100 strips bf16, and an effect runs *after* the render that
+   * already fed bf16 to the engine — which now throws instead of silently downgrading, so
+   * the page would die mid-update.
    */
-  const acceleratedOn = (precision: string) =>
-    !["fp4", "fp8", "int8"].includes(precision) ||
-    peakFlopsForPrecision(instanceSpec, precision) > peakFlopsForPrecision(instanceSpec, "fp16");
-
-  const precisionNote = $derived(
-    acceleratedOn(mixedPrecision)
-      ? undefined
-      : `${instanceSpec.gpu} has no ${mixedPrecision} path, so this is costed at the fp16 rate.`
+  const mixedPrecision = $derived(
+    precisionOverride && precisions.includes(precisionOverride)
+      ? precisionOverride
+      : (precisions.find((p) => p === "bf16") ?? precisions[0])
   );
+
+  const storageClasses = $derived(listStorageClasses(data.catalog));
 
   let numTrainingRuns = $state(1);
   let numCheckpoints = $state(5);
@@ -171,7 +181,7 @@
   let storageClass = $state("standard");
 
   const budget = $derived(
-    estimateTrainingBudget({
+    estimateTrainingBudget(data.catalog, {
       modality: modality || "Text",
       dataset_size: samples,
       tokens_per_sample: perSample.tokens,
@@ -534,11 +544,14 @@
     <h2 class="text-lg font-semibold tracking-tight">Cluster</h2>
     <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       <Field label="Instance type" id="instance">
-        <select id="instance" bind:value={instanceType} class="control">
-          {#each INSTANCE_ORDER as t (t)}
-            <option value={t}>
-              {getGpuInstance(t).display_name} — ${getGpuInstance(t).hourly_cost.toFixed(2)}/hr
-            </option>
+        <select
+          id="instance"
+          value={instanceType}
+          onchange={(e) => (instanceOverride = e.currentTarget.value)}
+          class="control">
+          {#each data.catalog.order as t (t)}
+            {@const spec = getGpuInstance(data.catalog, t)}
+            <option value={t}>{spec.display_name} — ${spec.hourly_cost.toFixed(2)}/hr</option>
           {/each}
         </select>
       </Field>
@@ -563,12 +576,17 @@
           max="100"
           class="control num" />
       </Field>
-      <Field label="Mixed precision" id="precision" hint={precisionNote}>
-        <select id="precision" bind:value={mixedPrecision} class="control">
-          {#each MIXED_PRECISION_OPTIONS as p (p)}
-            <option value={p}>
-              {p}{acceleratedOn(p) ? "" : " — not accelerated on this GPU"}
-            </option>
+      <Field
+        label="Mixed precision"
+        id="precision"
+        hint="Only formats {instanceSpec.gpu} has hardware support for.">
+        <select
+          id="precision"
+          value={mixedPrecision}
+          onchange={(e) => (precisionOverride = e.currentTarget.value)}
+          class="control">
+          {#each precisions as p (p)}
+            <option value={p}>{p}</option>
           {/each}
         </select>
       </Field>
@@ -683,7 +701,7 @@
       </Field>
       <Field label="S3 storage class" id="storage-class">
         <select id="storage-class" bind:value={storageClass} class="control">
-          {#each Object.keys(S3_STORAGE_PRICING) as c (c)}
+          {#each storageClasses as c (c)}
             <option value={c}>{c.replace(/_/g, " ")}</option>
           {/each}
         </select>

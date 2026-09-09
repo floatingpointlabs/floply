@@ -8,6 +8,9 @@ pnpm-lock.yaml
 lib/data/generated.ts
 fixtures
 
-# Python virtualenv and Playwright output
-.venv
+# The precision tables are column-aligned on purpose: the trailing comments are what say
+# which absent formats are absent deliberately. Prettier collapses that to one space.
+data/gpu_hardware.yaml
+
+# Playwright output
 test-results

@@ -27,20 +27,24 @@ test("a field hint is announced, not just rendered", async ({ page }) => {
   await expect(page.locator("#budget-hint")).toHaveText(/GPU compute/);
 });
 
-test("a hint that comes and goes takes its aria reference with it", async ({ page }) => {
+test("the precision selector offers only what the GPU has hardware for", async ({ page }) => {
   await page.goto("/training-budget");
   await page.locator("#modality").selectOption("Text");
 
   const precision = page.locator("#precision");
-  await expect(precision).not.toHaveAttribute("aria-describedby");
+  // Locator assertions, not a snapshotted array: Svelte batches the re-render, so reading
+  // the options straight after selectOption races it.
+  const option = (value: string) => precision.locator(`option[value="${value}"]`);
 
-  await precision.selectOption("fp4");
-  await expect(precision).toHaveAttribute("aria-describedby", "precision-hint");
-  await expect(page.locator("#precision-hint")).toBeVisible();
+  await page.locator("#instance").selectOption("p5.48xlarge");
+  await expect(option("fp8")).toHaveCount(1);
+  await expect(option("fp4")).toHaveCount(0);
 
-  await precision.selectOption("bf16");
-  await expect(page.locator("#precision-hint")).toHaveCount(0);
-  await expect(precision).not.toHaveAttribute("aria-describedby");
+  await page.locator("#instance").selectOption("p3.16xlarge");
+  await expect(option("fp8")).toHaveCount(0);
+  await expect(option("bf16")).toHaveCount(0);
+  await expect(precision).not.toHaveValue("bf16");
+  await expect(page.getByRole("heading", { name: "Total project cost" })).toBeVisible();
 });
 
 test("a selected LoRA module pill actually looks selected", async ({ page }) => {

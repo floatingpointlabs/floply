@@ -7,7 +7,7 @@ import {
   estimateGpuMemoryGb
 } from "./calculator";
 import { getGpuInstance, peakFlopsForPrecision } from "./gpuSpecs";
-import type { FineTuningMethod } from "./types";
+import type { Catalog, FineTuningMethod } from "./types";
 
 export interface TrainingBudgetInputs {
   modality?: string;
@@ -115,7 +115,10 @@ const datasetSizeTb = (i: Required<TrainingBudgetInputs>): number =>
 const isAdapter = (ftMethod: FineTuningMethod): boolean =>
   ftMethod === "LoRA" || ftMethod === "QLoRA";
 
-export function estimateTrainingBudget(raw: TrainingBudgetInputs): TrainingBudget {
+export function estimateTrainingBudget(
+  catalog: Catalog,
+  raw: TrainingBudgetInputs
+): TrainingBudget {
   const i = { ...DEFAULTS, ...raw } as Required<TrainingBudgetInputs>;
 
   // Pre-training uses its own count. Fine-tuning runs the forward/backward pass through
@@ -128,7 +131,7 @@ export function estimateTrainingBudget(raw: TrainingBudgetInputs): TrainingBudge
   // Params written per checkpoint: adapters only for LoRA/QLoRA.
   const checkpointParams = isAdapter(i.ft_method) ? Math.trunc(i.trainable_params) : memoryParams;
 
-  const spec = getGpuInstance(i.instance_type);
+  const spec = getGpuInstance(catalog, i.instance_type);
   const totalGpus = spec.gpu_count * i.num_instances;
   const peakFlopsPerGpu = peakFlopsForPrecision(spec, i.mixed_precision);
   const tokens = totalTokens(i);
@@ -178,8 +181,14 @@ export function estimateTrainingBudget(raw: TrainingBudgetInputs): TrainingBudge
     i.num_ablations,
     i.ablation_fraction
   );
-  const datasetStorageCost = calculateStorageCost(sizeTb, i.storage_months, i.storage_class);
+  const datasetStorageCost = calculateStorageCost(
+    catalog,
+    sizeTb,
+    i.storage_months,
+    i.storage_class
+  );
   const checkpointStorageCost = calculateStorageCost(
+    catalog,
     checkpointStorageTb,
     i.storage_months,
     i.storage_class

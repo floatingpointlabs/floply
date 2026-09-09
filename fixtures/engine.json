@@ -1937,108 +1937,10 @@
   "peak_flops_for_precision": [
     {
       "args": {
-        "instance_type": "p4d.24xlarge",
-        "mixed_precision": "fp4"
-      },
-      "expect": 312000000000000
-    },
-    {
-      "args": {
-        "instance_type": "p4d.24xlarge",
-        "mixed_precision": "int8"
-      },
-      "expect": 624000000000000
-    },
-    {
-      "args": {
-        "instance_type": "p4d.24xlarge",
-        "mixed_precision": "fp8"
-      },
-      "expect": 312000000000000
-    },
-    {
-      "args": {
-        "instance_type": "p4d.24xlarge",
-        "mixed_precision": "bf16"
-      },
-      "expect": 312000000000000
-    },
-    {
-      "args": {
-        "instance_type": "p4d.24xlarge",
-        "mixed_precision": "fp16"
-      },
-      "expect": 312000000000000
-    },
-    {
-      "args": {
-        "instance_type": "p4d.24xlarge",
-        "mixed_precision": "tf32"
-      },
-      "expect": 156000000000000
-    },
-    {
-      "args": {
-        "instance_type": "p4d.24xlarge",
-        "mixed_precision": "fp32"
-      },
-      "expect": 19500000000000
-    },
-    {
-      "args": {
-        "instance_type": "p4de.24xlarge",
-        "mixed_precision": "fp4"
-      },
-      "expect": 312000000000000
-    },
-    {
-      "args": {
-        "instance_type": "p4de.24xlarge",
-        "mixed_precision": "int8"
-      },
-      "expect": 624000000000000
-    },
-    {
-      "args": {
-        "instance_type": "p4de.24xlarge",
-        "mixed_precision": "fp8"
-      },
-      "expect": 312000000000000
-    },
-    {
-      "args": {
-        "instance_type": "p4de.24xlarge",
-        "mixed_precision": "bf16"
-      },
-      "expect": 312000000000000
-    },
-    {
-      "args": {
-        "instance_type": "p4de.24xlarge",
-        "mixed_precision": "fp16"
-      },
-      "expect": 312000000000000
-    },
-    {
-      "args": {
-        "instance_type": "p4de.24xlarge",
-        "mixed_precision": "tf32"
-      },
-      "expect": 156000000000000
-    },
-    {
-      "args": {
-        "instance_type": "p4de.24xlarge",
-        "mixed_precision": "fp32"
-      },
-      "expect": 19500000000000
-    },
-    {
-      "args": {
         "instance_type": "p5.48xlarge",
         "mixed_precision": "fp4"
       },
-      "expect": 989000000000000
+      "raises": "UnsupportedPrecisionError"
     },
     {
       "args": {
@@ -2084,31 +1986,129 @@
     },
     {
       "args": {
+        "instance_type": "p4d.24xlarge",
+        "mixed_precision": "fp4"
+      },
+      "raises": "UnsupportedPrecisionError"
+    },
+    {
+      "args": {
+        "instance_type": "p4d.24xlarge",
+        "mixed_precision": "int8"
+      },
+      "expect": 624000000000000
+    },
+    {
+      "args": {
+        "instance_type": "p4d.24xlarge",
+        "mixed_precision": "fp8"
+      },
+      "raises": "UnsupportedPrecisionError"
+    },
+    {
+      "args": {
+        "instance_type": "p4d.24xlarge",
+        "mixed_precision": "bf16"
+      },
+      "expect": 312000000000000
+    },
+    {
+      "args": {
+        "instance_type": "p4d.24xlarge",
+        "mixed_precision": "fp16"
+      },
+      "expect": 312000000000000
+    },
+    {
+      "args": {
+        "instance_type": "p4d.24xlarge",
+        "mixed_precision": "tf32"
+      },
+      "expect": 156000000000000
+    },
+    {
+      "args": {
+        "instance_type": "p4d.24xlarge",
+        "mixed_precision": "fp32"
+      },
+      "expect": 19500000000000
+    },
+    {
+      "args": {
+        "instance_type": "p4de.24xlarge",
+        "mixed_precision": "fp4"
+      },
+      "raises": "UnsupportedPrecisionError"
+    },
+    {
+      "args": {
+        "instance_type": "p4de.24xlarge",
+        "mixed_precision": "int8"
+      },
+      "expect": 624000000000000
+    },
+    {
+      "args": {
+        "instance_type": "p4de.24xlarge",
+        "mixed_precision": "fp8"
+      },
+      "raises": "UnsupportedPrecisionError"
+    },
+    {
+      "args": {
+        "instance_type": "p4de.24xlarge",
+        "mixed_precision": "bf16"
+      },
+      "expect": 312000000000000
+    },
+    {
+      "args": {
+        "instance_type": "p4de.24xlarge",
+        "mixed_precision": "fp16"
+      },
+      "expect": 312000000000000
+    },
+    {
+      "args": {
+        "instance_type": "p4de.24xlarge",
+        "mixed_precision": "tf32"
+      },
+      "expect": 156000000000000
+    },
+    {
+      "args": {
+        "instance_type": "p4de.24xlarge",
+        "mixed_precision": "fp32"
+      },
+      "expect": 19500000000000
+    },
+    {
+      "args": {
         "instance_type": "p3.16xlarge",
         "mixed_precision": "fp4"
       },
-      "expect": 125000000000000
+      "raises": "UnsupportedPrecisionError"
     },
     {
       "args": {
         "instance_type": "p3.16xlarge",
         "mixed_precision": "int8"
       },
-      "expect": 112500000000000
+      "expect": 62500000000000
     },
     {
       "args": {
         "instance_type": "p3.16xlarge",
         "mixed_precision": "fp8"
       },
-      "expect": 125000000000000
+      "raises": "UnsupportedPrecisionError"
     },
     {
       "args": {
         "instance_type": "p3.16xlarge",
         "mixed_precision": "bf16"
       },
-      "expect": 125000000000000
+      "raises": "UnsupportedPrecisionError"
     },
     {
       "args": {
@@ -2122,7 +2122,7 @@
         "instance_type": "p3.16xlarge",
         "mixed_precision": "tf32"
       },
-      "expect": 62500000000000
+      "raises": "UnsupportedPrecisionError"
     },
     {
       "args": {
@@ -2136,28 +2136,28 @@
         "instance_type": "p3dn.24xlarge",
         "mixed_precision": "fp4"
       },
-      "expect": 125000000000000
+      "raises": "UnsupportedPrecisionError"
     },
     {
       "args": {
         "instance_type": "p3dn.24xlarge",
         "mixed_precision": "int8"
       },
-      "expect": 112500000000000
+      "expect": 62500000000000
     },
     {
       "args": {
         "instance_type": "p3dn.24xlarge",
         "mixed_precision": "fp8"
       },
-      "expect": 125000000000000
+      "raises": "UnsupportedPrecisionError"
     },
     {
       "args": {
         "instance_type": "p3dn.24xlarge",
         "mixed_precision": "bf16"
       },
-      "expect": 125000000000000
+      "raises": "UnsupportedPrecisionError"
     },
     {
       "args": {
@@ -2171,7 +2171,7 @@
         "instance_type": "p3dn.24xlarge",
         "mixed_precision": "tf32"
       },
-      "expect": 62500000000000
+      "raises": "UnsupportedPrecisionError"
     },
     {
       "args": {
@@ -2185,7 +2185,7 @@
         "instance_type": "p5.48xlarge",
         "mixed_precision": "not_a_precision"
       },
-      "expect": 989000000000000
+      "raises": "UnsupportedPrecisionError"
     }
   ],
   "tokens_per_text_sample": [

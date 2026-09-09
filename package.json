@@ -12,9 +12,9 @@
     "precheck": "pnpm run build-data",
     "pregen-fixtures": "pnpm run build-data",
     "gen-fixtures": "node scripts/gen-fixtures.mjs",
-    "dev": "vite dev",
+    "dev": "node --env-file-if-exists=.env node_modules/vite/bin/vite.js dev",
     "build": "vite build",
-    "preview": "vite preview",
+    "preview": "node --env-file-if-exists=.env node_modules/vite/bin/vite.js preview",
     "test": "vitest run",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test:e2e": "playwright test",
@@ -43,6 +43,8 @@
   },
   "type": "module",
   "dependencies": {
+    "@aws-sdk/client-ec2": "^3.1127.0",
+    "@aws-sdk/client-pricing": "^3.1127.0",
     "d3-scale": "^4.0.2"
   }
 }

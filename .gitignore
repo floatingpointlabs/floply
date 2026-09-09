@@ -14,6 +14,10 @@ playwright-report/
 blob-report/
 .playwright/
 
+# Fetched AWS prices. Regenerated on demand and deliberately never committed — a checked-in
+# price file is exactly what the live pricing layer replaced.
+.cache/
+
 # Local
 .env
 *.env

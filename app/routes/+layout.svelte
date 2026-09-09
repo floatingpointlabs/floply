@@ -1,14 +1,17 @@
 <script lang="ts">
   import { page } from "$app/state";
   import Logo from "$lib/components/Logo.svelte";
+  import RegionPicker from "$lib/components/RegionPicker.svelte";
   import "../app.css";
   import type { LayoutProps } from "./$types";
 
   let { children, data }: LayoutProps = $props();
 
+  const pricingUsable = $derived(data.catalog.provenance.source !== "unavailable");
+
   const tabs = [
-    { href: "/", label: "Budget optimizer" },
     { href: "/minimum-data", label: "Minimum data" },
+    { href: "/", label: "Budget optimizer" },
     { href: "/training-budget", label: "Training budget" },
     { href: "/methodology", label: "Methodology" }
   ];
@@ -47,6 +50,9 @@
       <p class="text-sm text-[var(--color-ink-muted)]">
         What a training run costs, before you commit the budget.
       </p>
+      <div class="ms-auto">
+        <RegionPicker regions={data.regions} provenance={data.catalog.provenance} />
+      </div>
     </div>
 
     <nav class="mx-auto max-w-6xl px-6" aria-label="Sections">
@@ -74,7 +80,25 @@
   </header>
 
   <main class="mx-auto w-full max-w-6xl grow px-6 py-10">
-    {@render children()}
+    {#if pricingUsable}
+      {@render children()}
+    {:else}
+      <section class="max-w-2xl">
+        <h1 class="text-xl font-semibold">Pricing unavailable for {data.catalog.region}.</h1>
+        <p class="mt-3 text-sm text-[var(--color-ink-muted)]">
+          {data.catalog.provenance.last_error}
+        </p>
+        <p class="mt-3 text-sm text-[var(--color-ink-muted)]">
+          Floply reads live AWS pricing and has no bundled fallback. Check that credentials are
+          configured and that the IAM policy allows these read-only actions:
+        </p>
+        <ul class="mt-2 list-disc pl-5 text-sm text-[var(--color-ink-muted)]">
+          <li><code>pricing:GetProducts</code></li>
+          <li><code>ec2:DescribeInstanceTypes</code></li>
+          <li><code>ec2:DescribeInstanceTypeOfferings</code></li>
+        </ul>
+      </section>
+    {/if}
   </main>
 
   <footer class="border-t border-[var(--color-rule)]">

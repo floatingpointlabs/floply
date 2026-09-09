@@ -26,10 +26,14 @@
   } from "$lib/engine/budgetOptimizer";
   import { CHINCHILLA_OPTIMAL_RATIO, LORA_OPTIMAL_RATIO } from "$lib/engine/constants";
   import { UNIT_MULTIPLIERS, fmtTokens, formatWallClockTime, money } from "$lib/engine/formatting";
-  import { MODELS, S3_STORAGE_PRICING } from "$lib/engine/gpuSpecs";
+  import { MODELS, listStorageClasses } from "$lib/engine/gpuSpecs";
   import { assessChinchillaRatio, assessLoraRatio } from "$lib/engine/scalingLaws";
+  import type { PageProps } from "./$types";
 
-  const hardware = autoConfigureHardware();
+  let { data }: PageProps = $props();
+
+  const hardware = $derived(autoConfigureHardware(data.catalog));
+  const storageClasses = $derived(listStorageClasses(data.catalog));
 
   let budgetValue = $state(10);
   let budgetUnit = $state("K");
@@ -115,9 +119,9 @@
     hardware
   });
 
-  const optimum = $derived(solveBudgetOptimum(inputs));
+  const optimum = $derived(solveBudgetOptimum(data.catalog, inputs));
   const sel = $derived(
-    resolveSelection(inputs, optimum, {
+    resolveSelection(data.catalog, inputs, optimum, {
       explore_dir: exploreDirOverride,
       log_d: logDOverride,
       log_n: logNOverride,
@@ -383,7 +387,7 @@
         value={storageClass}
         onchange={(e) => (storageClassOverride = e.currentTarget.value)}
         class="control">
-        {#each Object.keys(S3_STORAGE_PRICING) as c (c)}
+        {#each storageClasses as c (c)}
           <option value={c}>{c.replace(/_/g, " ")}</option>
         {/each}
       </select>

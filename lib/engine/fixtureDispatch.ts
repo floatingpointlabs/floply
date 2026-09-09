@@ -10,6 +10,7 @@ import {
   getGpuInstance,
   peakFlopsForPrecision
 } from "./gpuSpecs";
+import { fixtureCatalog } from "./fixtureCatalog";
 import { FULL_FT_TIERS, LORA_TIERS, PRE_TRAINING_TIERS } from "./tiers";
 import type { Tier } from "./tiers";
 import { estimateTrainingBudget } from "./trainingBudget";
@@ -24,6 +25,8 @@ export type Case = {
 };
 
 const A = (c: Case) => c.args;
+
+const CATALOG = fixtureCatalog();
 
 const TIER_TABLES: Record<string, Tier[]> = {
   PRE_TRAINING_TIERS,
@@ -57,8 +60,8 @@ export const solveCase = (args: Record<string, any>, selection: Record<string, a
   if (typeof resolved.ft_base_model === "string") {
     resolved.ft_base_model = modelsBySlug.get(resolved.ft_base_model)!;
   }
-  const optimum = bo.solveBudgetOptimum(resolved);
-  return { optimum, selection: bo.resolveSelection(resolved, optimum, selection) };
+  const optimum = bo.solveBudgetOptimum(CATALOG, resolved);
+  return { optimum, selection: bo.resolveSelection(CATALOG, resolved, optimum, selection) };
 };
 
 export const DISPATCH: Record<string, (c: Case) => unknown> = {
@@ -149,12 +152,13 @@ export const DISPATCH: Record<string, (c: Case) => unknown> = {
     ),
   calculate_storage_cost: (c) =>
     calc.calculateStorageCost(
+      CATALOG,
       A(c).dataset_size_tb,
       A(c).storage_duration_months,
       A(c).storage_class
     ),
   peak_flops_for_precision: (c) =>
-    peakFlopsForPrecision(getGpuInstance(A(c).instance_type), A(c).mixed_precision),
+    peakFlopsForPrecision(getGpuInstance(CATALOG, A(c).instance_type), A(c).mixed_precision),
   tokens_per_text_sample: (c) => ds.tokensPerTextSample(A(c).avg_seq_len_words),
   bytes_per_text_sample: (c) => ds.bytesPerTextSample(A(c).tokens),
   tokens_per_image_sample: (c) => ds.tokensPerImageSample(A(c).resolution, A(c).patch_size),
@@ -182,7 +186,7 @@ export const DISPATCH: Record<string, (c: Case) => unknown> = {
   assess_lora_ratio: (c) => sl.assessLoraRatio(A(c).ratio),
   assess_chinchilla_ratio: (c) =>
     sl.assessChinchillaRatio(A(c).ratio, A(c).optimal_tokens, A(c).fix_hint),
-  training_budget: (c) => estimateTrainingBudget(c.args),
+  training_budget: (c) => estimateTrainingBudget(CATALOG, c.args),
   tiers: (c) => tiersWithoutColor(A(c).table),
   model_definitions: (c) => modelDefinition(A(c).slug),
   derive_schedule_defaults: (c) =>

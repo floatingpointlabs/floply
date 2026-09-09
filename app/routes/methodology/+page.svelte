@@ -1,5 +1,8 @@
 <script lang="ts">
-  import { INSTANCE_ORDER, getGpuInstance } from "$lib/engine/gpuSpecs";
+  import { getGpuInstance } from "$lib/engine/gpuSpecs";
+  import type { PageProps } from "./$types";
+
+  let { data }: PageProps = $props();
 
   const sections = [
     { id: "overview", title: "Overview" },
@@ -15,8 +18,9 @@
     { id: "limitations", title: "Limitations" }
   ];
 
-  // Read from the same YAML the estimates use, so the reference table cannot drift.
-  const instances = INSTANCE_ORDER.map((t) => ({ type: t, ...getGpuInstance(t) }));
+  const instances = $derived(
+    data.catalog.order.map((t) => ({ type: t, ...getGpuInstance(data.catalog, t) }))
+  );
 </script>
 
 <svelte:head>

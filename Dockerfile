@@ -29,8 +29,9 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 # adapter-node reads these; 0.0.0.0 so the container is reachable from outside.
+# HOST, not HOSTNAME — HOSTNAME is the Next.js spelling and adapter-node ignores it.
 ENV PORT=3000
-ENV HOSTNAME=0.0.0.0
+ENV HOST=0.0.0.0
 
 RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -40,6 +41,12 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --prod --frozen-lockfile --ignore-scripts && pnpm store prune
 
 COPY --from=build /app/build ./build
+
+# Prices are fetched from AWS and cached here. Mount a volume over it so a container
+# replacement doesn't lose the only thing that keeps the app usable during an AWS outage.
+ENV FLOPLY_CACHE_DIR=/app/.cache/floply
+RUN mkdir -p /app/.cache/floply && chown -R node:node /app/.cache
+VOLUME /app/.cache
 
 USER node
 EXPOSE 3000

@@ -78,13 +78,13 @@ test("training budget breaks compute down by run type and recaps the config", as
   await page.locator("#modality").selectOption("Text");
 
   await expect(page.getByRole("heading", { name: "Compute by run type" })).toBeVisible();
-  await expect(figure(page, "Full runs")).toHaveText("$21,770");
+  await expect(figure(page, "Full runs")).toHaveText("$17,032");
   await expect(figure(page, "HP trials")).toHaveText("$0");
 
   // Ten trials at 30% of a run cost 3x the model you actually keep — the point of the
   // whole section, and previously invisible.
   await page.locator("#hp").fill("10");
-  await expect(figure(page, "HP trials")).toHaveText("$65,309");
+  await expect(figure(page, "HP trials")).toHaveText("$51,097");
 
   await expect(page.getByRole("heading", { name: "Run configuration" })).toBeVisible();
   await expect(page.getByRole("cell", { name: "HP tuning trials" })).toBeVisible();

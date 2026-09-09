@@ -24,7 +24,7 @@ import {
   peakFlopsForPrecision
 } from "./gpuSpecs";
 import { CHINCHILLA_OPTIMAL_RATIO, LORA_OPTIMAL_RATIO } from "./constants";
-import type { InstanceSpec, ModelDefinition } from "./types";
+import type { Catalog, InstanceSpec, ModelDefinition } from "./types";
 
 export { CHINCHILLA_OPTIMAL_RATIO, LORA_OPTIMAL_RATIO };
 
@@ -100,16 +100,19 @@ export interface Hardware {
   gradient_checkpointing: boolean;
 }
 
-let cachedHardware: Hardware | null = null;
+/** Keyed by region: prices differ per region, so one cached pick would be wrong for the
+ *  others — and pages are server-rendered, so the cache is shared across visitors. */
+const cachedHardware = new Map<string, Hardware>();
 
-export function autoConfigureHardware(): Hardware {
-  if (cachedHardware) return cachedHardware;
+export function autoConfigureHardware(catalog: Catalog): Hardware {
+  const memoised = cachedHardware.get(catalog.region);
+  if (memoised) return memoised;
 
   let bestInstance = "";
   let bestEfficiency = -1.0;
 
-  for (const instanceType of listAvailableInstances()) {
-    const spec = getGpuInstance(instanceType);
+  for (const instanceType of listAvailableInstances(catalog)) {
+    const spec = getGpuInstance(catalog, instanceType);
     const flopsPerDollar =
       (spec.peak_flops_fp16 * spec.gpu_count * spec.typical_mfu) / spec.hourly_cost;
     if (flopsPerDollar > bestEfficiency) {
@@ -118,10 +121,10 @@ export function autoConfigureHardware(): Hardware {
     }
   }
 
-  const spec = getGpuInstance(bestInstance);
+  const spec = getGpuInstance(catalog, bestInstance);
   // Frozen because every caller now shares this instance; a stray mutation would
   // otherwise leak into unrelated calculations.
-  cachedHardware = Object.freeze({
+  const hardware = Object.freeze({
     instance_type: bestInstance,
     instance_spec: spec,
     peak_flops_per_gpu: peakFlopsForPrecision(spec, "bf16"),
@@ -130,7 +133,8 @@ export function autoConfigureHardware(): Hardware {
     hourly_cost: spec.hourly_cost,
     gradient_checkpointing: false
   });
-  return cachedHardware;
+  cachedHardware.set(catalog.region, hardware);
+  return hardware;
 }
 
 /**
@@ -248,7 +252,7 @@ interface ResolvedInputs extends Required<Omit<OptimizerInputs, "ft_base_model">
   ft_base_model: ModelDefinition | null;
 }
 
-function resolveInputs(inputs: OptimizerInputs): ResolvedInputs {
+function resolveInputs(catalog: Catalog, inputs: OptimizerInputs): ResolvedInputs {
   return {
     compute_budget: inputs.compute_budget,
     modality: inputs.modality,
@@ -262,7 +266,7 @@ function resolveInputs(inputs: OptimizerInputs): ResolvedInputs {
     hp_fraction_pct: inputs.hp_fraction_pct ?? 10,
     storage_duration_months: inputs.storage_duration_months ?? 3,
     storage_class: inputs.storage_class ?? "standard",
-    hardware: inputs.hardware ?? autoConfigureHardware()
+    hardware: inputs.hardware ?? autoConfigureHardware(catalog)
   };
 }
 
@@ -326,8 +330,8 @@ export interface BudgetOptimum {
   optimal_ratio: number;
 }
 
-export function solveBudgetOptimum(rawInputs: OptimizerInputs): BudgetOptimum {
-  const i = resolveInputs(rawInputs);
+export function solveBudgetOptimum(catalog: Catalog, rawInputs: OptimizerInputs): BudgetOptimum {
+  const i = resolveInputs(catalog, rawInputs);
   const hw = i.hardware;
 
   const computeBudget = i.compute_budget;
@@ -341,7 +345,7 @@ export function solveBudgetOptimum(rawInputs: OptimizerInputs): BudgetOptimum {
 
   const hpFraction = i.hp_fraction_pct / 100.0;
   const projectMultiplier = 1.0 + i.num_hp_trials * hpFraction;
-  const costPerTbMonth = getStorageCost(i.storage_class);
+  const costPerTbMonth = getStorageCost(catalog, i.storage_class);
   const storageCostPerToken = (bytesPerToken / 1e12) * costPerTbMonth * i.storage_duration_months;
 
   const optimalRatio = isLora ? LORA_OPTIMAL_RATIO : CHINCHILLA_OPTIMAL_RATIO;
@@ -415,11 +419,13 @@ export function solveBudgetOptimum(rawInputs: OptimizerInputs): BudgetOptimum {
   );
   const optComputeCostTotal = optRun.compute_cost * projectMultiplier;
   const optDatasetStorageCost = calculateStorageCost(
+    catalog,
     (Math.max(Math.trunc(dOpt), 1) * bytesPerToken) / 1e12,
     i.storage_duration_months,
     i.storage_class
   );
   const optCkptStorageCost = calculateStorageCost(
+    catalog,
     calculateCheckpointStorageTb(
       Math.max(Math.trunc(nOpt), 1),
       CHECKPOINTS_PER_RUN,
@@ -496,11 +502,12 @@ export interface SelectionResult {
 }
 
 export function resolveSelection(
+  catalog: Catalog,
   rawInputs: OptimizerInputs,
   optimum: BudgetOptimum,
   selection: Selection = {}
 ): SelectionResult {
-  const i = resolveInputs(rawInputs);
+  const i = resolveInputs(catalog, rawInputs);
   const hw = i.hardware;
 
   const computeBudget = i.compute_budget;
@@ -643,11 +650,13 @@ export function resolveSelection(
   const numInstances = selection.num_instances ?? recommendedInstances;
 
   const selDatasetStorage = calculateStorageCost(
+    catalog,
     (Math.max(selectedTokens, 1) * bytesPerToken) / 1e12,
     i.storage_duration_months,
     i.storage_class
   );
   const selCkptStorage = calculateStorageCost(
+    catalog,
     calculateCheckpointStorageTb(
       Math.max(selectedParams, 1),
       CHECKPOINTS_PER_RUN,

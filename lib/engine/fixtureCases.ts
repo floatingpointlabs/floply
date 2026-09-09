@@ -1,9 +1,12 @@
 import { DISPATCH, solveCase } from "./fixtureDispatch";
 import type { Case } from "./fixtureDispatch";
-import { INSTANCE_ORDER, MODELS } from "./gpuSpecs";
+import { fixtureCatalog } from "./fixtureCatalog";
+import { MODELS } from "./gpuSpecs";
 import { EXPLORE_LORA_RANK, EXPLORE_MODEL_TO_TOKENS } from "./budgetOptimizer";
 
 type Payload = Record<string, Case[]>;
+
+const INSTANCE_TYPES = fixtureCatalog().order;
 
 const ARCHES = ["transformer", "cnn", "rnn", "vit", "diffusion", "definitely_not_an_arch"];
 const PRECISIONS = ["fp4", "int8", "fp8", "bf16", "fp16", "tf32", "fp32"];
@@ -378,7 +381,7 @@ export function buildEngine(): Payload {
   ];
 
   out.peak_flops_for_precision = [
-    ...INSTANCE_ORDER.flatMap((instance_type) =>
+    ...INSTANCE_TYPES.flatMap((instance_type) =>
       PRECISIONS.map((mixed_precision) =>
         record("peak_flops_for_precision", { instance_type, mixed_precision })
       )

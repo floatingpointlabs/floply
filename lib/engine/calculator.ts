@@ -1,5 +1,5 @@
 import { getStorageCost } from "./gpuSpecs";
-import type { ComputeCost, FineTuningMethod, GpuMemory, ModelArchitecture } from "./types";
+import type { Catalog, ComputeCost, FineTuningMethod, GpuMemory, ModelArchitecture } from "./types";
 
 /**
  * Memory bytes per parameter by training regime:
@@ -234,12 +234,13 @@ export function calculateProjectComputeCost(
   );
 }
 
-/** S3 storage cost for training data. Throws on an unknown storage class. */
+/** S3 storage cost for training data. Throws on a storage class unpriced in this region. */
 export function calculateStorageCost(
+  catalog: Catalog,
   datasetSizeTb: number,
   storageDurationMonths = 1.0,
   storageClass = "standard"
 ): number {
-  const costPerTbMonth = getStorageCost(storageClass);
+  const costPerTbMonth = getStorageCost(catalog, storageClass);
   return datasetSizeTb * costPerTbMonth * storageDurationMonths;
 }
