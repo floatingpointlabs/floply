@@ -1,0 +1,16 @@
+node_modules
+build
+.svelte-kit
+pnpm-lock.yaml
+
+# Generated: rewritten by scripts/build-data.mjs and scripts/gen_fixtures.py on every run,
+# so formatting them is undone on the next build.
+lib/data/generated.ts
+fixtures
+
+# The precision tables are column-aligned on purpose: the trailing comments are what say
+# which absent formats are absent deliberately. Prettier collapses that to one space.
+data/gpu_hardware.yaml
+
+# Playwright output
+test-results

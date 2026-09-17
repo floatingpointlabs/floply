@@ -1,13 +1,19 @@
+# Node
+node_modules
+.svelte-kit
+build
+
+# Generated at build time from data/**.yaml
+lib/data/generated.ts
+
+# Left over from the Streamlit implementation — safe to delete.
 .venv
-__pycache__
-**/__pycache__
-*.pyc
-*.pyo
+
+# Repo
 .git
 .gitignore
+.gitea
+compose.yml
 .env
 *.env
-.cache
-.direnv
-.devcontainer
-tests
+.claude

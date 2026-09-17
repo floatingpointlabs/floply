@@ -1,0 +1,184 @@
+@import "tailwindcss";
+
+/*
+ * Floply — Floating Point Labs house style.
+ *
+ * Tokens are taken from the FPL design system (website repo, src/styles/global.css) so
+ * this reads as the same house: the same graphite ground and plate, the same indigo
+ * signal, the same machined 2–3px corners, the same Jost / IBM Plex Mono.
+ */
+
+@font-face {
+  font-display: swap;
+  font-family: "Jost";
+  font-style: normal;
+  font-weight: 400 700;
+  src: url("/fonts/jost.woff2") format("woff2");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  src: url("/fonts/ibm-plex-mono.woff2") format("woff2");
+}
+
+@theme {
+  /* app/error.html inlines ground, ink, ink-muted and indigo as literals: it renders when
+     the app could not, so it cannot reach a stylesheet. Change both. */
+  --color-ground: #0f1013;
+  --color-surface: #15171c;
+  --color-well: #0b0c0f;
+  --color-groove: #08090b;
+  --color-edge: rgb(255 255 255 / 0.075);
+
+  --color-rule: #272b33;
+  /* The edge that identifies a control: the quietest value that clears 3:1 (3.55:1). */
+  --color-rule-strong: #5f62b7;
+
+  /*
+   * Text. All three clear WCAG AA on the ground and on the surface plate:
+   * 15.8 / 6.3 / 4.8:1 on ground, 14.9 / 6.0 / 4.5:1 on surface.
+   *
+   * Floply needs a third, fainter level for captions, axis ticks and table category
+   * labels; it maps to the FPL site's --text-dim.
+   */
+  --color-ink: #e8eaef;
+  --color-ink-muted: #8f95a3;
+  --color-ink-faint: #7a808e;
+
+  --color-indigo: #7d80f7;
+  --color-indigo-lit: #b3b5ff;
+  --color-violet: #a78bfa;
+  --color-violet-pale: #c4b5fd;
+  --color-purple-deep: #7c3aed;
+
+  /* Duplicated as CHART_COLORS in lib/engine/constants.ts, which the charts use for
+     fills and strokes. Change both. */
+  --color-compute: #7d80f7;
+  --color-storage: #22d3ee;
+  --color-checkpoint: #f59e0b;
+  --color-warning: #fb7185;
+  --color-success: #34d399;
+
+  --font-sans: "Jost", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-field: 2px;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+/*
+ * 107.5% rather than 100%: Jost's x-height is ~8% smaller than the face it replaced, so
+ * at a nominal size its lowercase reads small — the same correction the FPL site makes.
+ * On the root so every rem-based Tailwind size inherits it.
+ */
+html {
+  background: var(--color-ground);
+  font-size: 107.5%;
+}
+
+body {
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.025em;
+}
+
+/* Layered so a Tailwind `text-…` utility on a link (the tabs, the wordmark) still wins. */
+@layer base {
+  a {
+    color: var(--color-indigo-lit);
+    text-underline-offset: 3px;
+  }
+
+  a:hover {
+    color: var(--color-ink);
+  }
+}
+
+/*
+ * Figures use tabular, lining numerals so digits hold their column as values change.
+ * Without this, dragging a slider makes the whole readout jitter sideways.
+ *
+ * Deliberately unlayered, unlike the component classes below: this must win over
+ * `.control`'s `font-family: inherit` on inputs marked `class="control num"`, and a
+ * figure should never lose its tabular numerals to a stray font utility.
+ */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+
+/*
+ * These live in the `components` layer on purpose. Tailwind utilities sit in a later
+ * layer, and unlayered CSS beats layered CSS regardless of source order — so as plain
+ * rules these would silently defeat the per-instance overrides beside them
+ * (`w-auto` on the unit select, `text-…` on a selected pill).
+ */
+@layer components {
+  /* Recessed into the page, so it reads as somewhere to put something. */
+  .control {
+    background: var(--color-ground);
+    border: 1px solid var(--color-rule-strong);
+    border-radius: var(--radius-field);
+    box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.35);
+    color: var(--color-ink);
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 0.55rem 0.75rem;
+    width: 100%;
+  }
+
+  .control:focus {
+    border-color: var(--color-indigo);
+    outline: none;
+  }
+
+  /* The FPL site's .tag: a key set into a well rather than a glowing pill. */
+  .pill {
+    background: var(--color-well);
+    border: 1px solid var(--color-groove);
+    border-radius: var(--radius-field);
+    box-shadow: 0 1px 0 var(--color-edge);
+    color: var(--color-ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.07em;
+    padding: 0.24rem 0.6rem;
+  }
+}
+
+input[type="range"],
+input[type="checkbox"] {
+  accent-color: var(--color-indigo);
+}
+
+/* No border-radius: the outline already follows each element's own corners. */
+:focus-visible {
+  outline: 2px solid var(--color-indigo);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

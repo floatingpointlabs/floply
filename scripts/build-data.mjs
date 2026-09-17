@@ -1,0 +1,163 @@
+/**
+ * The validation below is load-bearing. PyYAML's 1.1 resolver parses `312.0e12` as a
+ * *string* (no exponent sign), which is why gpu_hardware.py had to coerce numeric fields
+ * at runtime. The `yaml` package uses YAML 1.2 and parses it as a number — so we assert
+ * the types here, turning a future `1e12` typo into a build failure rather than a string
+ * silently entering a multiplication.
+ */
+import { readdirSync, readFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { dirname, join, basename } from "node:path";
+import { fileURLToPath } from "node:url";
+import { parse } from "yaml";
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const DATA = join(ROOT, "data");
+const OUT = join(ROOT, "lib", "data", "generated.ts");
+
+const GPU_HARDWARE_SCHEMA_VERSION = 1;
+
+const errors = [];
+const fail = (where, msg) => errors.push(`${where}: ${msg}`);
+
+const isNum = (v) => typeof v === "number" && Number.isFinite(v);
+
+function requireNum(obj, key, where) {
+  if (!isNum(obj[key])) {
+    fail(where, `"${key}" must be a number, got ${JSON.stringify(obj[key])} (${typeof obj[key]})`);
+  }
+}
+
+// -- Curated GPU hardware ---------------------------------------------------
+
+const GPU_NUMERIC = ["peak_flops_fp16", "peak_flops_fp32", "typical_mfu"];
+
+const HW = "data/gpu_hardware.yaml";
+const hardwareDoc = parse(readFileSync(join(DATA, "gpu_hardware.yaml"), "utf8")) ?? {};
+
+if (hardwareDoc.schema_version !== GPU_HARDWARE_SCHEMA_VERSION) {
+  fail(
+    HW,
+    `schema_version is ${hardwareDoc.schema_version}, expected ${GPU_HARDWARE_SCHEMA_VERSION}`
+  );
+}
+
+const gpuHardware = {};
+/** Alias (and canonical name) -> canonical name, so an AWS GPU string resolves in one lookup. */
+const gpuAliases = {};
+
+for (const [name, spec] of Object.entries(hardwareDoc.gpus ?? {})) {
+  const where = `${HW}:${name}`;
+  for (const k of GPU_NUMERIC) requireNum(spec, k, where);
+
+  const multipliers = {};
+  for (const [precision, raw] of Object.entries(spec.precision_multipliers ?? {})) {
+    // null means "use peak_flops_fp32"; an ABSENT key means the die has no hardware
+    // support at all. Anything else must be a number — a string here would silently turn
+    // a FLOPs multiplication into NaN.
+    if (raw !== null && !isNum(raw)) {
+      fail(
+        where,
+        `precision_multipliers.${precision} must be a number or null, got ${JSON.stringify(raw)}`
+      );
+    }
+    multipliers[precision] = raw;
+  }
+  if (!Object.keys(multipliers).length) fail(where, "precision_multipliers is required");
+
+  gpuHardware[name] = {
+    vendor: spec.vendor ?? "NVIDIA",
+    peak_flops_fp16: spec.peak_flops_fp16,
+    peak_flops_fp32: spec.peak_flops_fp32,
+    typical_mfu: spec.typical_mfu,
+    precision_multipliers: multipliers,
+    description: spec.description ?? "",
+    source: spec.source ?? ""
+  };
+
+  for (const alias of [name, ...(spec.aliases ?? [])]) {
+    if (gpuAliases[alias] && gpuAliases[alias] !== name) {
+      fail(where, `alias "${alias}" is already claimed by ${gpuAliases[alias]}`);
+    }
+    gpuAliases[alias] = name;
+  }
+}
+
+if (!Object.keys(gpuHardware).length) fail(HW, "no GPUs defined");
+
+const instanceOverrides = hardwareDoc.instance_overrides ?? {};
+for (const [instanceType, override] of Object.entries(instanceOverrides)) {
+  for (const [key, value] of Object.entries(override ?? {})) {
+    if (GPU_NUMERIC.includes(key) && !isNum(value)) {
+      fail(`${HW}:instance_overrides:${instanceType}`, `"${key}" must be a number`);
+    }
+  }
+}
+
+// -- Models -----------------------------------------------------------------
+
+const models = [];
+
+for (const file of readdirSync(join(DATA, "models"))
+  .filter((f) => f.endsWith(".yaml"))
+  .sort()) {
+  const doc = parse(readFileSync(join(DATA, "models", file), "utf8"));
+  const where = `data/models/${file}`;
+  const slug = basename(file, ".yaml");
+
+  for (const k of ["name", "slug", "family"]) {
+    if (typeof doc[k] !== "string") fail(where, `"${k}" is required and must be a string`);
+  }
+  if (doc.slug !== slug) fail(where, `slug "${doc.slug}" must match the filename "${slug}"`);
+  requireNum(doc, "parameter_count", where);
+
+  const arch = doc.architecture ?? {};
+  // The README promises MoE FLOPs are costed on active params. Without this field they
+  // silently aren't — which was a real bug (DeepSeek V3 costed at 671B, not 37B).
+  if (arch.moe && !isNum(arch.moe.active_parameter_count)) {
+    fail(where, "architecture.moe requires a numeric active_parameter_count");
+  }
+
+  models.push({
+    name: doc.name,
+    slug: doc.slug,
+    family: doc.family,
+    parameter_count: doc.parameter_count,
+    architecture: arch,
+    source: doc.source ?? "",
+    notes: String(doc.notes ?? "")
+  });
+}
+
+models.sort((a, b) => a.parameter_count - b.parameter_count);
+
+if (errors.length) {
+  console.error("build-data failed:\n" + errors.map((e) => `  - ${e}`).join("\n"));
+  process.exit(1);
+}
+
+const banner = `// GENERATED by scripts/build-data.mjs — do not edit, do not commit.
+// Source: data/models/*.yaml, data/gpu_hardware.yaml
+`;
+
+const body = `${banner}
+import type { GpuHardware, ModelDefinition } from "../engine/types";
+
+/** Curated datasheet facts, keyed by GPU model as ec2:DescribeInstanceTypes reports it. */
+export const GPU_HARDWARE: Record<string, GpuHardware> = ${JSON.stringify(gpuHardware, null, 2)};
+
+/** Alias (and canonical name) -> canonical name, so an AWS GPU string resolves in one lookup. */
+export const GPU_ALIASES: Record<string, string> = ${JSON.stringify(gpuAliases, null, 2)};
+
+/** Per-instance curated overrides, applied on top of the GPU-model entry. */
+export const INSTANCE_OVERRIDES: Record<string, Partial<GpuHardware>> = ${JSON.stringify(instanceOverrides, null, 2)};
+
+/** Sorted by parameter_count. */
+export const MODELS: ModelDefinition[] = ${JSON.stringify(models, null, 2)};
+`;
+
+mkdirSync(dirname(OUT), { recursive: true });
+writeFileSync(OUT, body);
+console.log(
+  `  lib/data/generated.ts: ${Object.keys(gpuHardware).length} GPUs, ` +
+    `${Object.keys(instanceOverrides).length} instance overrides, ${models.length} models`
+);
