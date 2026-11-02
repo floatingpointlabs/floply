@@ -24,3 +24,5 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          UMAMI_URL: https://umami.floatingpointlabs.ca/script.js
+          UMAMI_WEBSITE_ID: d923f9bf-e475-4555-be76-80ea5928c3b0
