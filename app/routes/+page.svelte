@@ -138,7 +138,8 @@
     content="How much training data a model needs, from Chinchilla scaling laws and practical fine-tuning thresholds." />
 </svelte:head>
 
-<h1 class="text-2xl font-semibold tracking-tight">How much data do I need?</h1>
+<p class="eyebrow">Minimum data</p>
+<h1 class="page-title">How much data do I need?</h1>
 <p class="mt-2 max-w-[62ch] text-sm leading-relaxed text-[var(--color-ink-muted)]">
   Scaling laws set a floor and a ceiling on useful dataset size. Pick a model and see where your
   data lands.

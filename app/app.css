@@ -4,9 +4,17 @@
  * Floply — Floating Point Labs house style.
  *
  * Tokens are taken from the FPL design system (website repo, src/styles/global.css) so
- * this reads as the same house: the same graphite ground and plate, the same indigo
- * signal, the same machined 2–3px corners, the same Jost / IBM Plex Mono.
+ * this reads as the same house: the same night sky over graphite, the same indigo
+ * signal, the same machined 2–3px corners, the same Syne / Jost / IBM Plex Mono.
  */
+
+@font-face {
+  font-display: swap;
+  font-family: "Syne";
+  font-style: normal;
+  font-weight: 600 800;
+  src: url("/fonts/syne.woff2") format("woff2");
+}
 
 @font-face {
   font-display: swap;
@@ -29,6 +37,7 @@
      the app could not, so it cannot reach a stylesheet. Change both. */
   --color-ground: #0f1013;
   --color-surface: #15171c;
+  --color-surface-lit: #1b1e25;
   --color-well: #0b0c0f;
   --color-groove: #08090b;
   --color-edge: rgb(255 255 255 / 0.075);
@@ -50,6 +59,7 @@
 
   --color-indigo: #7d80f7;
   --color-indigo-lit: #b3b5ff;
+  --color-indigo-deep: #5b5ee0;
   --color-violet: #a78bfa;
   --color-violet-pale: #c4b5fd;
   --color-purple-deep: #7c3aed;
@@ -62,6 +72,7 @@
   --color-warning: #fb7185;
   --color-success: #34d399;
 
+  --font-display: "Syne", system-ui, sans-serif;
   --font-sans: "Jost", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
@@ -70,6 +81,15 @@
 
 :root {
   color-scheme: dark;
+  /* Height of the sticky nav, so in-page anchors land below it. */
+  --nav-height: 4.25rem;
+}
+
+/* Below md the nav tabs drop to a second row. */
+@media (max-width: 767px) {
+  :root {
+    --nav-height: 7rem;
+  }
 }
 
 /*
@@ -80,6 +100,7 @@
 html {
   background: var(--color-ground);
   font-size: 107.5%;
+  scroll-padding-top: calc(var(--nav-height) + 1rem);
 }
 
 body {
@@ -88,12 +109,122 @@ body {
   font-family: var(--font-sans);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  caret-color: var(--color-indigo);
+  scrollbar-color: var(--color-rule) var(--color-ground);
 }
 
+::selection {
+  background: rgb(125 128 247 / 0.35);
+  color: var(--color-ink);
+}
+
+/* Syne states, Jost explains and labels, IBM Plex Mono counts. */
 h1,
-h2,
-h3 {
+h2 {
+  font-family: var(--font-display);
   letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+h3 {
+  letter-spacing: -0.015em;
+}
+
+/* ==========================================================================
+   The sky — ported from the FPL website (Sky.astro, global.css). See Sky.svelte.
+   ========================================================================== */
+
+.sky {
+  inset: 0;
+  pointer-events: none;
+  position: fixed;
+  z-index: 0;
+}
+
+.sky > * {
+  inset: 0;
+  position: absolute;
+}
+
+.sky__dots {
+  background-image: radial-gradient(rgb(167 139 250 / 0.22) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* The explicit size is load-bearing: a positioned canvas otherwise keeps 300x150. */
+.sky__stars {
+  height: 100%;
+  mask-image: linear-gradient(
+    to right,
+    #000 0,
+    rgb(0 0 0 / 0.32) 34%,
+    rgb(0 0 0 / 0.32) 66%,
+    #000 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 0,
+    rgb(0 0 0 / 0.32) 34%,
+    rgb(0 0 0 / 0.32) 66%,
+    #000 100%
+  );
+  width: 100%;
+}
+
+.sky__wash {
+  background: radial-gradient(
+    130% 70% at 50% -12%,
+    rgb(123 92 240 / 0.06),
+    rgb(123 92 240 / 0.02) 55%,
+    transparent 78%
+  );
+}
+
+/*
+ * The aurora belongs to the opening screen: absolute, so it scrolls away rather than sitting
+ * under every chart, and masked off the left 52% where page titles and copy set.
+ */
+.aurora {
+  background:
+    radial-gradient(46% 54% at 78% 4%, rgb(123 92 240 / 0.42), transparent 70%),
+    radial-gradient(36% 42% at 93% 24%, rgb(224 85 159 / 0.28), transparent 72%),
+    radial-gradient(42% 32% at 63% -8%, rgb(47 169 140 / 0.13), transparent 74%);
+  height: min(92vh, 820px);
+  left: 0;
+  mask-image: linear-gradient(to right, transparent 0, transparent 52%, #000 72%, #000 100%);
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    transparent 52%,
+    #000 72%,
+    #000 100%
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 0;
+}
+
+/* Grain, over everything and never in the way. */
+body::before,
+body::after {
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: fixed;
+  z-index: 50;
+}
+
+body::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='l' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='1' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 12 0 0 0 -8'/%3E%3C/filter%3E%3Cfilter id='d' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='1' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -10 0 0 0 3.7'/%3E%3C/filter%3E%3Cg opacity='0.15'%3E%3Crect width='240' height='240' filter='url(%23l)'/%3E%3Crect width='240' height='240' filter='url(%23d)'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+body::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  opacity: 0.55;
 }
 
 /* Layered so a Tailwind `text-…` utility on a link (the tabs, the wordmark) still wins. */
@@ -148,6 +279,79 @@ h3 {
     outline: none;
   }
 
+  /* Above every page title: where you are, in Beacon Indigo. */
+  .eyebrow {
+    color: var(--color-indigo);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.85rem;
+    text-transform: uppercase;
+  }
+
+  .page-title {
+    font-size: clamp(1.55rem, 3.4vw, 2.25rem);
+    font-weight: 700;
+    line-height: 1.14;
+  }
+
+  /* The FPL wordmark rule, in Floply's own lowercase: one word, the tail in Beacon Indigo. */
+  .wordmark {
+    color: var(--color-ink);
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .site-nav {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    background: rgb(15 16 19 / 0.88);
+    border-bottom: 1px solid var(--color-groove);
+    box-shadow: 0 1px 0 var(--color-edge);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .nav-link {
+    color: var(--color-ink-muted);
+    display: inline-block;
+    font-size: 0.95rem;
+    padding-block: 0.35rem;
+    position: relative;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .nav-link:hover,
+  .nav-link[aria-current] {
+    color: var(--color-ink);
+  }
+
+  /* The current page: a landed point, not an underline. */
+  .nav-link[aria-current]::after {
+    background: var(--color-violet);
+    border-radius: 50%;
+    bottom: -1px;
+    content: "";
+    height: 4px;
+    left: calc(50% - 2px);
+    position: absolute;
+    width: 4px;
+  }
+
+  /* An earned plate: lit top edge, black cast shadow. */
+  .plate {
+    background: linear-gradient(180deg, var(--color-surface-lit), var(--color-surface));
+    border: 1px solid var(--color-rule);
+    border-radius: 3px;
+    box-shadow:
+      inset 0 1px 0 var(--color-edge),
+      0 8px 20px -8px rgb(0 0 0 / 0.85);
+  }
+
   /* The FPL site's .tag: a key set into a well rather than a glowing pill. */
   .pill {
     background: var(--color-well);
@@ -155,7 +359,6 @@ h3 {
     border-radius: var(--radius-field);
     box-shadow: 0 1px 0 var(--color-edge);
     color: var(--color-ink-muted);
-    font-family: var(--font-mono);
     font-size: 0.7rem;
     letter-spacing: 0.07em;
     padding: 0.24rem 0.6rem;

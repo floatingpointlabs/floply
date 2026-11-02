@@ -46,7 +46,7 @@
     <select
       value={provenance.region}
       onchange={select}
-      class="rounded-field border border-[var(--color-rule-strong)] bg-transparent px-2 py-1 text-sm"
+      class="rounded-field border border-[var(--color-rule-strong)] bg-[var(--color-ground)] px-2 py-1 text-sm"
       title="Instance and S3 prices are region-specific.">
       {#each regions as region (region.code)}
         <option value={region.code}>
@@ -71,7 +71,7 @@
 
   {#if open}
     <div
-      class="max-w-md rounded-field border border-[var(--color-rule)] bg-[var(--color-surface)] p-3 text-xs
+      class="plate max-w-md p-3 text-xs
              text-[var(--color-ink-muted)]">
       <p>
         On-demand list price, Linux, shared tenancy. Cache: <code>{provenance.cache_location}</code>

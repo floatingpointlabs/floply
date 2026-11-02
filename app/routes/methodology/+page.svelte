@@ -32,7 +32,8 @@
 
 <div class="lg:grid lg:grid-cols-[1fr_14rem] lg:gap-12">
   <article class="methodology max-w-[68ch]">
-    <h1 class="text-2xl font-semibold tracking-tight">Methodology</h1>
+    <p class="eyebrow">How Floply calculates</p>
+    <h1 class="page-title">Methodology</h1>
     <p class="mt-2 text-sm text-[var(--color-ink-muted)]">
       Every formula behind the estimates, and what they assume. Pricing current as of February 2026.
     </p>
@@ -527,12 +528,13 @@ total_project = total_compute + dataset_storage + checkpoint_storage</code></pre
   </article>
 
   <nav class="mt-12 hidden lg:mt-0 lg:block" aria-label="On this page">
-    <ul class="sticky top-8 space-y-2 border-l border-[var(--color-rule)] pl-4 text-sm">
+    <ul
+      class="sticky top-[calc(var(--nav-height)+2rem)] space-y-2 border-l border-[var(--color-rule)] pl-4 text-sm">
       {#each sections as s (s.id)}
         <li>
           <a
             href="#{s.id}"
-            class="text-[var(--color-ink-faint)] transition-colors hover:text-[var(--color-ink)]">
+            class="text-[var(--color-ink-muted)] transition-colors hover:text-[var(--color-ink)]">
             {s.title}
           </a>
         </li>
@@ -544,7 +546,7 @@ total_project = total_compute + dataset_storage + checkpoint_storage</code></pre
 <style>
   .methodology :global(section) {
     margin-top: 2.75rem;
-    scroll-margin-top: 2rem;
+    scroll-margin-top: calc(var(--nav-height) + 1rem);
   }
   .methodology :global(h2) {
     font-size: 1.15rem;
@@ -559,7 +561,7 @@ total_project = total_compute + dataset_storage + checkpoint_storage</code></pre
     margin-top: 1.75rem;
     color: var(--color-ink);
   }
-  .methodology :global(p) {
+  .methodology :global(p:not(.eyebrow)) {
     margin-top: 0.85rem;
     font-size: 0.9rem;
     line-height: 1.7;

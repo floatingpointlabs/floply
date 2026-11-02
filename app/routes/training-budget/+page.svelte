@@ -319,7 +319,8 @@
     content="Estimate the full cost of a training project: GPU compute, dataset storage, checkpoints, hyperparameter trials and ablations." />
 </svelte:head>
 
-<h1 class="text-2xl font-semibold tracking-tight">What will this project cost?</h1>
+<p class="eyebrow">Training budget</p>
+<h1 class="page-title">What will this project cost?</h1>
 <p class="mt-2 max-w-[62ch] text-sm leading-relaxed text-[var(--color-ink-muted)]">
   Describe the dataset, the model and the cluster. Each section unlocks as the one above it is
   answered.

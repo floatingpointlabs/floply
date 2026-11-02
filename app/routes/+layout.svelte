@@ -2,6 +2,7 @@
   import { page } from "$app/state";
   import Logo from "$lib/components/Logo.svelte";
   import RegionPicker from "$lib/components/RegionPicker.svelte";
+  import Sky from "$lib/components/Sky.svelte";
   import "../app.css";
   import type { LayoutProps } from "./$types";
 
@@ -35,56 +36,54 @@
   {/if}
 </svelte:head>
 
-<div class="flex min-h-screen flex-col">
-  <header class="border-b border-[var(--color-rule)]">
-    <div class="mx-auto flex max-w-6xl flex-wrap items-baseline gap-x-6 gap-y-2 px-6 py-6">
-      <!-- The wordmark splits mid-word: a newline before the span renders as
-           "flop ly." -->
-      <!-- prettier-ignore -->
-      <a
-        href="/"
-        class="text-[1.6rem] font-semibold lowercase leading-none tracking-[-0.025em]
-               text-[var(--color-ink)] no-underline">
-        flop<span class="text-[var(--color-indigo)]">ly</span>
-      </a>
-      <p class="text-sm text-[var(--color-ink-muted)]">
-        What a training run costs, before you commit the budget.
-      </p>
-      <div class="ms-auto">
-        <RegionPicker regions={data.regions} provenance={data.catalog.provenance} />
-      </div>
-    </div>
+<Sky />
 
-    <nav class="mx-auto max-w-6xl px-6" aria-label="Sections">
-      <ul class="-mb-px flex flex-wrap gap-x-1">
-        {#each tabs as tab (tab.href)}
-          {@const active = current === tab.href}
-          <li>
-            <a
-              href={tab.href}
-              aria-current={active ? "page" : undefined}
-              class="relative block px-3 py-2.5 text-sm no-underline transition-colors
-                     {active
-                ? 'text-[var(--color-ink)]'
-                : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]'}">
-              {tab.label}
-              {#if active}
-                <span class="absolute inset-x-0 bottom-0 block h-0.5 bg-[var(--color-indigo)]">
-                </span>
-              {/if}
-            </a>
-          </li>
-        {/each}
-      </ul>
-    </nav>
+<div class="relative z-[2] flex min-h-screen flex-col">
+  <header class="site-nav">
+    <div
+      class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-8 gap-y-1 px-6 py-3">
+      <a href="/" class="flex items-center gap-2.5 py-1 no-underline">
+        <Logo idPrefix="nav" size={36} />
+        <!-- The wordmark splits mid-word: a newline before the span renders as
+             "flop ly." -->
+        <!-- prettier-ignore -->
+        <span class="wordmark">flop<span class="text-[var(--color-indigo)]">ly</span></span>
+      </a>
+
+      <!-- Below md the tabs take their own row and scroll sideways rather than wrap. -->
+      <nav
+        class="-mx-6 w-[calc(100%+3rem)] overflow-x-auto px-6 pb-1 md:mx-0 md:w-auto md:p-0 max-md:[mask-image:linear-gradient(to_right,#000_85%,transparent)]"
+        aria-label="Sections">
+        <ul class="flex gap-x-6">
+          {#each tabs as tab (tab.href)}
+            <li>
+              <a
+                href={tab.href}
+                aria-current={current === tab.href ? "page" : undefined}
+                class="nav-link">
+                {tab.label}
+              </a>
+            </li>
+          {/each}
+        </ul>
+      </nav>
+    </div>
   </header>
 
-  <main class="mx-auto w-full max-w-6xl grow px-6 py-10">
+  <div
+    class="mx-auto flex w-full max-w-6xl flex-wrap items-start justify-between gap-x-6 gap-y-3 px-6 pt-6">
+    <p class="max-w-[60ch] pt-1 text-sm text-[var(--color-ink-muted)]">
+      What a training run costs, before you commit the budget.
+    </p>
+    <RegionPicker regions={data.regions} provenance={data.catalog.provenance} />
+  </div>
+
+  <main class="mx-auto w-full max-w-6xl grow px-6 pt-10 pb-20">
     {#if pricingUsable}
       {@render children()}
     {:else}
       <section class="max-w-2xl">
-        <h1 class="text-xl font-semibold">Pricing unavailable for {data.catalog.region}.</h1>
+        <h1 class="page-title">Pricing unavailable for {data.catalog.region}.</h1>
         <p class="mt-3 text-sm text-[var(--color-ink-muted)]">
           {data.catalog.provenance.last_error}
         </p>
@@ -101,7 +100,8 @@
     {/if}
   </main>
 
-  <footer class="border-t border-[var(--color-rule)]">
+  <footer
+    class="border-t border-[var(--color-groove)] bg-[var(--color-well)] shadow-[0_-1px_0_var(--color-edge)]">
     <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-7">
       <a
         href="https://floatingpointlabs.ca"
@@ -109,7 +109,10 @@
                transition-colors hover:text-[var(--color-ink)]">
         <Logo idPrefix="footer" size={30} />
         <span class="tracking-[-0.01em]">
-          A <span class="font-semibold text-[var(--color-ink)]">Floating Point Labs</span>
+          A
+          <span class="font-semibold text-[var(--color-ink)]">
+            Floating Point <span class="text-[var(--color-indigo)]">Labs</span>
+          </span>
           project
         </span>
       </a>

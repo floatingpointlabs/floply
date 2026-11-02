@@ -179,7 +179,8 @@
     content="Given a budget, find the largest model and dataset you can afford to train, and where the scaling-law optimum sits." />
 </svelte:head>
 
-<h1 class="text-2xl font-semibold tracking-tight">What can this budget buy?</h1>
+<p class="eyebrow">Budget optimizer</p>
+<h1 class="page-title">What can this budget buy?</h1>
 <p class="mt-2 max-w-[62ch] text-sm leading-relaxed text-[var(--color-ink-muted)]">
   For a fixed spend, a bigger model means less data. Set your budget and see the frontier — and
   where the scaling laws say the sweet spot is.
