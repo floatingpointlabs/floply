@@ -178,15 +178,13 @@
     name="description"
     content="Given a budget, find the largest model and dataset you can afford to train, and where the scaling-law optimum sits." />
 </svelte:head>
-
-<p class="eyebrow">Budget optimizer</p>
-<h1 class="page-title">What can this budget buy?</h1>
-<p class="mt-2 max-w-[62ch] text-sm leading-relaxed text-[var(--color-ink-muted)]">
+<h1>What can this budget buy?</h1>
+<p class="mt-2 max-w-[62ch] text-[var(--color-ink-muted)]">
   For a fixed spend, a bigger model means less data. Set your budget and see the frontier — and
   where the scaling laws say the sweet spot is.
 </p>
 
-<section class="mt-8 border-t border-[var(--color-rule)] pt-6">
+<section class="mt-8 border-t border-[var(--color-soft)] pt-6">
   <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
     <Field label="Total budget (USD)" id="budget" hint="GPU compute, tuning runs and storage.">
       <ScaledNumber
@@ -235,8 +233,8 @@
   </div>
 </section>
 
-<section class="mt-10 border-t border-[var(--color-rule)] pt-6">
-  <h2 class="text-lg font-semibold tracking-tight">The frontier</h2>
+<section class="mt-10 border-t border-[var(--color-soft)] pt-6">
+  <h2>The frontier</h2>
   <div class="mt-4">
     <BudgetFrontier
       {dRange}
@@ -252,7 +250,7 @@
   </div>
 
   <div
-    class="mt-6 grid gap-5 border-t border-[var(--color-rule)] pt-5 lg:grid-cols-[minmax(0,20rem)_1fr]">
+    class="mt-6 grid gap-5 border-t border-[var(--color-soft)] pt-5 lg:grid-cols-[minmax(0,20rem)_1fr]">
     <Field label="Explore by" id="explore">
       <select
         id="explore"
@@ -306,8 +304,8 @@
   </div>
 </section>
 
-<section class="mt-10 border-t border-[var(--color-rule)] pt-6">
-  <h2 class="text-lg font-semibold tracking-tight">At this point on the curve</h2>
+<section class="mt-10 border-t border-[var(--color-soft)] pt-6">
+  <h2>At this point on the curve</h2>
 
   <dl class="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
     <Figure label={sel.n_axis_title} value={fmtTokens(sel.selected_params)} />
@@ -320,7 +318,7 @@
   </dl>
 
   <dl
-    class="mt-8 grid gap-6 border-t border-[var(--color-rule)] pt-5 sm:grid-cols-2 lg:grid-cols-4">
+    class="mt-8 grid gap-6 border-t border-[var(--color-soft)] pt-5 sm:grid-cols-2 lg:grid-cols-4">
     <Figure label="Compute" value={money(sel.sel_compute_cost_total)} />
     <Figure label="Storage" value={money(sel.sel_dataset_storage + sel.sel_ckpt_storage)} />
     <Figure label="Total" value={money(sel.sel_total_cost)} tone={budgetUsedTone} />
@@ -334,8 +332,8 @@
   <Assessment assessment={ratioAssessment} class="mt-6" />
 </section>
 
-<section class="mt-10 border-t border-[var(--color-rule)] pt-6">
-  <h2 class="text-lg font-semibold tracking-tight">Training schedule &amp; storage</h2>
+<section class="mt-10 border-t border-[var(--color-soft)] pt-6">
+  <h2>Training schedule &amp; storage</h2>
   <p class="mt-1.5 max-w-[62ch] text-sm text-[var(--color-ink-muted)]">
     Derived from your setup. Change any of these and they hold until you edit the project setup
     above.

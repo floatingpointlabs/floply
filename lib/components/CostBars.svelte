@@ -20,7 +20,7 @@
 
 {#if total > 0}
   <div
-    class="flex h-7 w-full overflow-hidden rounded-sm"
+    class="flex h-7 w-full overflow-hidden rounded-[3px]"
     role="img"
     aria-label="Compute cost split across run types">
     {#each shown as s (s.label)}
@@ -36,7 +36,7 @@
     {#each segments as s (s.label)}
       <div>
         <dt class="flex items-center gap-2 text-[0.8rem] text-[var(--color-ink-muted)]">
-          <span class="h-2.5 w-2.5 shrink-0 rounded-[1px]" style="background:{s.color}"></span>
+          <span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background:{s.color}"></span>
           {s.label}
         </dt>
         <dd class="num mt-1 text-[1.15rem] leading-none">{money(s.value)}</dd>

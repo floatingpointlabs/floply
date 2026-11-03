@@ -72,7 +72,7 @@
         x={OUTER}
         y={OUTER + 16}
         text-anchor="middle"
-        class="fill-[var(--color-ink-faint)] text-[11px]">
+        class="fill-[var(--color-ink-faint)] text-xs">
         total
       </text>
     </svg>
@@ -82,7 +82,7 @@
     {#each segments as s (s.label)}
       <div class="flex items-baseline justify-between gap-4">
         <dt class="flex items-center gap-2 text-sm text-[var(--color-ink-muted)]">
-          <span class="h-2.5 w-2.5 shrink-0 rounded-[1px]" style="background:{s.color}"></span>
+          <span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background:{s.color}"></span>
           {s.label}
         </dt>
         <dd class="num text-sm">
