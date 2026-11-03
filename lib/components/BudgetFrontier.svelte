@@ -82,23 +82,23 @@
       aria-label="Affordable model size against dataset size, on logarithmic axes">
       <g transform="translate({M.left},{M.top})">
         {#each xTicks as t (t)}
-          <line x1={x(t)} x2={x(t)} y1="0" y2={innerH} stroke="var(--color-rule)" />
+          <line x1={x(t)} x2={x(t)} y1="0" y2={innerH} stroke="var(--color-soft)" />
           <text
             x={x(t)}
             y={innerH + 18}
             text-anchor="middle"
-            class="num fill-[var(--color-ink-faint)] text-[11px]">
+            class="num fill-[var(--color-ink-faint)] text-xs">
             {fmtTokens(t)}
           </text>
         {/each}
         {#each yTicks as t (t)}
-          <line x1="0" x2={innerW} y1={y(t)} y2={y(t)} stroke="var(--color-rule)" />
+          <line x1="0" x2={innerW} y1={y(t)} y2={y(t)} stroke="var(--color-soft)" />
           <text
             x="-10"
             y={y(t)}
             text-anchor="end"
             dominant-baseline="middle"
-            class="num fill-[var(--color-ink-faint)] text-[11px]">
+            class="num fill-[var(--color-ink-faint)] text-xs">
             {fmtTokens(t)}
           </text>
         {/each}
@@ -156,13 +156,13 @@
           x={innerW / 2}
           y={innerH + 36}
           text-anchor="middle"
-          class="fill-[var(--color-ink-muted)] text-[12px]">
+          class="fill-[var(--color-ink-muted)] text-xs">
           Dataset size (tokens)
         </text>
         <text
           transform="translate({-M.left + 14},{innerH / 2}) rotate(-90)"
           text-anchor="middle"
-          class="fill-[var(--color-ink-muted)] text-[12px]">
+          class="fill-[var(--color-ink-muted)] text-xs">
           {yAxisTitle}
         </text>
       </g>

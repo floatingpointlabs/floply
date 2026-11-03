@@ -29,10 +29,10 @@
 
   const tone = $derived(
     provenance.source === "unavailable"
-      ? "text-[var(--color-warning)]"
+      ? "text-[var(--color-danger)]"
       : provenance.stale
-        ? "text-[var(--color-checkpoint)]"
-        : "text-[var(--color-ink-muted)]"
+        ? "text-[var(--color-highlight)]"
+        : "text-[var(--color-ink-faint)]"
   );
 
   const detailCount = $derived(
@@ -40,13 +40,13 @@
   );
 </script>
 
-<div class="flex flex-col items-start gap-1 sm:items-end">
+<div class="relative flex flex-col items-start gap-1.5 sm:items-end">
   <label class="flex items-center gap-2 text-sm">
-    <span class="text-[var(--color-ink-muted)]">Region</span>
+    <span class="font-medium text-[var(--color-ink-muted)]">Region</span>
     <select
       value={provenance.region}
       onchange={select}
-      class="rounded-field border border-[var(--color-rule-strong)] bg-transparent px-2 py-1 text-sm"
+      class="control w-auto !py-1.5 text-sm"
       title="Prices vary by region.">
       {#each regions as region (region.code)}
         <option value={region.code}>
@@ -56,12 +56,15 @@
     </select>
   </label>
 
-  <p class="text-xs {tone}">
+  <p class="px-1 text-sm leading-snug {tone}">
+    {#if !provenance.stale && provenance.source !== "unavailable"}
+      <span class="point mr-1.5 align-[0.05em]" aria-hidden="true"></span>
+    {/if}
     {summary}
     {#if detailCount}
       <button
         type="button"
-        class="ml-1 underline decoration-dotted underline-offset-2"
+        class="font-medium text-[var(--color-accent-lit)] hover:text-[var(--color-ink)]"
         aria-expanded={open}
         onclick={() => (open = !open)}>
         {detailCount} note{detailCount === 1 ? "" : "s"}
@@ -71,8 +74,8 @@
 
   {#if open}
     <div
-      class="max-w-md rounded-field border border-[var(--color-rule)] bg-[var(--color-surface)] p-3 text-xs
-             text-[var(--color-ink-muted)]">
+      class="popover settle absolute top-full left-0 z-30 mt-2 w-[min(22rem,90vw)] p-4 text-sm
+             leading-relaxed text-[var(--color-ink-muted)] sm:right-0 sm:left-auto">
       <p>
         On-demand Linux prices. Cache: <code>{provenance.cache_location}</code>
       </p>
@@ -80,7 +83,7 @@
         <p class="mt-2">Last error: {provenance.last_error}</p>
       {/if}
       {#if Object.keys(provenance.quarantined).length}
-        <p class="mt-2 font-medium">Skipped instances</p>
+        <p class="mt-2 font-semibold text-[var(--color-ink)]">Skipped instances</p>
         <ul class="list-disc pl-4">
           {#each Object.entries(provenance.quarantined) as [instanceType, reason] (instanceType)}
             <li>
@@ -91,7 +94,7 @@
         </ul>
       {/if}
       {#if provenance.warnings.length}
-        <p class="mt-2 font-medium">Warnings</p>
+        <p class="mt-2 font-semibold text-[var(--color-ink)]">Warnings</p>
         <ul class="list-disc pl-4">
           <!-- Keyed by index, not by text: two warnings can legitimately read the same
                (one per region, one per storage class), and a duplicate key would crash the

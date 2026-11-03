@@ -194,13 +194,13 @@
   <meta name="description" content="Find the biggest model and dataset your budget can train." />
 </svelte:head>
 
-<h1 class="text-2xl font-semibold tracking-tight">What can this budget buy?</h1>
-<p class="mt-2 max-w-[62ch] text-sm leading-relaxed text-[var(--color-ink-muted)]">
+<h1>What can this budget buy?</h1>
+<p class="mt-2 max-w-[62ch] text-[var(--color-ink-muted)]">
   With a fixed budget, a bigger model means less data. Set your budget to see the trade-off and the
   best balance.
 </p>
 
-<section class="mt-8 border-t border-[var(--color-rule)] pt-6">
+<section class="mt-8 border-t border-[var(--color-soft)] pt-6">
   <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
     <Field
       label="Total budget (USD)"
@@ -258,8 +258,8 @@
   </div>
 </section>
 
-<section class="mt-10 border-t border-[var(--color-rule)] pt-6">
-  <h2 class="text-lg font-semibold tracking-tight">Model size vs. data</h2>
+<section class="mt-10 border-t border-[var(--color-soft)] pt-6">
+  <h2>Model size vs. data</h2>
   <p class="mt-1.5 max-w-[62ch] text-sm text-[var(--color-ink-muted)]">
     Every point on the solid line uses your full budget. The star marks the best balance.
   </p>
@@ -278,7 +278,7 @@
   </div>
 
   <div
-    class="mt-6 grid gap-5 border-t border-[var(--color-rule)] pt-5 lg:grid-cols-[minmax(0,20rem)_1fr]">
+    class="mt-6 grid gap-5 border-t border-[var(--color-soft)] pt-5 lg:grid-cols-[minmax(0,20rem)_1fr]">
     <Field label="Adjust" id="explore">
       <select
         id="explore"
@@ -339,8 +339,8 @@
   </div>
 </section>
 
-<section class="mt-10 border-t border-[var(--color-rule)] pt-6">
-  <h2 class="text-lg font-semibold tracking-tight">Your selection</h2>
+<section class="mt-10 border-t border-[var(--color-soft)] pt-6">
+  <h2>Your selection</h2>
 
   <dl class="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
     <Figure label={sel.n_axis_title} value={fmtTokens(sel.selected_params)} />
@@ -353,7 +353,7 @@
   </dl>
 
   <dl
-    class="mt-8 grid gap-6 border-t border-[var(--color-rule)] pt-5 sm:grid-cols-2 lg:grid-cols-4">
+    class="mt-8 grid gap-6 border-t border-[var(--color-soft)] pt-5 sm:grid-cols-2 lg:grid-cols-4">
     <Figure label="Compute" value={money(sel.sel_compute_cost_total)} />
     <Figure label="Storage" value={money(sel.sel_dataset_storage + sel.sel_ckpt_storage)} />
     <Figure label="Total" value={money(sel.sel_total_cost)} tone={budgetUsedTone} />
@@ -367,8 +367,8 @@
   <Assessment assessment={ratioAssessment} class="mt-6" />
 </section>
 
-<section class="mt-10 border-t border-[var(--color-rule)] pt-6">
-  <h2 class="text-lg font-semibold tracking-tight">Run settings</h2>
+<section class="mt-10 border-t border-[var(--color-soft)] pt-6">
+  <h2>Run settings</h2>
   <p class="mt-1.5 max-w-[62ch] text-sm text-[var(--color-ink-muted)]">
     Filled in from your setup. Your changes stay until you change the setup above.
   </p>

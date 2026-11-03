@@ -1,19 +1,50 @@
 @import "tailwindcss";
 
 /*
- * Floply — Floating Point Labs house style.
- *
- * Tokens are taken from the FPL design system (website repo, src/styles/global.css) so
- * this reads as the same house: the same graphite ground and plate, the same indigo
- * signal, the same machined 2–3px corners, the same Jost / IBM Plex Mono.
+ * Floply — the FPL product system (voltron repo, sandbox/DESIGN.md). Warm charcoal, one
+ * violet accent for what you press and follow, mint for what is live, a separate palette
+ * for data. Surfaces separate by a soft shadow and a faint white edge rather than hairlines,
+ * corners are rounded, and one family (Figtree) sets every word and number.
  */
 
 @font-face {
   font-display: swap;
-  font-family: "Jost";
+  font-family: "Figtree";
   font-style: normal;
-  font-weight: 400 700;
-  src: url("/fonts/jost.woff2") format("woff2");
+  font-weight: 400;
+  src: url("/fonts/figtree-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "Figtree";
+  font-style: normal;
+  font-weight: 500;
+  src: url("/fonts/figtree-latin-500-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "Figtree";
+  font-style: normal;
+  font-weight: 600;
+  src: url("/fonts/figtree-latin-600-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "Figtree";
+  font-style: normal;
+  font-weight: 700;
+  src: url("/fonts/figtree-latin-700-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "Figtree";
+  font-style: normal;
+  font-weight: 800;
+  src: url("/fonts/figtree-latin-800-normal.woff2") format("woff2");
 }
 
 @font-face {
@@ -25,158 +56,363 @@
 }
 
 @theme {
-  /* app/error.html inlines ground, ink, ink-muted and indigo as literals: it renders when
-     the app could not, so it cannot reach a stylesheet. Change both. */
-  --color-ground: #0f1013;
-  --color-surface: #15171c;
-  --color-well: #0b0c0f;
-  --color-groove: #08090b;
-  --color-edge: rgb(255 255 255 / 0.075);
+  /* app/error.html inlines ground, ink, ink-muted and accent-lit as literals: it renders
+     when the app could not, so it cannot reach a stylesheet. Change both. */
+  --color-well: #0e0d12;
+  --color-ground: #15141a;
+  --color-panel: #201f26;
+  --color-surface: #292830;
+  --color-surface-lit: #373540;
 
-  --color-rule: #272b33;
-  /* The edge that identifies a control: the quietest value that clears 3:1 (3.55:1). */
-  --color-rule-strong: #5f62b7;
+  /* Soft is the faint edge most surfaces and separators carry; Rule is kept for the few
+     lines that must read at a glance (a field's hover edge, a quote's thread). */
+  --color-soft: rgb(255 255 255 / 0.1);
+  --color-rule: #403e4c;
 
-  /*
-   * Text. All three clear WCAG AA on the ground and on the surface plate:
-   * 15.8 / 6.3 / 4.8:1 on ground, 14.9 / 6.0 / 4.5:1 on surface.
-   *
-   * Floply needs a third, fainter level for captions, axis ticks and table category
-   * labels; it maps to the FPL site's --text-dim.
-   */
-  --color-ink: #e8eaef;
-  --color-ink-muted: #8f95a3;
-  --color-ink-faint: #7a808e;
+  /* Text / Muted / Dim: at least 10.4, 5.8 and 5.1:1 on every surface. */
+  --color-ink: #efeef4;
+  --color-ink-muted: #b5b2c0;
+  --color-ink-faint: #aaa7b5;
 
-  --color-indigo: #7d80f7;
-  --color-indigo-lit: #b3b5ff;
-  --color-violet: #a78bfa;
-  --color-violet-pale: #c4b5fd;
-  --color-purple-deep: #7c3aed;
+  --color-accent: #a78bfa;
+  --color-accent-lit: #c9b8ff;
 
-  /* Duplicated as CHART_COLORS in lib/engine/constants.ts, which the charts use for
-     fills and strokes. Change both. */
-  --color-compute: #7d80f7;
-  --color-storage: #22d3ee;
-  --color-checkpoint: #f59e0b;
-  --color-warning: #fb7185;
-  --color-success: #34d399;
+  /* Mint: what is live or landed. Its own hue, so a lamp never reads as a link. */
+  --color-signal: #7fe0c0;
+  /* Warm amber for what needs a second look; danger only for what failed. */
+  --color-highlight: #e8b75a;
+  --color-danger: #f47a7a;
 
-  --font-sans: "Jost", system-ui, sans-serif;
+  /* The data palette leaves out the accent, signal and highlight, so a chart never reads
+     as a key or a state. Duplicated as CHART_COLORS in lib/engine/constants.ts, which the
+     charts use for fills and strokes. Change both. */
+  --color-compute: #6aa8f0;
+  --color-storage: #4dc8e0;
+  --color-checkpoint: #b5d36a;
+  --color-warning: #e88ac6;
+  --color-success: #8fa3bf;
+
+  --font-sans: "Figtree", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --radius-field: 2px;
+  /* The six steps: 0.8, 0.875, 1, 1.125, 1.5, 1.875rem. */
+  --text-xs: 0.8rem;
+  --text-xs--line-height: 1.45;
+
+  --radius-screen: 14px;
+  --radius-control: 9px;
+  --radius-chip: 999px;
+
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.28), 0 4px 14px -4px rgb(0 0 0 / 0.38);
+  --shadow-lifted: 0 2px 6px rgb(0 0 0 / 0.3), 0 18px 40px -14px rgb(0 0 0 / 0.6);
 }
 
 :root {
   color-scheme: dark;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  /* The sticky top bar's height, so in-page anchors land below it. */
+  --nav-height: 4.25rem;
 }
 
-/*
- * 107.5% rather than 100%: Jost's x-height is ~8% smaller than the face it replaced, so
- * at a nominal size its lowercase reads small — the same correction the FPL site makes.
- * On the root so every rem-based Tailwind size inherits it.
- */
+/* Below md the nav links drop to a second row. */
+@media (max-width: 767px) {
+  :root {
+    --nav-height: 7rem;
+  }
+}
+
 html {
   background: var(--color-ground);
-  font-size: 107.5%;
+  scroll-padding-top: calc(var(--nav-height) + 1rem);
+  scrollbar-color: var(--color-surface-lit) transparent;
 }
 
 body {
   background: var(--color-ground);
+  caret-color: var(--color-accent);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  line-height: 1.55;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
-h1,
-h2,
-h3 {
-  letter-spacing: -0.025em;
+::selection {
+  background: rgb(167 139 250 / 0.3);
+  color: var(--color-ink);
 }
 
-/* Layered so a Tailwind `text-…` utility on a link (the tabs, the wordmark) still wins. */
 @layer base {
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  /* Page titles name where you are. */
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  h2 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.3;
+  }
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* Layered so a Tailwind `text-…` utility on a link (the nav, the wordmark) still wins. */
   a {
-    color: var(--color-indigo-lit);
-    text-underline-offset: 3px;
+    color: var(--color-accent-lit);
+    text-decoration: none;
+    text-underline-offset: 0.2em;
   }
 
   a:hover {
-    color: var(--color-ink);
+    text-decoration: underline;
+  }
+
+  code,
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
   }
 }
 
 /*
- * Figures use tabular, lining numerals so digits hold their column as values change.
- * Without this, dragging a slider makes the whole readout jitter sideways.
+ * Figures use Figtree's tabular, lining numerals so digits hold their column as values
+ * change. Without this, dragging a slider makes the whole readout jitter sideways.
  *
- * Deliberately unlayered, unlike the component classes below: this must win over
- * `.control`'s `font-family: inherit` on inputs marked `class="control num"`, and a
- * figure should never lose its tabular numerals to a stray font utility.
+ * Deliberately unlayered: a figure should never lose its tabular numerals to a utility.
  */
 .num {
-  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings: "tnum" 1;
-  letter-spacing: -0.01em;
 }
 
 /*
  * These live in the `components` layer on purpose. Tailwind utilities sit in a later
  * layer, and unlayered CSS beats layered CSS regardless of source order — so as plain
  * rules these would silently defeat the per-instance overrides beside them
- * (`w-auto` on the unit select, `text-…` on a selected pill).
+ * (`w-auto` on the unit select).
  */
 @layer components {
-  /* Recessed into the page, so it reads as somewhere to put something. */
+  /* Fields: Plate with a Soft edge, going to Rule on hover. */
   .control {
-    background: var(--color-ground);
-    border: 1px solid var(--color-rule-strong);
-    border-radius: var(--radius-field);
-    box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.35);
+    background: var(--color-surface);
+    border: 1px solid var(--color-soft);
+    border-radius: var(--radius-control);
     color: var(--color-ink);
-    font-family: inherit;
-    font-size: 0.9rem;
-    padding: 0.55rem 0.75rem;
+    font: inherit;
+    padding: 0.5rem 0.75rem;
+    transition:
+      border-color 0.16s ease-out,
+      background 0.16s ease-out;
     width: 100%;
   }
 
-  .control:focus {
-    border-color: var(--color-indigo);
-    outline: none;
+  .control:hover:not(:disabled) {
+    border-color: var(--color-rule);
   }
 
-  /* The FPL site's .tag: a key set into a well rather than a glowing pill. */
-  .pill {
-    background: var(--color-well);
-    border: 1px solid var(--color-groove);
-    border-radius: var(--radius-field);
-    box-shadow: 0 1px 0 var(--color-edge);
+  /* Raised on the page: cards, tiles, table wraps. */
+  .card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-soft);
+    border-radius: var(--radius-screen);
+    box-shadow: var(--shadow-raised);
+  }
+
+  .table-wrap {
+    background: var(--color-panel);
+    border: 1px solid var(--color-soft);
+    border-radius: var(--radius-screen);
+    box-shadow: var(--shadow-raised);
+    overflow-x: auto;
+  }
+
+  .table-wrap table {
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+    width: 100%;
+  }
+
+  .table-wrap th,
+  .table-wrap td {
+    border-bottom: 1px solid var(--color-soft);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .table-wrap th {
+    background: var(--color-panel);
     color: var(--color-ink-muted);
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.07em;
-    padding: 0.24rem 0.6rem;
+    font-weight: 600;
+  }
+
+  .table-wrap tbody tr:last-child :is(td, th) {
+    border-bottom: 0;
+  }
+
+  .table-wrap tbody tr:hover {
+    background: var(--color-surface);
+  }
+
+  /* The product name alone, as Floply spells it. */
+  .wordmark {
+    color: var(--color-ink);
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  /* Nav links: Muted with a Dim icon; the current one is a raised Plate. */
+  .nav-link {
+    align-items: center;
+    border-radius: var(--radius-control);
+    color: var(--color-ink-muted);
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    transition:
+      color 0.16s ease-out,
+      background 0.16s ease-out,
+      box-shadow 0.16s ease-out;
+    white-space: nowrap;
+  }
+
+  .nav-link:hover {
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+
+  .nav-link[aria-current] {
+    background: var(--color-surface);
+    box-shadow: var(--shadow-raised);
+    color: var(--color-ink);
+  }
+
+  .nav-link svg {
+    color: var(--color-ink-faint);
+    flex: none;
+    height: 1.125rem;
+    stroke-width: 1.75;
+    transition: color 0.16s ease-out;
+    width: 1.125rem;
+  }
+
+  .nav-link:hover svg {
+    color: var(--color-ink-muted);
+  }
+
+  .nav-link[aria-current] svg {
+    color: var(--color-accent-lit);
+  }
+
+  /* Chips you pick as a set: quiet round keys; pressed, Plate Lit with an accent edge. */
+  .pill {
+    background: var(--color-surface);
+    border: 1px solid var(--color-soft);
+    border-radius: var(--radius-chip);
+    color: var(--color-ink-muted);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.25rem 0.75rem;
+    transition:
+      background 0.16s ease-out,
+      border-color 0.16s ease-out,
+      color 0.16s ease-out;
+  }
+
+  .pill:hover {
+    background: var(--color-surface-lit);
+    border-color: var(--color-rule);
+    color: var(--color-ink);
+  }
+
+  .pill[aria-pressed="true"] {
+    background: var(--color-surface-lit);
+    border-color: var(--color-accent);
+    color: var(--color-accent-lit);
+  }
+
+  /* The landed point: what is live, still and glowing. */
+  .point {
+    background: var(--color-signal);
+    border-radius: 50%;
+    box-shadow: 0 0 8px 1px rgb(127 224 192 / 0.5);
+    display: inline-block;
+    flex: none;
+    height: 8px;
+    width: 8px;
+  }
+
+  /* A popover or open panel: Plate, Soft edge, lifted. */
+  .popover {
+    background: var(--color-surface);
+    border: 1px solid var(--color-soft);
+    border-radius: var(--radius-control);
+    box-shadow: var(--shadow-lifted);
+  }
+
+  /* A new reading settles once and then stays put. */
+  .settle {
+    animation: settle 0.32s var(--ease-out) both;
+  }
+}
+
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
 }
 
 input[type="range"],
 input[type="checkbox"] {
-  accent-color: var(--color-indigo);
+  accent-color: var(--color-accent);
 }
 
 /* No border-radius: the outline already follows each element's own corners. */
 :focus-visible {
-  outline: 2px solid var(--color-indigo);
+  outline: 2px solid var(--color-accent);
   outline-offset: 3px;
+}
+
+/* Between pages the chrome holds still; the page fades out and the new one settles. */
+::view-transition-old(page) {
+  animation: 0.14s ease-in both fade-out;
+}
+
+::view-transition-new(page) {
+  animation: 0.3s var(--ease-out) both settle;
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
-  *::after {
+  *::after,
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

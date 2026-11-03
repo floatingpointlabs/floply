@@ -32,7 +32,7 @@
 
 <div class="lg:grid lg:grid-cols-[1fr_14rem] lg:gap-12">
   <article class="methodology max-w-[68ch]">
-    <h1 class="text-2xl font-semibold tracking-tight">How it works</h1>
+    <h1>How it works</h1>
     <p class="mt-2 text-sm text-[var(--color-ink-muted)]">
       The formulas behind every estimate, and what they assume. Prices come live from AWS for the
       region you pick.
@@ -533,12 +533,13 @@ total_project = total_compute + dataset_storage + checkpoint_storage</code></pre
   </article>
 
   <nav class="mt-12 hidden lg:mt-0 lg:block" aria-label="On this page">
-    <ul class="sticky top-8 space-y-2 border-l border-[var(--color-rule)] pl-4 text-sm">
+    <ul
+      class="sticky top-[calc(var(--nav-height)+1.5rem)] space-y-2 border-l border-[var(--color-soft)] pl-4 text-sm">
       {#each sections as s (s.id)}
         <li>
           <a
             href="#{s.id}"
-            class="text-[var(--color-ink-faint)] transition-colors hover:text-[var(--color-ink)]">
+            class="text-[var(--color-ink-muted)] transition-colors hover:text-[var(--color-ink)]">
             {s.title}
           </a>
         </li>
@@ -549,35 +550,26 @@ total_project = total_compute + dataset_storage + checkpoint_storage</code></pre
 
 <style>
   .methodology :global(section) {
-    margin-top: 2.75rem;
-    scroll-margin-top: 2rem;
+    margin-top: 2.5rem;
+    scroll-margin-top: calc(var(--nav-height) + 1rem);
   }
+  /* Sections sit under a Soft line, with the space above. */
   .methodology :global(h2) {
-    font-size: 1.15rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--color-rule);
+    border-top: 1px solid var(--color-soft);
+    padding-top: 1rem;
   }
   .methodology :global(h3) {
-    font-size: 0.95rem;
-    font-weight: 600;
     margin-top: 1.75rem;
-    color: var(--color-ink);
   }
-  .methodology :global(p) {
-    margin-top: 0.85rem;
-    font-size: 0.9rem;
+  .methodology :global(p),
+  .methodology :global(ul) {
+    margin-top: 0.75rem;
     line-height: 1.7;
     color: var(--color-ink-muted);
   }
   .methodology :global(ul) {
-    margin-top: 0.85rem;
-    padding-left: 1.1rem;
+    padding-left: 1.25rem;
     list-style: disc;
-    font-size: 0.9rem;
-    line-height: 1.7;
-    color: var(--color-ink-muted);
   }
   .methodology :global(strong) {
     color: var(--color-ink);
@@ -586,38 +578,50 @@ total_project = total_compute + dataset_storage + checkpoint_storage</code></pre
   .methodology :global(pre) {
     margin-top: 1rem;
     overflow-x: auto;
-    border-left: 2px solid var(--color-rule-strong);
-    background: var(--color-surface);
-    padding: 0.85rem 1rem;
-    font-size: 0.8rem;
+    background: var(--color-well);
+    border: 1px solid var(--color-soft);
+    border-radius: var(--radius-screen);
+    padding: 0.75rem 1rem;
     line-height: 1.6;
   }
   .methodology :global(code) {
-    font-family: var(--font-mono);
     color: var(--color-ink);
   }
-  .methodology :global(p code) {
-    font-size: 0.85em;
+  .methodology :global(p code),
+  .methodology :global(li code),
+  .methodology :global(td code) {
     background: var(--color-surface);
-    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    padding: 0.05em 0.3em;
   }
+  /* A table on the page is a raised Panel with 14px corners; it scrolls inside itself. */
   .methodology :global(table) {
+    display: block;
     margin-top: 1rem;
-    width: 100%;
+    overflow-x: auto;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    background: var(--color-panel);
+    border: 1px solid var(--color-soft);
+    border-radius: var(--radius-screen);
+    box-shadow: var(--shadow-raised);
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .methodology :global(th),
+  .methodology :global(td) {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--color-soft);
+    text-align: left;
+    vertical-align: top;
   }
   .methodology :global(th) {
-    text-align: left;
-    font-weight: 500;
-    color: var(--color-ink-faint);
-    border-bottom: 1px solid var(--color-rule-strong);
-    padding: 0.4rem 0.75rem 0.4rem 0;
+    font-weight: 600;
+    color: var(--color-ink-muted);
   }
   .methodology :global(td) {
-    border-bottom: 1px solid var(--color-rule);
-    padding: 0.45rem 0.75rem 0.45rem 0;
     color: var(--color-ink-muted);
-    vertical-align: top;
+  }
+  .methodology :global(tbody tr:last-child td) {
+    border-bottom: 0;
   }
 </style>

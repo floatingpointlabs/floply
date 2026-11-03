@@ -321,13 +321,13 @@
     content="Estimate the full cost of a training project, including compute, storage, tuning and ablation runs." />
 </svelte:head>
 
-<h1 class="text-2xl font-semibold tracking-tight">What will this project cost?</h1>
-<p class="mt-2 max-w-[62ch] text-sm leading-relaxed text-[var(--color-ink-muted)]">
+<h1>What will this project cost?</h1>
+<p class="mt-2 max-w-[62ch] text-[var(--color-ink-muted)]">
   Describe your data, model and hardware. Each section opens once the one above it is filled in.
 </p>
 
-<section class="mt-8 border-t border-[var(--color-rule)] pt-6">
-  <h2 class="text-lg font-semibold tracking-tight">Dataset</h2>
+<section class="mt-8 border-t border-[var(--color-soft)] pt-6">
+  <h2>Dataset</h2>
   <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
     <Field label="Data type" id="modality">
       <select id="modality" bind:value={modality} class="control">
@@ -442,7 +442,7 @@
   </div>
 
   {#if hasDataset}
-    <dl class="mt-6 grid gap-6 border-t border-[var(--color-rule)] pt-5 sm:grid-cols-3">
+    <dl class="mt-6 grid gap-6 border-t border-[var(--color-soft)] pt-5 sm:grid-cols-3">
       <Figure label="Tokens per sample" value={fmtTokens(perSample.tokens)} />
       <Figure label="Total tokens" value={fmtTokens(budget.total_tokens)} />
       <Figure label="Estimated size" value={sizeLabel} />
@@ -455,8 +455,8 @@
 </section>
 
 {#if hasDataset}
-  <section class="mt-10 border-t border-[var(--color-rule)] pt-6">
-    <h2 class="text-lg font-semibold tracking-tight">Model</h2>
+  <section class="mt-10 border-t border-[var(--color-soft)] pt-6">
+    <h2>Model</h2>
     <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       <Field label="Training type" id="training-type">
         <select id="training-type" bind:value={trainingType} class="control">
@@ -545,8 +545,8 @@
     <Assessment {assessment} class="mt-5" />
   </section>
 
-  <section class="mt-10 border-t border-[var(--color-rule)] pt-6">
-    <h2 class="text-lg font-semibold tracking-tight">Hardware</h2>
+  <section class="mt-10 border-t border-[var(--color-soft)] pt-6">
+    <h2>Hardware</h2>
     <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       <Field label="Instance type" id="instance">
         <select
@@ -620,7 +620,7 @@
     </div>
 
     <dl
-      class="mt-6 grid gap-6 border-t border-[var(--color-rule)] pt-5 sm:grid-cols-2 lg:grid-cols-4">
+      class="mt-6 grid gap-6 border-t border-[var(--color-soft)] pt-5 sm:grid-cols-2 lg:grid-cols-4">
       <Figure label="Total compute (FLOPs)" value={formatE(budget.total_flops, 2)} />
       <Figure label="Training time (1 run)" value={formatWallClockTime(budget.wall_clock_days)} />
       <Figure label="GPU-hours (1 run)" value="{formatGpuHours(budget.gpu_hours)} GPU-hrs" />
@@ -631,15 +631,15 @@
         tone={budget.memory_fits ? "success" : "warning"} />
     </dl>
     {#if !budget.memory_fits}
-      <p class="mt-3 text-sm text-[var(--color-warning)]">
+      <p class="mt-3 text-sm text-[var(--color-danger)]">
         This won't fit in GPU memory. Lower the batch size, turn on gradient checkpointing, add
         instances, or pick a GPU with more memory.
       </p>
     {/if}
   </section>
 
-  <section class="mt-10 border-t border-[var(--color-rule)] pt-6">
-    <h2 class="text-lg font-semibold tracking-tight">Experiments</h2>
+  <section class="mt-10 border-t border-[var(--color-soft)] pt-6">
+    <h2>Experiments</h2>
     <p class="mt-1.5 max-w-[62ch] text-sm text-[var(--color-ink-muted)]">
       Real projects take more than one run. Tuning and ablation runs often cost more than the final
       model.
@@ -714,8 +714,8 @@
     </div>
   </section>
 
-  <section class="mt-10 border-t border-[var(--color-rule-strong)] pt-6">
-    <h2 class="text-lg font-semibold tracking-tight">Total project cost</h2>
+  <section class="mt-10 border-t border-[var(--color-soft)] pt-6">
+    <h2>Total project cost</h2>
 
     <dl class="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
       <Figure label="Compute (1 run)" value={moneyCents(budget.compute_cost)} />
@@ -754,8 +754,8 @@
     </p>
   </section>
 
-  <section class="mt-10 border-t border-[var(--color-rule)] pt-6">
-    <h2 class="text-lg font-semibold tracking-tight">Compute by run type</h2>
+  <section class="mt-10 border-t border-[var(--color-soft)] pt-6">
+    <h2>Compute by run type</h2>
     <p class="mt-1.5 max-w-[62ch] text-sm text-[var(--color-ink-muted)]">
       Where the compute money goes.
     </p>
@@ -764,23 +764,21 @@
     </div>
   </section>
 
-  <section class="mt-10 border-t border-[var(--color-rule)] pt-6">
-    <h2 class="text-lg font-semibold tracking-tight">All settings</h2>
+  <section class="mt-10 border-t border-[var(--color-soft)] pt-6">
+    <h2>All settings</h2>
     <p class="mt-1.5 max-w-[62ch] text-sm text-[var(--color-ink-muted)]">
       Every input and result behind this estimate.
     </p>
 
-    <div class="mt-5 overflow-x-auto">
-      <table class="w-full text-sm">
+    <div class="table-wrap mt-5 max-w-3xl">
+      <table>
         <tbody>
           {#each recap as [category, label, value], i (category + label)}
             {@const first = i === 0 || recap[i - 1][0] !== category}
-            <tr class={first && i > 0 ? "border-t border-[var(--color-rule-strong)]" : ""}>
-              <td class="w-28 py-1.5 pr-4 align-top text-[var(--color-ink-faint)]">
-                {first ? category : ""}
-              </td>
-              <td class="py-1.5 pr-4 align-top text-[var(--color-ink-muted)]">{label}</td>
-              <td class="num py-1.5 align-top text-[var(--color-ink)]">{value}</td>
+            <tr>
+              <th scope="row" class="w-32 font-medium">{first ? category : ""}</th>
+              <td class="text-[var(--color-ink-muted)]">{label}</td>
+              <td class="num text-right">{value}</td>
             </tr>
           {/each}
         </tbody>

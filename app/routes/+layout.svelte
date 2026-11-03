@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onNavigate } from "$app/navigation";
   import { page } from "$app/state";
   import Logo from "$lib/components/Logo.svelte";
   import RegionPicker from "$lib/components/RegionPicker.svelte";
@@ -9,14 +10,30 @@
 
   const pricingUsable = $derived(data.catalog.provenance.source !== "unavailable");
 
-  const tabs = [
-    { href: "/", label: "Data needed" },
-    { href: "/budget-optimizer", label: "Budget optimizer" },
-    { href: "/training-budget", label: "Project cost" },
-    { href: "/methodology", label: "How it works" }
-  ];
+  // Icons are Lucide's (ISC), inlined: four glyphs don't justify a dependency.
+  const links = [
+    { href: "/", label: "Data needed", icon: "database" },
+    { href: "/budget-optimizer", label: "Budget optimizer", icon: "trending-up" },
+    { href: "/training-budget", label: "Project cost", icon: "calculator" },
+    { href: "/methodology", label: "How it works", icon: "book-open" }
+  ] as const;
 
   const current = $derived(page.url.pathname);
+
+  // The top bar and footer hold still while the page cross-fades (see ::view-transition-* in app.css).
+  onNavigate((navigation) => {
+    if (
+      !document.startViewTransition ||
+      navigation.from?.url.pathname === navigation.to?.url.pathname
+    )
+      return;
+    return new Promise((resolve) => {
+      document.startViewTransition(async () => {
+        resolve();
+        await navigation.complete;
+      });
+    });
+  });
 </script>
 
 <svelte:head>
@@ -33,64 +50,83 @@
   {/if}
 </svelte:head>
 
-<div class="flex min-h-screen flex-col">
-  <header class="border-b border-[var(--color-rule)]">
-    <div class="mx-auto flex max-w-6xl flex-wrap items-baseline gap-x-6 gap-y-2 px-6 py-6">
-      <!-- The wordmark splits mid-word: a newline before the span renders as
-           "flop ly." -->
-      <!-- prettier-ignore -->
-      <a
-        href="/"
-        class="text-[1.6rem] font-semibold lowercase leading-none tracking-[-0.025em]
-               text-[var(--color-ink)] no-underline">
-        flop<span class="text-[var(--color-indigo)]">ly</span>
-      </a>
-      <p class="text-sm text-[var(--color-ink-muted)]">
-        Estimate what it costs to train an ML model.
-      </p>
-      <div class="ms-auto">
-        <RegionPicker regions={data.regions} provenance={data.catalog.provenance} />
-      </div>
-    </div>
+{#snippet icon(name: (typeof links)[number]["icon"])}
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round">
+    {#if name === "database"}
+      <ellipse cx="12" cy="5" rx="9" ry="3" />
+      <path d="M3 5V19A9 3 0 0 0 21 19V5" />
+      <path d="M3 12A9 3 0 0 0 21 12" />
+    {:else if name === "trending-up"}
+      <path d="M16 7h6v6" />
+      <path d="m22 7-8.5 8.5-5-5L2 17" />
+    {:else if name === "calculator"}
+      <rect width="16" height="20" x="4" y="2" rx="2" />
+      <line x1="8" x2="16" y1="6" y2="6" />
+      <line x1="16" x2="16" y1="14" y2="18" />
+      <path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01" />
+    {:else}
+      <path d="M12 5v16" />
+      <path
+        d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" />
+    {/if}
+  </svg>
+{/snippet}
 
-    <nav class="mx-auto max-w-6xl px-6" aria-label="Sections">
-      <ul class="-mb-px flex flex-wrap gap-x-1">
-        {#each tabs as tab (tab.href)}
-          {@const active = current === tab.href}
-          <li>
-            <a
-              href={tab.href}
-              aria-current={active ? "page" : undefined}
-              class="relative block px-3 py-2.5 text-sm no-underline transition-colors
-                     {active
-                ? 'text-[var(--color-ink)]'
-                : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]'}">
-              {tab.label}
-              {#if active}
-                <span class="absolute inset-x-0 bottom-0 block h-0.5 bg-[var(--color-indigo)]">
-                </span>
-              {/if}
-            </a>
-          </li>
-        {/each}
-      </ul>
-    </nav>
+<div class="flex min-h-screen flex-col">
+  <header class="topbar">
+    <div
+      class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-8 gap-y-2 px-6 py-3">
+      <!-- The wordmark splits mid-word: a newline before the span renders as "flop ly." -->
+      <!-- prettier-ignore -->
+      <a href="/" class="wordmark brand">flop<span class="text-[var(--color-accent-lit)]">ly</span></a>
+
+      <!-- Below md the links take their own row and scroll sideways rather than wrap. -->
+      <nav class="links" aria-label="Sections">
+        <ul class="flex gap-1">
+          {#each links as link (link.href)}
+            <li>
+              <a
+                href={link.href}
+                aria-current={current === link.href ? "page" : undefined}
+                class="nav-link">
+                {@render icon(link.icon)}
+                {link.label}
+              </a>
+            </li>
+          {/each}
+        </ul>
+      </nav>
+    </div>
   </header>
 
-  <main class="mx-auto w-full max-w-6xl grow px-6 py-10">
+  <div
+    class="mx-auto flex w-full max-w-6xl flex-wrap items-start justify-between gap-x-6 gap-y-3 px-6 pt-6">
+    <p class="max-w-[60ch] pt-1.5 text-[var(--color-ink-muted)]">
+      Estimate what it costs to train an ML model.
+    </p>
+    <RegionPicker regions={data.regions} provenance={data.catalog.provenance} />
+  </div>
+
+  <main class="page mx-auto w-full max-w-6xl grow px-6 pt-8 pb-16">
     {#if pricingUsable}
       {@render children()}
     {:else}
       <section class="max-w-2xl">
-        <h1 class="text-xl font-semibold">Can't load prices for {data.catalog.region}.</h1>
-        <p class="mt-3 text-sm text-[var(--color-ink-muted)]">
+        <h1>Can't load prices for {data.catalog.region}.</h1>
+        <p class="mt-3 text-[var(--color-ink-muted)]">
           {data.catalog.provenance.last_error}
         </p>
-        <p class="mt-3 text-sm text-[var(--color-ink-muted)]">
+        <p class="mt-3 text-[var(--color-ink-muted)]">
           Floply uses live AWS prices and has no offline copy. Check that AWS credentials are set
           and that the IAM policy allows these read-only actions:
         </p>
-        <ul class="mt-2 list-disc pl-5 text-sm text-[var(--color-ink-muted)]">
+        <ul class="mt-2 list-disc pl-5 text-[var(--color-ink-muted)]">
           <li><code>pricing:GetProducts</code></li>
           <li><code>ec2:DescribeInstanceTypes</code></li>
           <li><code>ec2:DescribeInstanceTypeOfferings</code></li>
@@ -99,23 +135,64 @@
     {/if}
   </main>
 
-  <footer class="border-t border-[var(--color-rule)]">
-    <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-7">
-      <a
-        href="https://floatingpointlabs.ca"
-        class="flex items-center gap-2.5 text-sm text-[var(--color-ink-muted)] no-underline
-               transition-colors hover:text-[var(--color-ink)]">
-        <Logo idPrefix="footer" size={30} />
-        <span class="tracking-[-0.01em]">
-          A <span class="font-semibold text-[var(--color-ink)]">Floating Point Labs</span>
-          project
-        </span>
+  <footer class="footer">
+    <div
+      class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-8 gap-y-4 px-6 py-6">
+      <a href="https://floatingpointlabs.ca" class="maker">
+        <Logo idPrefix="footer" size={24} />
+        A Floating Point Labs project
       </a>
-
-      <p class="max-w-[52ch] text-xs leading-relaxed text-[var(--color-ink-faint)]">
+      <p class="max-w-[60ch] text-sm leading-relaxed text-[var(--color-ink-faint)]">
         Estimates only. They assume ideal conditions, so real runs usually take longer and cost
         more.
       </p>
     </div>
   </footer>
 </div>
+
+<style>
+  /* Chrome sits on the Well, one step below the page, with a Soft edge. */
+  .topbar {
+    background: var(--color-well);
+    border-bottom: 1px solid var(--color-soft);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .footer {
+    background: var(--color-well);
+    border-top: 1px solid var(--color-soft);
+  }
+
+  .brand:hover {
+    text-decoration: none;
+  }
+
+  .maker {
+    align-items: center;
+    color: var(--color-ink-muted);
+    display: flex;
+    font-size: 0.875rem;
+    gap: 0.5rem;
+  }
+
+  .maker:hover {
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+
+  .page {
+    view-transition-name: page;
+  }
+
+  @media (max-width: 767px) {
+    .links {
+      margin-inline: -1.5rem;
+      mask-image: linear-gradient(to right, #000 85%, transparent);
+      overflow-x: auto;
+      padding: 0 1.5rem 0.25rem;
+      width: calc(100% + 3rem);
+    }
+  }
+</style>

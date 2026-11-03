@@ -8,11 +8,12 @@
 
   let { assessment, class: className = "" }: Props = $props();
 
+  // A notice, not a callout: Panel with a Soft edge; only the point carries the tone.
   const TONE = {
-    error: "border-[var(--color-warning)] text-[var(--color-warning)]",
-    warning: "border-[var(--color-checkpoint)] text-[var(--color-checkpoint)]",
-    success: "border-[var(--color-success)] text-[var(--color-success)]",
-    info: "border-[var(--color-compute)] text-[var(--color-compute)]"
+    error: "bg-[var(--color-danger)]",
+    warning: "bg-[var(--color-highlight)]",
+    success: "bg-[var(--color-signal)] shadow-[0_0_8px_1px_rgb(127_224_192/0.5)]",
+    info: "bg-[var(--color-ink-faint)]"
   } as const;
 
   /**
@@ -26,11 +27,18 @@
 </script>
 
 {#if assessment}
-  <!-- <strong> is inline: breaking it across lines renders as a space either side of
-       every bold run. -->
-  <!-- prettier-ignore -->
-  <p class="border-l-2 py-1 pl-3 text-sm leading-relaxed {TONE[assessment.level]} {className}">
-    {#each parts as part, i (i)}{#if part.bold}<strong>{part.text}</strong
-        >{:else}{part.text}{/if}{/each}
+  <p
+    class="flex max-w-[66ch] items-baseline gap-3 rounded-[var(--radius-control)] border
+           border-[var(--color-soft)] bg-[var(--color-panel)] px-4 py-3 text-[var(--color-ink-muted)]
+           {className}">
+    <span
+      class="relative top-[-0.1em] h-2 w-2 shrink-0 rounded-full {TONE[assessment.level]}"
+      aria-hidden="true">
+    </span>
+    <!-- <strong> is inline: breaking it across lines renders as a space either side of
+         every bold run. -->
+    <!-- prettier-ignore -->
+    <span>{#each parts as part, i (i)}{#if part.bold}<strong class="font-semibold text-[var(--color-ink)]">{part.text}</strong
+        >{:else}{part.text}{/if}{/each}</span>
   </p>
 {/if}

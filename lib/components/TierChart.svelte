@@ -51,13 +51,13 @@
             x2={x(tick)}
             y1="0"
             y2={rows.length * ROW_HEIGHT}
-            stroke="var(--color-rule)"
+            stroke="var(--color-soft)"
             stroke-width="1" />
           <text
             x={x(tick)}
             y={rows.length * ROW_HEIGHT + 18}
             text-anchor="middle"
-            class="num fill-[var(--color-ink-faint)] text-[11px]">
+            class="num fill-[var(--color-ink-faint)] text-xs">
             {fmtTokens(tick)}
           </text>
         {/each}
@@ -73,7 +73,7 @@
             y={y + ROW_HEIGHT / 2}
             text-anchor="end"
             dominant-baseline="middle"
-            class="fill-[var(--color-ink-muted)] text-[13px]">
+            class="fill-[var(--color-ink-muted)] text-sm">
             {row.tier.tier}
           </text>
 
@@ -92,7 +92,7 @@
             x={barX + barW + 8}
             y={y + ROW_HEIGHT / 2}
             dominant-baseline="middle"
-            class="num fill-[var(--color-ink-muted)] text-[11px]">
+            class="num fill-[var(--color-ink-muted)] text-xs">
             {fmtTokens(Math.trunc(row.start))}–{fmtTokens(Math.trunc(row.end))}
           </text>
         </g>

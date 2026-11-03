@@ -22,12 +22,14 @@ test("the unit select next to a scaled number is not stretched to full width", a
   expect(unitBox!.width).toBeLessThan(numberBox!.width);
 });
 
-test("figures keep their tabular monospace inside a .control input", async ({ page }) => {
+test("figures keep tabular numerals inside a .control input", async ({ page }) => {
   await open(page, "/budget-optimizer");
-  // `.control` sets `font-family: inherit`; `.num` must still win, or every numeric
-  // field silently loses its tabular figures and jitters as values change.
-  const family = await page.locator("#budget").evaluate((el) => getComputedStyle(el).fontFamily);
-  expect(family.toLowerCase()).toContain("mono");
+  // `.control` sets `font: inherit`; `.num` must still win, or every numeric field
+  // silently loses its tabular figures and jitters as values change.
+  const numeric = await page
+    .locator("#budget")
+    .evaluate((el) => getComputedStyle(el).fontVariantNumeric);
+  expect(numeric).toContain("tabular-nums");
 });
 
 test("a field hint is announced, not just rendered", async ({ page }) => {

@@ -135,12 +135,12 @@
   <meta name="description" content="Find out how much training data your model needs." />
 </svelte:head>
 
-<h1 class="text-2xl font-semibold tracking-tight">How much data do I need?</h1>
-<p class="mt-2 max-w-[62ch] text-sm leading-relaxed text-[var(--color-ink-muted)]">
+<h1>How much data do I need?</h1>
+<p class="mt-2 max-w-[62ch] text-[var(--color-ink-muted)]">
   Pick a model to see how much training data it needs, from too little to more than enough.
 </p>
 
-<section class="mt-8 border-t border-[var(--color-rule)] pt-6">
+<section class="mt-8 border-t border-[var(--color-soft)] pt-6">
   <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
     <Field label="Training type" id="training-type">
       <select id="training-type" bind:value={trainingType} class="control">
@@ -218,10 +218,7 @@
                   (targetModules = on
                     ? targetModules.filter((m) => m !== mod)
                     : [...targetModules, mod])}
-                class="pill transition-colors
-                       {on
-                  ? 'border-[var(--color-violet)] text-[var(--color-ink)]'
-                  : 'hover:text-[var(--color-ink-muted)]'}">
+                class="pill">
                 {mod}
               </button>
             {/each}
@@ -241,9 +238,9 @@
   {/if}
 </section>
 
-<section class="mt-10 border-t border-[var(--color-rule)] pt-6">
+<section class="mt-10 border-t border-[var(--color-soft)] pt-6">
   {#if effectiveCount > 0}
-    <h2 class="text-lg font-semibold tracking-tight">
+    <h2>
       {trainingType === "Pre-Training"
         ? "Data needed for pre-training"
         : isLora
@@ -277,8 +274,8 @@
 </section>
 
 {#if effectiveCount > 0}
-  <section class="mt-10 border-t border-[var(--color-rule)] pt-6">
-    <h2 class="text-lg font-semibold tracking-tight">In examples</h2>
+  <section class="mt-10 border-t border-[var(--color-soft)] pt-6">
+    <h2>In examples</h2>
     <p class="mt-1.5 max-w-[62ch] text-sm text-[var(--color-ink-muted)]">
       The same ranges as a number of texts, images or clips.
     </p>
@@ -390,7 +387,7 @@
       </p>
 
       <dl
-        class="mt-5 grid gap-6 border-t border-[var(--color-rule)] pt-5 sm:grid-cols-2 lg:grid-cols-4">
+        class="mt-5 grid gap-6 border-t border-[var(--color-soft)] pt-5 sm:grid-cols-2 lg:grid-cols-4">
         {#each sampleRows as row (row.tier.tier)}
           <Figure label={row.tier.tier} value={row.label} note={row.note} />
         {/each}

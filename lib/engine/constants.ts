@@ -5,18 +5,19 @@ export const CHINCHILLA_OPTIMAL_RATIO = 20;
 export const LORA_OPTIMAL_RATIO = 50;
 
 /**
- * All five clear 3:1 against the #0f1013 ground for graphical use; storage, checkpoint,
- * warning and success also clear 4.5:1, so they are safe as text.
+ * The FPL product data palette (blue, cyan, lime, rose, slate): it leaves out the accent
+ * violet, signal mint and highlight amber, so a chart never reads as a key or a state. All
+ * five clear 4.5:1 against the #15141a ground.
  *
  * Duplicated as --color-compute/storage/checkpoint/warning/success in app/app.css, which
  * the Svelte components use for text tones. Change both.
  */
 export const CHART_COLORS = {
-  compute: "#7d80f7",
-  storage: "#22d3ee",
-  checkpoint: "#f59e0b",
-  warning: "#fb7185",
-  success: "#34d399"
+  compute: "#6aa8f0",
+  storage: "#4dc8e0",
+  checkpoint: "#b5d36a",
+  warning: "#e88ac6",
+  success: "#8fa3bf"
 } as const;
 
 export const ARCHITECTURE_OPTIONS = ["Transformer", "CNN", "RNN", "ViT", "Diffusion"];
