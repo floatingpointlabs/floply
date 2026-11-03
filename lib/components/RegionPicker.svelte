@@ -40,19 +40,21 @@
   );
 </script>
 
-<div class="relative flex flex-col gap-1.5">
-  <select
-    value={provenance.region}
-    onchange={select}
-    aria-label="Region"
-    class="control truncate !bg-transparent !py-1.5 text-sm text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]"
-    title="Instance and S3 prices are region-specific.">
-    {#each regions as region (region.code)}
-      <option value={region.code}>
-        {region.label ? `${region.code} — ${region.label}` : region.code}
-      </option>
-    {/each}
-  </select>
+<div class="relative flex flex-col items-start gap-1.5 sm:items-end">
+  <label class="flex items-center gap-2 text-sm">
+    <span class="font-medium text-[var(--color-ink-muted)]">Region</span>
+    <select
+      value={provenance.region}
+      onchange={select}
+      class="control w-auto !py-1.5 text-sm"
+      title="Instance and S3 prices are region-specific.">
+      {#each regions as region (region.code)}
+        <option value={region.code}>
+          {region.label ? `${region.code} — ${region.label}` : region.code}
+        </option>
+      {/each}
+    </select>
+  </label>
 
   <p class="px-1 text-sm leading-snug {tone}">
     {#if !provenance.stale && provenance.source !== "unavailable"}
@@ -73,7 +75,7 @@
   {#if open}
     <div
       class="popover settle absolute top-full left-0 z-30 mt-2 w-[min(22rem,90vw)] p-4 text-sm
-             leading-relaxed text-[var(--color-ink-muted)] max-[720px]:right-0 max-[720px]:left-auto">
+             leading-relaxed text-[var(--color-ink-muted)] sm:right-0 sm:left-auto">
       <p>
         On-demand list price, Linux, shared tenancy. Cache: <code>{provenance.cache_location}</code>
       </p>

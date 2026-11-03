@@ -30,7 +30,7 @@
     content="How Floply estimates ML training cost: tokenisation per modality, the C = 6ND FLOPs model, scaling-law thresholds, GPU memory, and S3 storage." />
 </svelte:head>
 
-<div class="xl:grid xl:grid-cols-[1fr_14rem] xl:gap-12">
+<div class="lg:grid lg:grid-cols-[1fr_14rem] lg:gap-12">
   <article class="methodology max-w-[68ch]">
     <h1>Methodology</h1>
     <p class="mt-2 text-sm text-[var(--color-ink-muted)]">
@@ -526,8 +526,9 @@ total_project = total_compute + dataset_storage + checkpoint_storage</code></pre
     </section>
   </article>
 
-  <nav class="mt-12 hidden xl:mt-0 xl:block" aria-label="On this page">
-    <ul class="sticky top-6 space-y-2 border-l border-[var(--color-soft)] pl-4 text-sm">
+  <nav class="mt-12 hidden lg:mt-0 lg:block" aria-label="On this page">
+    <ul
+      class="sticky top-[calc(var(--nav-height)+1.5rem)] space-y-2 border-l border-[var(--color-soft)] pl-4 text-sm">
       {#each sections as s (s.id)}
         <li>
           <a
@@ -544,7 +545,7 @@ total_project = total_compute + dataset_storage + checkpoint_storage</code></pre
 <style>
   .methodology :global(section) {
     margin-top: 2.5rem;
-    scroll-margin-top: 1.5rem;
+    scroll-margin-top: calc(var(--nav-height) + 1rem);
   }
   /* Sections sit under a Soft line, with the space above. */
   .methodology :global(h2) {

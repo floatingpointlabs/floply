@@ -20,7 +20,7 @@
 
   const current = $derived(page.url.pathname);
 
-  // The sidebar holds still while the page cross-fades (see ::view-transition-* in app.css).
+  // The top bar and footer hold still while the page cross-fades (see ::view-transition-* in app.css).
   onNavigate((navigation) => {
     if (
       !document.startViewTransition ||
@@ -80,119 +80,103 @@
   </svg>
 {/snippet}
 
-<div class="shell">
-  <nav class="sidebar" aria-label="Floply">
-    <!-- The wordmark splits mid-word: a newline before the span renders as "flop ly." -->
-    <!-- prettier-ignore -->
-    <a href="/" class="wordmark brand">flop<span class="text-[var(--color-accent-lit)]">ly</span></a>
+<div class="flex min-h-screen flex-col">
+  <header class="topbar">
+    <div
+      class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-8 gap-y-2 px-6 py-3">
+      <!-- The wordmark splits mid-word: a newline before the span renders as "flop ly." -->
+      <!-- prettier-ignore -->
+      <a href="/" class="wordmark brand">flop<span class="text-[var(--color-accent-lit)]">ly</span></a>
 
-    <div class="region">
-      <RegionPicker regions={data.regions} provenance={data.catalog.provenance} />
+      <!-- Below md the links take their own row and scroll sideways rather than wrap. -->
+      <nav class="links" aria-label="Sections">
+        <ul class="flex gap-1">
+          {#each links as link (link.href)}
+            <li>
+              <a
+                href={link.href}
+                aria-current={current === link.href ? "page" : undefined}
+                class="nav-link">
+                {@render icon(link.icon)}
+                {link.label}
+              </a>
+            </li>
+          {/each}
+        </ul>
+      </nav>
     </div>
+  </header>
 
-    <ul class="links">
-      {#each links as link (link.href)}
-        <li>
-          <a
-            href={link.href}
-            aria-current={current === link.href ? "page" : undefined}
-            class="nav-link">
-            {@render icon(link.icon)}
-            {link.label}
-          </a>
-        </li>
-      {/each}
-    </ul>
+  <div
+    class="mx-auto flex w-full max-w-6xl flex-wrap items-start justify-between gap-x-6 gap-y-3 px-6 pt-6">
+    <p class="max-w-[60ch] pt-1.5 text-[var(--color-ink-muted)]">
+      What a training run costs, before you commit the budget.
+    </p>
+    <RegionPicker regions={data.regions} provenance={data.catalog.provenance} />
+  </div>
 
-    <a href="https://floatingpointlabs.ca" class="maker">
-      <Logo idPrefix="nav" size={20} />
-      A Floating Point Labs project
-    </a>
-  </nav>
-
-  <main>
-    <div class="page">
-      {#if pricingUsable}
-        {@render children()}
-      {:else}
-        <section class="max-w-2xl">
-          <h1>Pricing unavailable for {data.catalog.region}.</h1>
-          <p class="mt-3 text-[var(--color-ink-muted)]">
-            {data.catalog.provenance.last_error}
-          </p>
-          <p class="mt-3 text-[var(--color-ink-muted)]">
-            Floply reads live AWS pricing and has no bundled fallback. Check that credentials are
-            configured and that the IAM policy allows these read-only actions:
-          </p>
-          <ul class="mt-2 list-disc pl-5 text-[var(--color-ink-muted)]">
-            <li><code>pricing:GetProducts</code></li>
-            <li><code>ec2:DescribeInstanceTypes</code></li>
-            <li><code>ec2:DescribeInstanceTypeOfferings</code></li>
-          </ul>
-        </section>
-      {/if}
-    </div>
-
-    <footer class="mt-16 max-w-[66ch] text-sm leading-relaxed text-[var(--color-ink-faint)]">
-      What a training run costs, before you commit the budget. Estimates only: FLOPs-based modelling
-      assumes ideal scaling; real runs vary with data loading, checkpointing overhead, and cluster
-      utilisation.
-    </footer>
+  <main class="page mx-auto w-full max-w-6xl grow px-6 pt-8 pb-16">
+    {#if pricingUsable}
+      {@render children()}
+    {:else}
+      <section class="max-w-2xl">
+        <h1>Pricing unavailable for {data.catalog.region}.</h1>
+        <p class="mt-3 text-[var(--color-ink-muted)]">
+          {data.catalog.provenance.last_error}
+        </p>
+        <p class="mt-3 text-[var(--color-ink-muted)]">
+          Floply reads live AWS pricing and has no bundled fallback. Check that credentials are
+          configured and that the IAM policy allows these read-only actions:
+        </p>
+        <ul class="mt-2 list-disc pl-5 text-[var(--color-ink-muted)]">
+          <li><code>pricing:GetProducts</code></li>
+          <li><code>ec2:DescribeInstanceTypes</code></li>
+          <li><code>ec2:DescribeInstanceTypeOfferings</code></li>
+        </ul>
+      </section>
+    {/if}
   </main>
+
+  <footer class="footer">
+    <div
+      class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-8 gap-y-4 px-6 py-6">
+      <a href="https://floatingpointlabs.ca" class="maker">
+        <Logo idPrefix="footer" size={24} />
+        A Floating Point Labs project
+      </a>
+      <p class="max-w-[60ch] text-sm leading-relaxed text-[var(--color-ink-faint)]">
+        Estimates only. FLOPs-based modelling assumes ideal scaling; real runs vary with data
+        loading, checkpointing overhead, and cluster utilisation.
+      </p>
+    </div>
+  </footer>
 </div>
 
 <style>
-  /* The sidebar shell: a sticky Well column beside the page. 13rem rather than the
-     product's 11, so "Budget optimizer" and the region fit. */
-  .shell {
-    display: grid;
-    grid-template-columns: 13rem minmax(0, 1fr);
-    min-height: 100vh;
-  }
-
-  .sidebar {
+  /* Chrome sits on the Well, one step below the page, with a Soft edge. */
+  .topbar {
     background: var(--color-well);
-    border-right: 1px solid var(--color-soft);
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    height: 100vh;
-    padding: 1.25rem 0.75rem;
+    border-bottom: 1px solid var(--color-soft);
     position: sticky;
     top: 0;
-    /* Above the page, so the region notes popover can overlap it. */
     z-index: 20;
   }
 
-  .brand {
-    padding: 0 0.5rem 1rem;
+  .footer {
+    background: var(--color-well);
+    border-top: 1px solid var(--color-soft);
   }
 
   .brand:hover {
     text-decoration: none;
   }
 
-  /* Like the product's active-agent switch: which prices are in use, under the wordmark. */
-  .region {
-    margin-bottom: 1rem;
-    padding-inline: 0.25rem;
-  }
-
-  .links {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
   .maker {
     align-items: center;
-    color: var(--color-ink-faint);
+    color: var(--color-ink-muted);
     display: flex;
     font-size: 0.875rem;
     gap: 0.5rem;
-    line-height: 1.3;
-    margin-top: auto;
-    padding: 0.25rem 0.5rem;
   }
 
   .maker:hover {
@@ -200,48 +184,17 @@
     text-decoration: none;
   }
 
-  main {
-    min-width: 0;
-    padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 2.5rem;
-  }
-
   .page {
     view-transition-name: page;
   }
 
-  /* Under 720px the sidebar becomes a wrapping bar over the page. */
-  @media (max-width: 720px) {
-    .shell {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: auto 1fr;
-    }
-
-    .sidebar {
-      align-items: center;
-      border-bottom: 1px solid var(--color-soft);
-      border-right: 0;
-      flex-flow: row wrap;
-      gap: 0.5rem;
-      height: auto;
-      padding: 0.75rem;
-      position: relative;
-    }
-
-    .brand {
-      padding: 0.25rem 0.5rem;
-    }
-
-    .region {
-      margin: 0 0 0 auto;
-    }
-
+  @media (max-width: 767px) {
     .links {
-      flex-flow: row wrap;
-      flex-basis: 100%;
-    }
-
-    .maker {
-      margin-top: 0;
+      margin-inline: -1.5rem;
+      mask-image: linear-gradient(to right, #000 85%, transparent);
+      overflow-x: auto;
+      padding: 0 1.5rem 0.25rem;
+      width: calc(100% + 3rem);
     }
   }
 </style>

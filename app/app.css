@@ -110,10 +110,20 @@
 :root {
   color-scheme: dark;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  /* The sticky top bar's height, so in-page anchors land below it. */
+  --nav-height: 4.25rem;
+}
+
+/* Below md the nav links drop to a second row. */
+@media (max-width: 767px) {
+  :root {
+    --nav-height: 7rem;
+  }
 }
 
 html {
   background: var(--color-ground);
+  scroll-padding-top: calc(var(--nav-height) + 1rem);
   scrollbar-color: var(--color-surface-lit) transparent;
 }
 
@@ -268,7 +278,7 @@ body {
     white-space: nowrap;
   }
 
-  /* Sidebar links: Muted with a Dim icon; the current one is a raised Plate. */
+  /* Nav links: Muted with a Dim icon; the current one is a raised Plate. */
   .nav-link {
     align-items: center;
     border-radius: var(--radius-control);
@@ -381,7 +391,7 @@ input[type="checkbox"] {
   outline-offset: 3px;
 }
 
-/* Between pages the sidebar holds still; the page fades out and the new one settles. */
+/* Between pages the chrome holds still; the page fades out and the new one settles. */
 ::view-transition-old(page) {
   animation: 0.14s ease-in both fade-out;
 }
