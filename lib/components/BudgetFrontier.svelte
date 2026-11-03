@@ -73,7 +73,7 @@
 
 <figure class="m-0" bind:clientWidth={width}>
   {#if !renderable}
-    <p class="text-sm text-[var(--color-ink-muted)]">Enter a budget to plot the frontier.</p>
+    <p class="text-sm text-[var(--color-ink-muted)]">Enter a budget to see the chart.</p>
   {:else}
     <svg
       {width}
@@ -133,7 +133,7 @@
             d="M0,-9 L2.6,-2.9 L9,-2.6 L4,1.6 L5.6,8 L0,4.5 L-5.6,8 L-4,1.6 L-9,-2.6 L-2.6,-2.9 Z"
             fill={CHART_COLORS.checkpoint}>
             <title>
-              Budget-optimal: {fmtTokens(Math.trunc(optimum.d))} tokens, {fmtTokens(
+              Best balance: {fmtTokens(Math.trunc(optimum.d))} tokens, {fmtTokens(
                 Math.trunc(optimum.n)
               )}
             </title>
@@ -171,7 +171,7 @@
     <figcaption class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-[var(--color-ink-muted)]">
       <span class="flex items-center gap-1.5">
         <span class="inline-block h-0.5 w-5" style="background:{CHART_COLORS.compute}"></span>
-        What the budget buys
+        Affordable with your budget
       </span>
       <span class="flex items-center gap-1.5">
         <span

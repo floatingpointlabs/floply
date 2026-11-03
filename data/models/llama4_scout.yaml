@@ -1,0 +1,22 @@
+name: "Llama 4 Scout 17B-16E"
+slug: "llama4_scout"
+developer: "Meta"
+family: "transformer"
+parameter_count: 108641793536
+architecture:
+  num_layers: 48
+  d_model: 5120
+  num_heads: 40
+  num_kv_heads: 8
+  head_dim: 128
+  ffn_intermediate: 8192
+  ffn_type: "swiglu"
+  vocab_size: 202048
+  moe:
+    num_experts: 16
+    active_experts: 1
+    active_parameter_count: 17000000000
+source: "https://huggingface.co/meta-llama/Llama-4-Scout-17B-16E"
+license: "Llama 4 Community License"
+notes: >
+  Meta Llama 4 Scout (Apr 2025). MoE: 16 experts, 1 routed + 1 shared per token, ~17B active. ffn_intermediate is the per-expert size.

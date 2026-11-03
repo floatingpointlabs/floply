@@ -1,0 +1,18 @@
+name: "Aya Expanse 32B"
+slug: "aya_expanse_32b"
+developer: "Cohere"
+family: "transformer"
+parameter_count: 32296476672
+architecture:
+  num_layers: 40
+  d_model: 8192
+  num_heads: 64
+  num_kv_heads: 8
+  head_dim: 128
+  ffn_intermediate: 24576
+  ffn_type: "swiglu"
+  vocab_size: 256000
+source: "https://huggingface.co/CohereLabs/aya-expanse-32b"
+license: "cc-by-nc-4.0"
+notes: >
+  Cohere Labs Aya Expanse 32B (Oct 2024). Multilingual. Same architecture as Command R 08-2024. Non-commercial licence.

@@ -6,15 +6,15 @@
 
   const sections = [
     { id: "overview", title: "Overview" },
-    { id: "tokenisation", title: "Tokenisation" },
-    { id: "scaling-laws", title: "Scaling-law thresholds" },
-    { id: "flops", title: "Training FLOPs" },
-    { id: "lora", title: "LoRA parameter counts" },
-    { id: "throughput", title: "GPU time and cost" },
+    { id: "tokenisation", title: "Tokens per sample" },
+    { id: "scaling-laws", title: "How much data is enough" },
+    { id: "flops", title: "Training compute" },
+    { id: "lora", title: "LoRA parameters" },
+    { id: "throughput", title: "Time and cost" },
     { id: "memory", title: "GPU memory" },
-    { id: "storage", title: "Storage costs" },
-    { id: "experiments", title: "Experiment rollup" },
-    { id: "instances", title: "Instance reference" },
+    { id: "storage", title: "Storage" },
+    { id: "experiments", title: "Total project cost" },
+    { id: "instances", title: "Instances" },
     { id: "limitations", title: "Limitations" }
   ];
 
@@ -24,80 +24,74 @@
 </script>
 
 <svelte:head>
-  <title>Methodology — Floply</title>
+  <title>How it works — Floply</title>
   <meta
     name="description"
-    content="How Floply estimates ML training cost: tokenisation per modality, the C = 6ND FLOPs model, scaling-law thresholds, GPU memory, and S3 storage." />
+    content="The formulas Floply uses to estimate data, compute, memory, storage and cost, and what they assume." />
 </svelte:head>
 
 <div class="lg:grid lg:grid-cols-[1fr_14rem] lg:gap-12">
   <article class="methodology max-w-[68ch]">
-    <h1>Methodology</h1>
+    <h1>How it works</h1>
     <p class="mt-2 text-sm text-[var(--color-ink-muted)]">
-      Every formula behind the estimates, and what they assume. Pricing current as of February 2026.
+      The formulas behind every estimate, and what they assume. Prices come live from AWS for the
+      region you pick.
     </p>
 
     <section id="overview">
       <h2>Overview</h2>
       <p>
-        Floply builds a bottom-up estimate in five stages: dataset dimensions, model configuration,
-        cluster, experiment plan, and cost rollup. Each stage gates the next, so compute settings
-        only appear once a model and dataset exist.
+        Floply builds an estimate in five steps: dataset, model, hardware, experiments, then total
+        cost. Each step needs the one before it.
       </p>
       <p>
-        Nothing here is a benchmark. These are analytical estimates from published scaling
-        relationships and vendor datasheets — useful for deciding whether a project is affordable,
-        not for predicting a specific run to the dollar.
+        These are calculations, not benchmarks. Use them to judge whether a project is affordable,
+        not to predict a run to the dollar.
       </p>
     </section>
 
     <section id="tokenisation">
-      <h2>Tokenisation</h2>
-      <p>Token counts and raw storage are derived per modality.</p>
+      <h2>Tokens per sample</h2>
+      <p>Each data type is converted into tokens and an estimated file size.</p>
 
       <h3>Text</h3>
-      <pre><code>tokens_per_sample = words × 1.3   # BPE subword average
-bytes_per_sample  = tokens × 4    # raw UTF-8, ~4 bytes/token</code></pre>
-      <p>1.3 is the empirical BPE inflation ratio for English.</p>
+      <pre><code>tokens_per_sample = words × 1.3   # average for English
+bytes_per_sample  = tokens × 4    # plain text, ~4 bytes per token</code></pre>
 
-      <h3>Image (ViT patch tokenisation)</h3>
+      <h3>Image</h3>
       <pre><code>tokens_per_sample = (resolution ÷ patch_size)²
-bytes_per_sample  = resolution² × 3 ÷ 10   # JPEG ~10:1</code></pre>
+bytes_per_sample  = resolution² × 3 ÷ 10   # JPEG, ~10:1 compression</code></pre>
       <p>
-        A 224px image at 16px patches gives 196 tokens. Note the division floors: 336 ÷ 32 is 10
-        patches per side, not 10.5, so the count is 100 rather than 110.
+        A 224px image with 16px patches is 196 tokens. Partial patches don't count: at 336px with
+        32px patches, that's 10 per side, so 100 tokens, not 110.
       </p>
 
       <h3>Audio</h3>
       <table>
         <thead>
           <tr>
-            <th>Tokeniser</th>
+            <th>Tokenizer</th>
             <th>Rate</th>
-            <th>Notes</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>Whisper</td>
-            <td>50 tok/sec</td>
-            <td>mel-spectrogram frames</td>
+            <td>50 tokens/sec</td>
           </tr>
           <tr>
-            <td>EnCodec 24kHz</td>
-            <td>75 tok/sec × codebooks</td>
-            <td>residual vector quantisation</td>
+            <td>EnCodec 24 kHz</td>
+            <td>75 tokens/sec per codebook</td>
           </tr>
           <tr>
             <td>SoundStream</td>
-            <td>50 tok/sec × codebooks</td>
-            <td>residual vector quantisation</td>
+            <td>50 tokens/sec per codebook</td>
           </tr>
         </tbody>
       </table>
       <p>
-        Raw storage is always <code>clip_duration × 32,000 bytes</code>
-        (16 kHz mono 16-bit PCM).
+        File size is always <code>clip_duration × 32,000 bytes</code>
+        (16 kHz, mono, 16-bit).
       </p>
 
       <h3>Video</h3>
@@ -105,137 +99,145 @@ bytes_per_sample  = resolution² × 3 ÷ 10   # JPEG ~10:1</code></pre>
 tokens_per_frame  = (resolution ÷ patch_size)²
 tokens_per_sample = tokens_per_frame × num_frames
 bytes_per_sample  = (resolution² × 3 ÷ 10) × num_frames</code></pre>
-      <p>
-        Storage is modelled as JPEG-encoded extracted frames, matching how datasets like Kinetics
-        are stored on disk.
-      </p>
+      <p>Video is stored as JPEG frames, the way most video datasets are kept on disk.</p>
     </section>
 
     <section id="scaling-laws">
-      <h2>Scaling-law thresholds</h2>
-      <p>The health check adapts its thresholds to the training method.</p>
+      <h2>How much data is enough</h2>
+      <p>
+        The health check compares your dataset to the number of parameters being trained. The ranges
+        depend on how you train.
+      </p>
 
       <h3>Pre-training</h3>
       <p>
-        Hoffmann et al. 2022 (Chinchilla): <strong>D* ≈ 20 × N</strong>
+        The ideal is about <strong>20 tokens per parameter</strong>
         .
       </p>
       <table>
         <thead>
           <tr>
-            <th>tok / param</th>
-            <th>Reading</th>
+            <th>Tokens per parameter</th>
+            <th>What it means</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>&lt; 1</td>
-            <td>Critically undersized — likely to diverge</td>
+            <td>Under 1</td>
+            <td>Far too little. Training will likely fail.</td>
           </tr>
           <tr>
-            <td>1–9</td>
-            <td>Undertrained, below compute-optimal</td>
+            <td>1–10</td>
+            <td>Not enough. The model will be weak.</td>
           </tr>
           <tr>
             <td>10–30</td>
             <td>
-              <strong>Chinchilla-optimal</strong>
-              — best loss per FLOP
+              <strong>Optimal.</strong>
+              The best model for the compute spent.
             </td>
           </tr>
           <tr>
-            <td>31–200</td>
-            <td>Inference-optimal — the LLaMA / Mistral over-train strategy</td>
+            <td>30–200</td>
+            <td>
+              More than optimal. Costs more to train, but the smaller model is cheaper to run.
+            </td>
           </tr>
           <tr>
-            <td>&gt; 200</td>
-            <td>Heavily over-trained, diminishing returns</td>
+            <td>Over 200</td>
+            <td>More than the model can use. Consider a bigger model.</td>
           </tr>
         </tbody>
       </table>
 
       <h3>Full fine-tuning</h3>
       <p>
-        Starts from a converged base, so far less data is needed. Chinchilla does not apply; the
-        risk is catastrophic forgetting rather than underfitting.
+        The model has already learned a lot, so it needs much less data. Too much data can make it
+        forget what it knew.
       </p>
       <table>
         <thead>
           <tr>
-            <th>tok / base_param</th>
-            <th>Reading</th>
+            <th>Tokens per parameter</th>
+            <th>What it means</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>&lt; 0.1</td>
-            <td>Too small to shift behaviour meaningfully</td>
+            <td>Under 0.1</td>
+            <td>Too little to change the model.</td>
           </tr>
           <tr>
             <td>0.1–1</td>
-            <td>Likely undertrained for stable adaptation</td>
+            <td>Probably not enough for stable results.</td>
           </tr>
           <tr>
             <td>1–5</td>
-            <td><strong>Standard SFT range</strong></td>
+            <td>
+              <strong>Optimal.</strong>
+              The typical range.
+            </td>
           </tr>
           <tr>
             <td>5–20</td>
-            <td>Generous — watch for forgetting</td>
+            <td>Plenty. Watch that the model doesn't forget what it knew.</td>
           </tr>
           <tr>
-            <td>&gt; 20</td>
-            <td>Consider LoRA instead</td>
+            <td>Over 20</td>
+            <td>Too much. Use LoRA instead.</td>
           </tr>
         </tbody>
       </table>
 
       <h3>LoRA and QLoRA</h3>
       <p>
-        The frozen base provides strong priors, so the relevant count is the
-        <strong>adapter size</strong>
+        LoRA freezes the model and trains small add-on layers called adapters. The ranges are based
+        on <strong>adapter parameters</strong>
         , not the full model.
       </p>
       <table>
         <thead>
           <tr>
-            <th>tok / adapter_param</th>
-            <th>Reading</th>
+            <th>Tokens per adapter parameter</th>
+            <th>What it means</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>&lt; 10</td>
-            <td>Adapter may underfit</td>
+            <td>Under 10</td>
+            <td>Possibly too little.</td>
           </tr>
           <tr>
             <td>10–100</td>
-            <td><strong>Standard for task adaptation</strong></td>
+            <td>
+              <strong>Optimal.</strong>
+              The typical range.
+            </td>
           </tr>
           <tr>
-            <td>100–1000</td>
-            <td>Large dataset — consider a higher rank</td>
+            <td>100–1,000</td>
+            <td>Plenty. A higher rank would help.</td>
           </tr>
           <tr>
-            <td>&gt; 1000</td>
-            <td>Adapter is the bottleneck; consider full fine-tuning</td>
+            <td>Over 1,000</td>
+            <td>More than the adapter can use. Consider full fine-tuning.</td>
           </tr>
         </tbody>
       </table>
     </section>
 
     <section id="flops">
-      <h2>Training FLOPs</h2>
-      <p>Kaplan et al. 2020:</p>
+      <h2>Training compute</h2>
+      <p>Total compute is measured in floating-point operations (FLOPs):</p>
       <pre><code>C = 6 × N × D</code></pre>
       <ul>
         <li>
           <strong>C</strong>
-          — total floating-point operations
+          — total FLOPs
         </li>
         <li>
           <strong>N</strong>
-          — trainable parameters
+          — parameters being trained
         </li>
         <li>
           <strong>D</strong>
@@ -243,53 +245,53 @@ bytes_per_sample  = (resolution² × 3 ÷ 10) × num_frames</code></pre>
         </li>
         <li>
           <strong>6</strong>
-          — forward pass (2N) plus backward pass (4N)
+          — 2 for the forward pass, 4 for the backward pass
         </li>
       </ul>
       <p>
-        Other architectures use different multipliers: CNN 4, RNN 8, ViT 6, diffusion 6.5. Gradient
-        checkpointing recomputes activations, adding 2 to the multiplier.
+        Other architectures use a different multiplier: CNN 4, RNN 8, ViT 6, diffusion 6.5. Gradient
+        checkpointing adds 2.
       </p>
 
-      <h3>Mixture-of-Experts</h3>
+      <h3>Mixture-of-experts models</h3>
       <p>
-        MoE models route each token through a subset of experts, so FLOPs scale with
+        These models only use some of their parameters for each token. Compute is based on the
         <strong>active</strong>
-        parameters while checkpoints and VRAM scale with the total. DeepSeek V3 is costed at its 37B active
-        parameters, not its 671B total.
+        parameters; memory and checkpoints use the total. DeepSeek V3 is costed at 37B active parameters,
+        not 671B.
       </p>
     </section>
 
     <section id="lora">
-      <h2>LoRA parameter counts</h2>
+      <h2>LoRA parameters</h2>
       <p>
-        For models in the library, trainable parameters are computed per-module from the real
-        architecture, handling Grouped Query Attention correctly.
+        For models in the list, adapter size is calculated layer by layer from the real
+        architecture.
       </p>
       <pre><code>MODULE_DIMS = &lbrace;
-    "q_proj":    (d_model, d_model),
+    "q_proj":    (d_model, q_dim),    # q_dim  = num_heads × head_dim
     "k_proj":    (d_model, kv_dim),   # kv_dim = num_kv_heads × head_dim
     "v_proj":    (d_model, kv_dim),
-    "o_proj":    (d_model, d_model),
+    "o_proj":    (q_dim, d_model),
     "up_proj":   (d_model, ffn_intermediate),
     "down_proj": (ffn_intermediate, d_model),
 &rbrace;
 
 trainable_params = Σ[rank × (in_dim + out_dim)] × num_layers</code></pre>
-      <p>Custom models fall back to a uniform approximation:</p>
+      <p>Custom models use an approximation:</p>
       <pre><code>trainable_params ≈ num_modules × 2 × rank × d_model × num_layers</code></pre>
 
-      <h3>LoRA versus QLoRA</h3>
+      <h3>LoRA vs. QLoRA</h3>
       <p>
-        Both train an identical number of parameters. They differ only in how the frozen base is
-        stored.
+        Both train the same number of parameters. QLoRA stores the frozen model in 4-bit, so it uses
+        less memory.
       </p>
       <table>
         <thead>
           <tr>
             <th>Method</th>
-            <th>Base dtype</th>
-            <th>Memory</th>
+            <th>Frozen model stored as</th>
+            <th>Memory (bytes)</th>
           </tr>
         </thead>
         <tbody>
@@ -313,141 +315,148 @@ trainable_params = Σ[rank × (in_dim + out_dim)] × num_layers</code></pre>
     </section>
 
     <section id="throughput">
-      <h2>GPU time and cost</h2>
-      <pre><code>cluster_flops_per_s = peak_flops × MFU × total_GPUs
+      <h2>Time and cost</h2>
+      <pre><code>cluster_flops_per_s = peak_flops × utilisation × total_GPUs
 wall_clock_hours    = total_flops ÷ cluster_flops_per_s ÷ 3600
 gpu_hours           = wall_clock_hours × total_GPUs
 compute_cost        = wall_clock_hours × hourly_rate × num_instances</code></pre>
 
-      <h3>Precision multipliers, relative to FP16</h3>
+      <h3>Speed by precision, compared to FP16</h3>
       <table>
         <thead>
           <tr>
             <th>Precision</th>
-            <th>A100</th>
-            <th>H100</th>
             <th>V100</th>
+            <th>A100</th>
+            <th>H100 / H200</th>
+            <th>B200</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>fp4</td>
-            <td>1×</td>
-            <td>1×</td>
-            <td>1×</td>
-          </tr>
-          <tr>
-            <td>int8</td>
-            <td>2×</td>
-            <td>2×</td>
-            <td>0.9×</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>4×</td>
           </tr>
           <tr>
             <td>fp8</td>
+            <td>—</td>
+            <td>—</td>
+            <td>2×</td>
+            <td>2×</td>
+          </tr>
+          <tr>
+            <td>int8</td>
+            <td>0.5×</td>
+            <td>2×</td>
+            <td>2×</td>
+            <td>2×</td>
+          </tr>
+          <tr>
+            <td>bf16</td>
+            <td>—</td>
             <td>1×</td>
-            <td><strong>2×</strong></td>
+            <td>1×</td>
             <td>1×</td>
           </tr>
           <tr>
-            <td>bf16 / fp16</td>
-            <td>1× (baseline)</td>
-            <td>1× (baseline)</td>
-            <td>1× (baseline)</td>
+            <td>fp16</td>
+            <td>1×</td>
+            <td>1×</td>
+            <td>1×</td>
+            <td>1×</td>
           </tr>
           <tr>
             <td>tf32</td>
+            <td>—</td>
             <td>0.5×</td>
             <td>0.5×</td>
             <td>0.5×</td>
           </tr>
           <tr>
             <td>fp32</td>
-            <td colspan="3">uses the fp32 datasheet figure</td>
+            <td colspan="4">uses the GPU's listed fp32 speed</td>
           </tr>
         </tbody>
       </table>
       <p>
-        FP4 is Blackwell-only (B100/B200/GB200), so none of the instances above accelerate it, and
-        FP8 arrived with Hopper. A precision the GPU cannot accelerate is costed at its FP16 rate —
-        inventing a speedup for absent hardware would understate cost, which is the wrong direction
-        to be wrong in.
+        A dash means the GPU has no hardware support for that format, so it isn't offered for that
+        instance.
       </p>
 
-      <h3>Model FLOPs Utilisation</h3>
+      <h3>GPU utilisation</h3>
       <p>
-        MFU is the share of theoretical peak actually achieved, and it is adjustable because it
-        depends on your setup: architecture and batch size, multi-node communication, data-loading
-        bubbles, and framework overhead. The 30% default is deliberately conservative; well-tuned
-        production LLM training reaches 40–55%.
+        No training run reaches a GPU's peak speed. Utilisation is the share you actually get, and
+        it depends on your model, batch size, networking and code. The 30% default is cautious;
+        well-tuned large runs reach 40–55%.
       </p>
     </section>
 
     <section id="memory">
       <h2>GPU memory</h2>
-      <h3>Weights</h3>
-      <pre><code>QLoRA:  base × 0.5 + adapters × 16   # int4 base
+      <h3>Model</h3>
+      <pre><code>QLoRA:  base × 0.5 + adapters × 16   # 4-bit base
 LoRA:   base × 2   + adapters × 16   # bf16 base
-Full:   params × 16                  # weights + grads + Adam states</code></pre>
+Full:   params × 16                  # weights, gradients and optimizer state</code></pre>
 
-      <h3>Alignment overhead</h3>
+      <h3>DPO and PPO</h3>
       <p>
-        DPO holds a frozen reference model alongside the policy (
+        DPO keeps a second copy of the model for reference (
         <strong>2×</strong>
-        ). PPO adds a reward model and a critic (
+        model memory). PPO adds a reward model and a critic (
         <strong>4×</strong>
-        ). The multiplier applies to weight memory before dividing across GPUs.
+        ).
       </p>
 
       <h3>Activations</h3>
       <pre><code>without checkpointing: batch × seq_len × d_model × num_layers × 4 × 2
 with checkpointing:    batch × seq_len × d_model × 4 × 2</code></pre>
       <p>
-        The 4 covers QKV projections, attention scores and MLP intermediates; the 2 is bf16. With
-        checkpointing only one layer of activations is live at a time.
+        The 4 covers the main intermediate results in each layer; the 2 is bytes per value in bf16.
+        With gradient checkpointing, only one layer is held in memory at a time.
       </p>
-      <pre><code>memory_per_GPU_GB = (weight_bytes + activation_bytes) ÷ total_GPUs ÷ 1e9</code></pre>
+      <pre><code>memory_per_GPU_GB = (model_bytes + activation_bytes) ÷ total_GPUs ÷ 1e9</code></pre>
     </section>
 
     <section id="storage">
-      <h2>Storage costs</h2>
+      <h2>Storage</h2>
       <pre><code>dataset_TB   = bytes_per_sample × num_samples ÷ 1e12
 dataset_cost = price_per_TB_month × dataset_TB × months</code></pre>
-      <p>
-        Each checkpoint stores trainable parameters in mixed precision, 14 bytes per parameter —
-        bf16 weights plus fp32 optimiser state.
-      </p>
+      <p>Each checkpoint saves 14 bytes per trained parameter.</p>
       <pre><code>checkpoint_TB = params × 14 × (
       checkpoints_per_run × full_runs
-    + hp_trials        # one final checkpoint each
-    + ablations        # one final checkpoint each
+    + tuning_runs      # one checkpoint each
+    + ablation_runs    # one checkpoint each
   ) ÷ 1e12</code></pre>
       <p>
-        Sweeps are where this bites: dozens of trials each leaving a final checkpoint adds up faster
-        than the runs themselves.
+        Tuning runs add up fast: dozens of runs, each leaving a checkpoint, can outweigh the main
+        runs.
       </p>
     </section>
 
     <section id="experiments">
-      <h2>Experiment rollup</h2>
-      <pre><code>single_run   = wall_clock_hours × hourly_rate × num_instances
+      <h2>Total project cost</h2>
+      <pre><code>single_run    = wall_clock_hours × hourly_rate × num_instances
 
 total_compute = single_run × full_runs
-              + single_run × hp_fraction × hp_trials
-              + single_run × ablation_fraction × ablations
+              + single_run × tuning_run_length × tuning_runs
+              + single_run × ablation_run_length × ablation_runs
 
 total_project = total_compute + dataset_storage + checkpoint_storage</code></pre>
     </section>
 
     <section id="instances">
-      <h2>Instance reference</h2>
-      <p>On-demand averages across US regions.</p>
+      <h2>Instances</h2>
+      <p>On-demand prices for the selected region.</p>
       <table>
         <thead>
           <tr>
             <th>Instance</th>
             <th>GPU</th>
-            <th>Count</th>
-            <th>VRAM</th>
+            <th>GPUs</th>
+            <th>Memory</th>
             <th>FP16</th>
             <th>Cost/hr</th>
           </tr>
@@ -466,17 +475,14 @@ total_project = total_compute + dataset_storage + checkpoint_storage</code></pre
         </tbody>
       </table>
       <p>
-        All use NVLink or NVSwitch within a node. Multi-node scaling is modelled as linear, with no
-        communication penalty.
+        Adding more GPUs or instances is assumed to speed training up perfectly, with no networking
+        slowdown.
       </p>
     </section>
 
     <section id="limitations">
       <h2>Limitations</h2>
-      <p>
-        Where the model is knowingly simplified. Read this before using an estimate to justify a
-        budget.
-      </p>
+      <p>Where the estimate is simplified. Read this before using a number to justify a budget.</p>
       <table>
         <thead>
           <tr>
@@ -487,7 +493,7 @@ total_project = total_compute + dataset_storage + checkpoint_storage</code></pre
         <tbody>
           <tr>
             <td>Scaling</td>
-            <td>Linear across GPUs and nodes; no NCCL or EFA communication overhead.</td>
+            <td>More GPUs always means proportionally faster. No networking overhead.</td>
           </tr>
           <tr>
             <td>Pricing</td>
@@ -495,31 +501,31 @@ total_project = total_compute + dataset_storage + checkpoint_storage</code></pre
           </tr>
           <tr>
             <td>Cloud</td>
-            <td>AWS only. GCP TPUs, Azure NDv5 and CoreWeave are not modelled.</td>
+            <td>AWS only. Google Cloud, Azure and others aren't included.</td>
           </tr>
           <tr>
-            <td>Optimiser</td>
-            <td>Adam, at 16 bytes/param. Lion or Adafactor would use less.</td>
+            <td>Optimizer</td>
+            <td>Adam, at 16 bytes per parameter. Others may use less memory.</td>
           </tr>
           <tr>
             <td>Startup</td>
-            <td>Steady state only — no spin-up, prefetch or compilation time.</td>
+            <td>No time for setup, data loading or compilation.</td>
           </tr>
           <tr>
-            <td>Data pipeline</td>
-            <td>I/O bottlenecks unmodelled; a starved cluster has lower real MFU.</td>
+            <td>Data loading</td>
+            <td>Assumed never to slow training. If it does, utilisation drops.</td>
           </tr>
           <tr>
-            <td>Mixed precision</td>
-            <td>Multipliers are theoretical peaks; real kernels rarely saturate them.</td>
+            <td>Precision</td>
+            <td>Speedups are best-case. Real code rarely reaches them.</td>
           </tr>
           <tr>
-            <td>LoRA accuracy</td>
-            <td>GQA-aware for library models; custom models use the uniform approximation.</td>
+            <td>LoRA</td>
+            <td>Exact for listed models; custom models use an approximation.</td>
           </tr>
           <tr>
             <td>Storage</td>
-            <td>S3 only. No EFS, FSx for Lustre, or local NVMe during training.</td>
+            <td>S3 only. No other file systems or local disks.</td>
           </tr>
         </tbody>
       </table>

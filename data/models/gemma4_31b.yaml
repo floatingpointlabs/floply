@@ -1,0 +1,18 @@
+name: "Gemma 4 31B"
+slug: "gemma4_31b"
+developer: "Google"
+family: "transformer"
+parameter_count: 31273088876
+architecture:
+  num_layers: 60
+  d_model: 5376
+  num_heads: 32
+  num_kv_heads: 16
+  head_dim: 256
+  ffn_intermediate: 21504
+  ffn_type: "geglu"
+  vocab_size: 262144
+source: "https://huggingface.co/google/gemma-4-31B"
+license: "apache-2.0"
+notes: >
+  Gemma 4 31B (Mar 2026). Dense. 50 sliding-window + 10 global layers; global layers use 512-wide heads. Total includes a ~550M vision encoder.

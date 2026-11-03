@@ -104,7 +104,7 @@ for (const file of readdirSync(join(DATA, "models"))
   const where = `data/models/${file}`;
   const slug = basename(file, ".yaml");
 
-  for (const k of ["name", "slug", "family"]) {
+  for (const k of ["name", "slug", "family", "developer"]) {
     if (typeof doc[k] !== "string") fail(where, `"${k}" is required and must be a string`);
   }
   if (doc.slug !== slug) fail(where, `slug "${doc.slug}" must match the filename "${slug}"`);
@@ -117,10 +117,17 @@ for (const file of readdirSync(join(DATA, "models"))
     fail(where, "architecture.moe requires a numeric active_parameter_count");
   }
 
+  for (const k of ["num_layers", "d_model", "num_heads", "num_kv_heads", "head_dim"]) {
+    if (k in arch && !(Number.isInteger(arch[k]) && arch[k] > 0)) {
+      fail(where, `architecture.${k} must be a positive integer`);
+    }
+  }
+
   models.push({
     name: doc.name,
     slug: doc.slug,
     family: doc.family,
+    developer: doc.developer,
     parameter_count: doc.parameter_count,
     architecture: arch,
     source: doc.source ?? "",

@@ -1,0 +1,22 @@
+name: "Kimi K3 2.8T-A104B"
+slug: "kimi_k3"
+developer: "Moonshot AI"
+family: "transformer"
+parameter_count: 2800000000000
+architecture:
+  num_layers: 93
+  d_model: 7168
+  num_heads: 96
+  num_kv_heads: 96
+  head_dim: 192
+  ffn_intermediate: 3072
+  ffn_type: "situ_glu"
+  vocab_size: 163840
+  moe:
+    num_experts: 896
+    active_experts: 16
+    active_parameter_count: 104000000000
+source: "https://huggingface.co/moonshotai/Kimi-K3"
+license: "Kimi K3 License"
+notes: >
+  Moonshot Kimi K3 (Jun 2026). MoE: 896 experts, 16 routed + 2 shared per token, ~104B active. Hybrid: 69 linear-attention + 24 latent-attention layers, so LoRA counts are approximate.

@@ -1,0 +1,18 @@
+name: "Tiny Aya 3B"
+slug: "tiny_aya"
+developer: "Cohere"
+family: "transformer"
+parameter_count: 3349227520
+architecture:
+  num_layers: 36
+  d_model: 2048
+  num_heads: 16
+  num_kv_heads: 4
+  head_dim: 128
+  ffn_intermediate: 11008
+  ffn_type: "swiglu"
+  vocab_size: 262144
+source: "https://huggingface.co/CohereLabs/tiny-aya-global"
+license: "cc-by-nc-4.0"
+notes: >
+  Cohere Labs Tiny Aya (Feb 2026). Covers the Global, Earth, Fire and Water variants, which share one architecture. Non-commercial licence. Sliding-window attention, 3 local : 1 global.

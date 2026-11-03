@@ -20,11 +20,11 @@
   }
 
   const summary = $derived.by(() => {
-    if (provenance.source === "unavailable") return `Pricing unavailable · ${provenance.region}`;
+    if (provenance.source === "unavailable") return `Prices unavailable · ${provenance.region}`;
     const when = provenance.age_days ? `${provenance.age_days}d ago` : "just now";
-    const label = provenance.source === "live" ? "Live" : "Cached";
-    const suffix = provenance.stale && provenance.last_error ? " · refresh failed" : "";
-    return `${label} · fetched ${when}${suffix}`;
+    const label = provenance.source === "live" ? "Live prices" : "Cached prices";
+    const suffix = provenance.stale && provenance.last_error ? " · couldn't refresh" : "";
+    return `${label} · updated ${when}${suffix}`;
   });
 
   const tone = $derived(
@@ -47,7 +47,7 @@
       value={provenance.region}
       onchange={select}
       class="control w-auto !py-1.5 text-sm"
-      title="Instance and S3 prices are region-specific.">
+      title="Prices vary by region.">
       {#each regions as region (region.code)}
         <option value={region.code}>
           {region.label ? `${region.code} — ${region.label}` : region.code}
@@ -77,13 +77,13 @@
       class="popover settle absolute top-full left-0 z-30 mt-2 w-[min(22rem,90vw)] p-4 text-sm
              leading-relaxed text-[var(--color-ink-muted)] sm:right-0 sm:left-auto">
       <p>
-        On-demand list price, Linux, shared tenancy. Cache: <code>{provenance.cache_location}</code>
+        On-demand Linux prices. Cache: <code>{provenance.cache_location}</code>
       </p>
       {#if provenance.last_error}
         <p class="mt-2">Last error: {provenance.last_error}</p>
       {/if}
       {#if Object.keys(provenance.quarantined).length}
-        <p class="mt-2 font-semibold text-[var(--color-ink)]">Discovered but unusable</p>
+        <p class="mt-2 font-semibold text-[var(--color-ink)]">Skipped instances</p>
         <ul class="list-disc pl-4">
           {#each Object.entries(provenance.quarantined) as [instanceType, reason] (instanceType)}
             <li>

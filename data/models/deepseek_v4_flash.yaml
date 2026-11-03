@@ -1,0 +1,22 @@
+name: "DeepSeek V4 Flash 284B-A13B"
+slug: "deepseek_v4_flash"
+developer: "DeepSeek"
+family: "transformer"
+parameter_count: 284000000000
+architecture:
+  num_layers: 43
+  d_model: 4096
+  num_heads: 64
+  num_kv_heads: 1
+  head_dim: 512
+  ffn_intermediate: 2048
+  ffn_type: "swiglu"
+  vocab_size: 129280
+  moe:
+    num_experts: 256
+    active_experts: 6
+    active_parameter_count: 13000000000
+source: "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash"
+license: "mit"
+notes: >
+  DeepSeek V4 Flash (Apr 2026). MoE: 256 experts, 6 routed + 1 shared per token, ~13B active. ffn_intermediate is the per-expert size. Compressed sparse attention, so LoRA counts on attention modules are approximate.

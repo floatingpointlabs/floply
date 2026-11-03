@@ -1,5 +1,14 @@
 import { expect, test, type Page } from "@playwright/test";
 
+/**
+ * Navigate and wait for hydration. Interacting with server-rendered HTML before Svelte
+ * attaches its handlers silently drops the change, which made these tests flaky.
+ */
+async function open(page: Page, path: string) {
+  await page.goto(path);
+  await page.waitForLoadState("networkidle");
+}
+
 const ROUTES = ["/", "/budget-optimizer", "/training-budget", "/methodology"];
 
 /** Read a readout by its label. Figure.svelte renders <dt>label</dt><dd>value</dd>. */
@@ -26,7 +35,7 @@ test("every route loads and hydrates without console errors", async ({ page }) =
 });
 
 test("budget optimizer shows the values verified against Streamlit", async ({ page }) => {
-  await page.goto("/budget-optimizer");
+  await open(page, "/budget-optimizer");
   // The same baseline captured from the Streamlit app at the start of the migration.
   await expect(figure(page, "Max model size (params)")).toHaveText("4.09B");
   await expect(figure(page, "Dataset")).toHaveText("79.43B tokens");
@@ -35,7 +44,7 @@ test("budget optimizer shows the values verified against Streamlit", async ({ pa
 });
 
 test("the dataset slider recomputes the answer", async ({ page }) => {
-  await page.goto("/budget-optimizer");
+  await open(page, "/budget-optimizer");
   const dataset = figure(page, "Dataset");
   const before = await dataset.innerText();
 
@@ -48,7 +57,7 @@ test("the dataset slider recomputes the answer", async ({ page }) => {
 });
 
 test("schedule overrides survive a schedule edit but reset on a setup change", async ({ page }) => {
-  await page.goto("/budget-optimizer");
+  await open(page, "/budget-optimizer");
   const epochs = page.locator("#epochs");
   await expect(epochs).toHaveValue("1"); // derived default for pre-training
 
@@ -63,8 +72,10 @@ test("schedule overrides survive a schedule edit but reset on a setup change", a
 });
 
 test("training budget gates each section until the one above is answered", async ({ page }) => {
-  await page.goto("/training-budget");
-  await expect(page.getByText("Choose a modality and dataset size to continue.")).toBeVisible();
+  await open(page, "/training-budget");
+  await expect(
+    page.getByText("Choose a data type and number of samples to continue.")
+  ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Total project cost" })).toBeHidden();
 
   await page.locator("#modality").selectOption("Text");
@@ -74,32 +85,32 @@ test("training budget gates each section until the one above is answered", async
 });
 
 test("training budget breaks compute down by run type and recaps the config", async ({ page }) => {
-  await page.goto("/training-budget");
+  await open(page, "/training-budget");
   await page.locator("#modality").selectOption("Text");
 
   await expect(page.getByRole("heading", { name: "Compute by run type" })).toBeVisible();
   await expect(figure(page, "Full runs")).toHaveText("$17,032");
-  await expect(figure(page, "HP trials")).toHaveText("$0");
+  await expect(figure(page, "Tuning runs")).toHaveText("$0");
 
   // Ten trials at 30% of a run cost 3x the model you actually keep — the point of the
   // whole section, and previously invisible.
   await page.locator("#hp").fill("10");
-  await expect(figure(page, "HP trials")).toHaveText("$51,097");
+  await expect(figure(page, "Tuning runs")).toHaveText("$51,097");
 
-  await expect(page.getByRole("heading", { name: "Run configuration" })).toBeVisible();
-  await expect(page.getByRole("cell", { name: "HP tuning trials" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "All settings" })).toBeVisible();
+  await expect(page.getByRole("cell", { name: "Tuning runs" })).toBeVisible();
 });
 
 test("minimum data swaps tier tables between pre-training and LoRA", async ({ page }) => {
-  await page.goto("/");
+  await open(page, "/");
   // Scoped to the chart: these tier names also appear as readout labels below it.
-  const chart = page.getByRole("img", { name: /Token requirements/ });
+  const chart = page.getByRole("img", { name: /Tokens needed/ });
 
-  await expect(chart.getByText("Compute-optimal", { exact: true })).toBeVisible();
+  await expect(chart.getByText("Extended", { exact: true })).toBeVisible();
 
   await page.locator("#training-type").selectOption("Fine-Tuning");
   await page.locator("#ft-method").selectOption("LoRA");
 
-  await expect(chart.getByText("Sweet spot", { exact: true })).toBeVisible();
-  await expect(chart.getByText("Compute-optimal", { exact: true })).toBeHidden();
+  await expect(chart.getByText("Outgrowing LoRA", { exact: true })).toBeVisible();
+  await expect(chart.getByText("Extended", { exact: true })).toBeHidden();
 });

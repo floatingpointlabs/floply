@@ -37,7 +37,9 @@
   // Line items carry cents; the headline figures elsewhere do not.
   const moneyCents = (n: number) => money(n, true);
   import {
+    DEFAULT_MODEL,
     MODELS,
+    MODEL_GROUPS,
     getGpuInstance,
     listStorageClasses,
     supportedPrecisions
@@ -110,13 +112,13 @@
   let dModel = $state(4096);
   let numLayers = $state(32);
 
-  let baseModelName = $state(MODELS[0].name);
+  let baseModelName = $state(DEFAULT_MODEL.name);
   let ftMethod = $state<Exclude<FineTuningMethod, null>>("Full Fine-Tuning");
   let loraRank = $state(16);
   let rlAlgorithm = $state("Supervised");
 
   const isFt = $derived(trainingType === "Fine-Tuning");
-  const baseModel = $derived(MODELS.find((m) => m.name === baseModelName) ?? MODELS[0]);
+  const baseModel = $derived(MODELS.find((m) => m.name === baseModelName) ?? DEFAULT_MODEL);
   const isAdapter = $derived(isFt && (ftMethod === "LoRA" || ftMethod === "QLoRA"));
 
   const trainableParams = $derived(
@@ -243,7 +245,7 @@
       color: CHART_COLORS.compute
     },
     {
-      label: "HP trials",
+      label: "Tuning runs",
       value: budget.compute_cost * hpFraction * numHpTrials,
       detail: numHpTrials
         ? `${numHpTrials} × ${(hpFraction * 100).toFixed(0)}% of a run`
@@ -266,44 +268,44 @@
    * effective batch), and an input that changes no number is worse than no input.
    */
   const recap = $derived([
-    ["Dataset", "Modality", modality],
+    ["Dataset", "Data type", modality],
     ["Dataset", "Samples", samples.toLocaleString("en-US")],
     ["Dataset", "Tokens per sample", fmtTokens(perSample.tokens)],
     ["Dataset", "Total tokens", fmtTokens(budget.total_tokens)],
     ["Dataset", "Estimated size", sizeLabel],
-    ["Dataset", "Storage duration", `${storageMonths} months`],
+    ["Dataset", "Storage time", `${storageMonths} months`],
 
     ["Model", "Training type", trainingType],
-    ["Model", "Model / base", isFt ? baseModelName : architecture],
-    ["Model", "Parameter count", fmtTokens(isFt ? baseModel.parameter_count : preParamCount)],
+    ["Model", "Model", isFt ? baseModelName : architecture],
+    ["Model", "Model size", fmtTokens(isFt ? baseModel.parameter_count : preParamCount)],
     ["Model", "Fine-tuning method", isFt ? ftMethod : "N/A"],
-    ["Model", "Trainable parameters", isFt ? fmtTokens(trainableParams) : "all"],
-    ["Model", "Alignment", isFt ? rlAlgorithm : "N/A"],
+    ["Model", "Parameters trained", isFt ? fmtTokens(trainableParams) : "All"],
+    ["Model", "Training method", isFt ? rlAlgorithm : "N/A"],
 
-    ["Cluster", "Instance type", instanceType],
-    ["Cluster", "Instances", String(numInstances)],
-    ["Cluster", "Total GPUs", String(budget.total_gpus)],
-    ["Cluster", "Mixed precision", mixedPrecision],
-    ["Cluster", "MFU", `${mfuPct}%`],
-    ["Cluster", "Epochs", String(epochs)],
-    ["Cluster", "Batch size", batchSize.toLocaleString("en-US")],
-    ["Cluster", "Gradient checkpointing", gradientCheckpointing ? "Yes" : "No"],
+    ["Hardware", "Instance type", instanceType],
+    ["Hardware", "Instances", String(numInstances)],
+    ["Hardware", "Total GPUs", String(budget.total_gpus)],
+    ["Hardware", "Precision", mixedPrecision],
+    ["Hardware", "GPU utilisation", `${mfuPct}%`],
+    ["Hardware", "Epochs", String(epochs)],
+    ["Hardware", "Batch size", batchSize.toLocaleString("en-US")],
+    ["Hardware", "Gradient checkpointing", gradientCheckpointing ? "Yes" : "No"],
 
-    ["Run", "Total FLOPs", formatE(budget.total_flops, 2)],
+    ["Run", "Total compute (FLOPs)", formatE(budget.total_flops, 2)],
     ["Run", "GPU-hours (1 run)", formatGpuHours(budget.gpu_hours)],
-    ["Run", "Wall-clock (1 run)", formatWallClockTime(budget.wall_clock_days)],
+    ["Run", "Training time (1 run)", formatWallClockTime(budget.wall_clock_days)],
     ["Run", "Memory per GPU", `${budget.memory_per_gpu_gb.toFixed(1)} GB`],
-    ["Run", "VRAM available", `${budget.vram_per_gpu} GB`],
+    ["Run", "GPU memory available", `${budget.vram_per_gpu} GB`],
 
-    ["Experiment", "Full training runs", String(numTrainingRuns)],
-    ["Experiment", "Checkpoints per run", String(numCheckpoints)],
-    ["Experiment", "HP tuning trials", String(numHpTrials)],
-    ["Experiment", "HP trial length", `${(hpFraction * 100).toFixed(0)}% of a run`],
-    ["Experiment", "Ablation studies", String(numAblations)],
-    ["Experiment", "Ablation length", `${(ablationFraction * 100).toFixed(0)}% of a run`],
-    ["Experiment", "Total experiment runs", String(budget.total_experiment_runs)],
-    ["Experiment", "Checkpoint storage", `${budget.checkpoint_storage_tb.toFixed(4)} TB`],
-    ["Experiment", "S3 storage class", storageClass.replace(/_/g, " ")],
+    ["Experiments", "Full training runs", String(numTrainingRuns)],
+    ["Experiments", "Checkpoints per run", String(numCheckpoints)],
+    ["Experiments", "Tuning runs", String(numHpTrials)],
+    ["Experiments", "Tuning run length", `${(hpFraction * 100).toFixed(0)}% of a run`],
+    ["Experiments", "Ablation runs", String(numAblations)],
+    ["Experiments", "Ablation run length", `${(ablationFraction * 100).toFixed(0)}% of a run`],
+    ["Experiments", "Total runs", String(budget.total_experiment_runs)],
+    ["Experiments", "Checkpoint storage", `${budget.checkpoint_storage_tb.toFixed(4)} TB`],
+    ["Experiments", "Storage class", storageClass.replace(/_/g, " ")],
 
     ["Cost", "Compute (all runs)", moneyCents(budget.total_compute_cost)],
     ["Cost", "Dataset storage", moneyCents(budget.dataset_storage_cost)],
@@ -313,21 +315,21 @@
 </script>
 
 <svelte:head>
-  <title>Training budget — Floply</title>
+  <title>Project cost — Floply</title>
   <meta
     name="description"
-    content="Estimate the full cost of a training project: GPU compute, dataset storage, checkpoints, hyperparameter trials and ablations." />
+    content="Estimate the full cost of a training project, including compute, storage, tuning and ablation runs." />
 </svelte:head>
+
 <h1>What will this project cost?</h1>
 <p class="mt-2 max-w-[62ch] text-[var(--color-ink-muted)]">
-  Describe the dataset, the model and the cluster. Each section unlocks as the one above it is
-  answered.
+  Describe your data, model and hardware. Each section opens once the one above it is filled in.
 </p>
 
 <section class="mt-8 border-t border-[var(--color-soft)] pt-6">
   <h2>Dataset</h2>
   <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-    <Field label="Modality" id="modality">
+    <Field label="Data type" id="modality">
       <select id="modality" bind:value={modality} class="control">
         <option value="" disabled>Choose one…</option>
         <option>Text</option>
@@ -338,7 +340,7 @@
     </Field>
 
     {#if modality}
-      <Field label="Dataset size (samples)" id="dataset-size">
+      <Field label="Number of samples" id="dataset-size">
         <ScaledNumber
           id="dataset-size"
           bind:value={datasetSize}
@@ -347,7 +349,7 @@
       </Field>
 
       {#if modality === "Text"}
-        <Field label="Average length (words)" id="avg-words" hint="1 word ≈ 1.3 BPE tokens.">
+        <Field label="Average length (words)" id="avg-words" hint="About 1.3 tokens per word.">
           <input
             id="avg-words"
             type="number"
@@ -381,9 +383,9 @@
         </Field>
         <Field label="Tokenizer" id="tokenizer">
           <select id="tokenizer" bind:value={audioTokenizer} class="control">
-            <option value="Whisper">Whisper (50 tok/sec)</option>
-            <option value="EnCodec">EnCodec 24kHz (75 tok/sec × codebooks)</option>
-            <option value="SoundStream">SoundStream (50 tok/sec × codebooks)</option>
+            <option value="Whisper">Whisper (50 tokens/sec)</option>
+            <option value="EnCodec">EnCodec 24 kHz (75 tokens/sec per codebook)</option>
+            <option value="SoundStream">SoundStream (50 tokens/sec per codebook)</option>
           </select>
         </Field>
         {#if audioTokenizer !== "Whisper"}
@@ -409,9 +411,9 @@
             class="control num" />
         </Field>
         <Field
-          label="Sampled FPS"
+          label="Frames per second"
           id="fps"
-          hint="Frames sampled per second, not source frame rate.">
+          hint="Frames you sample each second, not the video's frame rate.">
           <input
             id="fps"
             type="number"
@@ -432,7 +434,7 @@
         </Field>
       {/if}
 
-      <Field label="Storage duration (months)" id="storage-months">
+      <Field label="Storage time (months)" id="storage-months">
         <input id="storage-months" type="range" bind:value={storageMonths} min="1" max="36" />
         <span class="num text-sm">{storageMonths}</span>
       </Field>
@@ -443,11 +445,11 @@
     <dl class="mt-6 grid gap-6 border-t border-[var(--color-soft)] pt-5 sm:grid-cols-3">
       <Figure label="Tokens per sample" value={fmtTokens(perSample.tokens)} />
       <Figure label="Total tokens" value={fmtTokens(budget.total_tokens)} />
-      <Figure label="Dataset size (est.)" value={sizeLabel} />
+      <Figure label="Estimated size" value={sizeLabel} />
     </dl>
   {:else}
     <p class="mt-4 text-sm text-[var(--color-ink-muted)]">
-      Choose a modality and dataset size to continue.
+      Choose a data type and number of samples to continue.
     </p>
   {/if}
 </section>
@@ -458,20 +460,24 @@
     <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       <Field label="Training type" id="training-type">
         <select id="training-type" bind:value={trainingType} class="control">
-          <option>Pre-Training</option>
-          <option>Fine-Tuning</option>
+          <option value="Pre-Training">Pre-training</option>
+          <option value="Fine-Tuning">Fine-tuning</option>
         </select>
       </Field>
 
       {#if isFt}
         <Field label="Base model" id="base-model">
           <select id="base-model" bind:value={baseModelName} class="control">
-            {#each MODELS as m (m.slug)}<option value={m.name}>{m.name}</option>{/each}
+            {#each MODEL_GROUPS as g (g.developer)}
+              <optgroup label={g.developer}>
+                {#each g.models as m (m.slug)}<option value={m.name}>{m.name}</option>{/each}
+              </optgroup>
+            {/each}
           </select>
         </Field>
         <Field label="Fine-tuning method" id="ft-method">
           <select id="ft-method" bind:value={ftMethod} class="control">
-            <option>Full Fine-Tuning</option>
+            <option value="Full Fine-Tuning">Full fine-tuning</option>
             <option>LoRA</option>
             <option>QLoRA</option>
           </select>
@@ -483,11 +489,11 @@
           </Field>
         {/if}
         <Field
-          label="Alignment"
+          label="Training method"
           id="rl"
-          hint="DPO holds a reference model in memory; PPO adds value and reward models.">
+          hint="DPO doubles the model memory; PPO quadruples it.">
           <select id="rl" bind:value={rlAlgorithm} class="control">
-            <option>Supervised</option>
+            <option value="Supervised">Supervised (standard)</option>
             <option>DPO</option>
             <option>PPO</option>
           </select>
@@ -498,14 +504,14 @@
             {#each ARCHITECTURE_OPTIONS as a (a)}<option>{a}</option>{/each}
           </select>
         </Field>
-        <Field label="Parameter count" id="pre-params">
+        <Field label="Model size (parameters)" id="pre-params">
           <ScaledNumber
             id="pre-params"
             bind:value={preParams}
             bind:unit={preUnit}
             units={["M", "B", "T"]} />
         </Field>
-        <Field label="Hidden dimension" id="d-model">
+        <Field label="Hidden size" id="d-model">
           <input
             id="d-model"
             type="number"
@@ -530,9 +536,9 @@
     {#if isAdapter}
       <p class="mt-4 text-xs text-[var(--color-ink-faint)]">
         <span class="num">{fmtTokens(trainableParams)}</span>
-        trainable adapter parameters &mdash; checkpoints store these, not the {fmtTokens(
+        parameters to train. Checkpoints save only these, not the full {fmtTokens(
           baseModel.parameter_count
-        )}-parameter base.
+        )} model.
       </p>
     {/if}
 
@@ -540,7 +546,7 @@
   </section>
 
   <section class="mt-10 border-t border-[var(--color-soft)] pt-6">
-    <h2>Cluster</h2>
+    <h2>Hardware</h2>
     <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       <Field label="Instance type" id="instance">
         <select
@@ -575,10 +581,7 @@
           max="100"
           class="control num" />
       </Field>
-      <Field
-        label="Mixed precision"
-        id="precision"
-        hint="Only formats {instanceSpec.gpu} has hardware support for.">
+      <Field label="Precision" id="precision" hint="Only formats the {instanceSpec.gpu} supports.">
         <select
           id="precision"
           value={mixedPrecision}
@@ -590,9 +593,9 @@
         </select>
       </Field>
       <Field
-        label="Model FLOPs utilisation"
+        label="GPU utilisation"
         id="mfu"
-        hint="Share of peak throughput actually achieved. 30% is a conservative real-world default.">
+        hint="How much of the GPU's peak speed you actually get. 30% is a safe default.">
         <input id="mfu" type="range" bind:value={mfuPct} min="5" max="100" step="5" />
         <span class="num text-sm">{mfuPct}%</span>
       </Field>
@@ -608,18 +611,18 @@
       <Field
         label="Gradient checkpointing"
         id="grad-ckpt"
-        hint="Recomputes activations to save memory. Adds ~33% FLOPs.">
+        hint="Saves memory, but adds about 33% more compute.">
         <label class="flex items-center gap-2 text-sm">
           <input id="grad-ckpt" type="checkbox" bind:checked={gradientCheckpointing} />
-          Enabled
+          On
         </label>
       </Field>
     </div>
 
     <dl
       class="mt-6 grid gap-6 border-t border-[var(--color-soft)] pt-5 sm:grid-cols-2 lg:grid-cols-4">
-      <Figure label="Total FLOPs" value={formatE(budget.total_flops, 2)} />
-      <Figure label="Wall-clock (1 run)" value={formatWallClockTime(budget.wall_clock_days)} />
+      <Figure label="Total compute (FLOPs)" value={formatE(budget.total_flops, 2)} />
+      <Figure label="Training time (1 run)" value={formatWallClockTime(budget.wall_clock_days)} />
       <Figure label="GPU-hours (1 run)" value="{formatGpuHours(budget.gpu_hours)} GPU-hrs" />
       <Figure
         label="Memory per GPU"
@@ -629,8 +632,8 @@
     </dl>
     {#if !budget.memory_fits}
       <p class="mt-3 text-sm text-[var(--color-danger)]">
-        This configuration exceeds the GPU's memory. Reduce batch size, enable gradient
-        checkpointing, or switch to a larger-memory instance.
+        This won't fit in GPU memory. Lower the batch size, turn on gradient checkpointing, add
+        instances, or pick a GPU with more memory.
       </p>
     {/if}
   </section>
@@ -638,8 +641,8 @@
   <section class="mt-10 border-t border-[var(--color-soft)] pt-6">
     <h2>Experiments</h2>
     <p class="mt-1.5 max-w-[62ch] text-sm text-[var(--color-ink-muted)]">
-      Real projects are never one run. Hyperparameter trials and ablations usually cost more than
-      the final model.
+      Real projects take more than one run. Tuning and ablation runs often cost more than the final
+      model.
     </p>
     <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       <Field label="Full training runs" id="runs">
@@ -660,7 +663,7 @@
           max="200"
           class="control num" />
       </Field>
-      <Field label="HP tuning trials" id="hp">
+      <Field label="Tuning runs" id="hp" hint="Runs that test different hyperparameters.">
         <input
           id="hp"
           type="number"
@@ -669,7 +672,7 @@
           max="1000"
           class="control num" />
       </Field>
-      <Field label="HP trial length" id="hp-frac" hint="Fraction of a full run's cost.">
+      <Field label="Tuning run length" id="hp-frac" hint="As a fraction of a full run (0.3 = 30%).">
         <input
           id="hp-frac"
           type="number"
@@ -679,7 +682,7 @@
           step="0.05"
           class="control num" />
       </Field>
-      <Field label="Ablation studies" id="abl">
+      <Field label="Ablation runs" id="abl" hint="Runs that test one change at a time.">
         <input
           id="abl"
           type="number"
@@ -688,7 +691,10 @@
           max="100"
           class="control num" />
       </Field>
-      <Field label="Ablation length" id="abl-frac" hint="Fraction of a full run's cost.">
+      <Field
+        label="Ablation run length"
+        id="abl-frac"
+        hint="As a fraction of a full run (0.5 = 50%).">
         <input
           id="abl-frac"
           type="number"
@@ -698,7 +704,7 @@
           step="0.05"
           class="control num" />
       </Field>
-      <Field label="S3 storage class" id="storage-class">
+      <Field label="Storage class" id="storage-class">
         <select id="storage-class" bind:value={storageClass} class="control">
           {#each storageClasses as c (c)}
             <option value={c}>{c.replace(/_/g, " ")}</option>
@@ -708,7 +714,7 @@
     </div>
   </section>
 
-  <section class="mt-10 border-t border-[var(--color-rule)] pt-6">
+  <section class="mt-10 border-t border-[var(--color-soft)] pt-6">
     <h2>Total project cost</h2>
 
     <dl class="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -751,7 +757,7 @@
   <section class="mt-10 border-t border-[var(--color-soft)] pt-6">
     <h2>Compute by run type</h2>
     <p class="mt-1.5 max-w-[62ch] text-sm text-[var(--color-ink-muted)]">
-      Sweeps and ablations often cost more than the model you keep. A single total hides that.
+      Where the compute money goes.
     </p>
     <div class="mt-5">
       <CostBars segments={runTypeSegments} />
@@ -759,9 +765,9 @@
   </section>
 
   <section class="mt-10 border-t border-[var(--color-soft)] pt-6">
-    <h2>Run configuration</h2>
+    <h2>All settings</h2>
     <p class="mt-1.5 max-w-[62ch] text-sm text-[var(--color-ink-muted)]">
-      Everything this estimate assumed, in one place.
+      Every input and result behind this estimate.
     </p>
 
     <div class="table-wrap mt-5 max-w-3xl">

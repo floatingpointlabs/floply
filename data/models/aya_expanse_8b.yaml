@@ -1,0 +1,18 @@
+name: "Aya Expanse 8B"
+slug: "aya_expanse_8b"
+developer: "Cohere"
+family: "transformer"
+parameter_count: 8028033024
+architecture:
+  num_layers: 32
+  d_model: 4096
+  num_heads: 32
+  num_kv_heads: 8
+  head_dim: 128
+  ffn_intermediate: 14336
+  ffn_type: "swiglu"
+  vocab_size: 256000
+source: "https://huggingface.co/CohereLabs/aya-expanse-8b"
+license: "cc-by-nc-4.0"
+notes: >
+  Cohere Labs Aya Expanse 8B (Oct 2024). Multilingual. Non-commercial licence. Full attention.

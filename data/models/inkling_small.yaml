@@ -1,0 +1,22 @@
+name: "Inkling-Small 266B-A12B"
+slug: "inkling_small"
+developer: "Thinking Machines"
+family: "transformer"
+parameter_count: 265956439090
+architecture:
+  num_layers: 42
+  d_model: 4096
+  num_heads: 32
+  num_kv_heads: 8
+  head_dim: 128
+  ffn_intermediate: 2048
+  ffn_type: "glu"
+  vocab_size: 201024
+  moe:
+    num_experts: 256
+    active_experts: 6
+    active_parameter_count: 12000000000
+source: "https://huggingface.co/thinkingmachines/Inkling-Small"
+license: "apache-2.0"
+notes: >
+  Thinking Machines Inkling-Small (Jul 2026). MoE: 256 experts, 6 routed + 2 shared per token, ~12B active. ffn_intermediate is the per-expert size. Total from the BF16 weights (the card says 276B). Sliding-window + 7 global layers.

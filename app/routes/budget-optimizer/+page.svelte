@@ -13,8 +13,10 @@
   import ScaledNumber from "$lib/components/ScaledNumber.svelte";
   import {
     ARCH_MULTIPLIERS,
+    EXPLORE_DATASET,
     EXPLORE_LORA_RANK,
     EXPLORE_MODEL_TO_TOKENS,
+    EXPLORE_TOKENS_TO_MODEL,
     MODALITY_DEFAULTS,
     autoConfigureHardware,
     budgetCurveN,
@@ -26,7 +28,7 @@
   } from "$lib/engine/budgetOptimizer";
   import { CHINCHILLA_OPTIMAL_RATIO, LORA_OPTIMAL_RATIO } from "$lib/engine/constants";
   import { UNIT_MULTIPLIERS, fmtTokens, formatWallClockTime, money } from "$lib/engine/formatting";
-  import { MODELS, listStorageClasses } from "$lib/engine/gpuSpecs";
+  import { MODELS, MODEL_GROUPS, listStorageClasses } from "$lib/engine/gpuSpecs";
   import { assessChinchillaRatio, assessLoraRatio } from "$lib/engine/scalingLaws";
   import type { PageProps } from "./$types";
 
@@ -42,6 +44,21 @@
   let ftMethod = $state<"Full Fine-Tuning (SFT)" | "LoRA" | "QLoRA">("Full Fine-Tuning (SFT)");
   let baseModelName = $state<string>("");
   let loraRank = $state(16);
+
+  // Display names only; the engine keys stay as they are because the fixtures pin them.
+  const MODALITY_LABELS: Record<string, string> = {
+    "Text (LLM)": "Text",
+    "Vision (ViT / CLIP)": "Image understanding",
+    Audio: "Audio",
+    "Multimodal (VLM)": "Text and images",
+    "Diffusion (Image Gen)": "Image generation"
+  };
+  const EXPLORE_LABELS: Record<string, string> = {
+    [EXPLORE_DATASET]: "Dataset size",
+    [EXPLORE_LORA_RANK]: "LoRA rank",
+    [EXPLORE_TOKENS_TO_MODEL]: "Dataset size",
+    [EXPLORE_MODEL_TO_TOKENS]: "Model size"
+  };
 
   const computeBudget = $derived(budgetValue * UNIT_MULTIPLIERS[budgetUnit]);
   const archMultiplier = $derived(ARCH_MULTIPLIERS[MODALITY_DEFAULTS[modality].arch]);
@@ -152,8 +169,8 @@
   const isFtWithBase = $derived(isFt && baseModel !== null);
   const optimalLabel = $derived(
     isLora && isFtWithBase
-      ? `LoRA sweet spot (D / ${LORA_OPTIMAL_RATIO})`
-      : `Chinchilla optimal (N = D / ${CHINCHILLA_OPTIMAL_RATIO})`
+      ? `Ideal balance (${LORA_OPTIMAL_RATIO} tokens per adapter parameter)`
+      : `Ideal balance (${CHINCHILLA_OPTIMAL_RATIO} tokens per parameter)`
   );
 
   // Fine-tuning with a base model is judged against adapter size, not Chinchilla.
@@ -165,7 +182,7 @@
         : assessChinchillaRatio(
             sel.current_ratio,
             Math.trunc(sel.selected_params * CHINCHILLA_OPTIMAL_RATIO),
-            "Move the slider toward the star to return to Chinchilla-optimal."
+            "Move the slider toward the star to get back to the ideal balance."
           )
   );
 
@@ -173,20 +190,22 @@
 </script>
 
 <svelte:head>
-  <title>Floply — training budget optimizer</title>
-  <meta
-    name="description"
-    content="Given a budget, find the largest model and dataset you can afford to train, and where the scaling-law optimum sits." />
+  <title>Budget optimizer — Floply</title>
+  <meta name="description" content="Find the biggest model and dataset your budget can train." />
 </svelte:head>
+
 <h1>What can this budget buy?</h1>
 <p class="mt-2 max-w-[62ch] text-[var(--color-ink-muted)]">
-  For a fixed spend, a bigger model means less data. Set your budget and see the frontier — and
-  where the scaling laws say the sweet spot is.
+  With a fixed budget, a bigger model means less data. Set your budget to see the trade-off and the
+  best balance.
 </p>
 
 <section class="mt-8 border-t border-[var(--color-soft)] pt-6">
   <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-    <Field label="Total budget (USD)" id="budget" hint="GPU compute, tuning runs and storage.">
+    <Field
+      label="Total budget (USD)"
+      id="budget"
+      hint="Covers GPU compute, tuning runs and storage.">
       <ScaledNumber
         id="budget"
         bind:value={budgetValue}
@@ -194,23 +213,25 @@
         units={["K", "M", "B", "T"]} />
     </Field>
 
-    <Field label="Modality" id="modality">
+    <Field label="Data type" id="modality">
       <select id="modality" bind:value={modality} class="control">
-        {#each Object.keys(MODALITY_DEFAULTS) as m (m)}<option>{m}</option>{/each}
+        {#each Object.keys(MODALITY_DEFAULTS) as m (m)}
+          <option value={m}>{MODALITY_LABELS[m] ?? m}</option>
+        {/each}
       </select>
     </Field>
 
     <Field label="Training type" id="training-type">
       <select id="training-type" bind:value={trainingType} class="control">
-        <option>Pre-Training</option>
-        <option>Fine-Tuning</option>
+        <option value="Pre-Training">Pre-training</option>
+        <option value="Fine-Tuning">Fine-tuning</option>
       </select>
     </Field>
 
     {#if isFt}
       <Field label="Fine-tuning method" id="ft-method">
         <select id="ft-method" bind:value={ftMethod} class="control">
-          <option>Full Fine-Tuning (SFT)</option>
+          <option value="Full Fine-Tuning (SFT)">Full fine-tuning</option>
           <option>LoRA</option>
           <option>QLoRA</option>
         </select>
@@ -218,8 +239,12 @@
 
       <Field label="Base model" id="base-model">
         <select id="base-model" bind:value={baseModelName} class="control">
-          <option value="">Custom / unspecified</option>
-          {#each MODELS as m (m.slug)}<option value={m.name}>{m.name}</option>{/each}
+          <option value="">Other / not listed</option>
+          {#each MODEL_GROUPS as g (g.developer)}
+            <optgroup label={g.developer}>
+              {#each g.models as m (m.slug)}<option value={m.name}>{m.name}</option>{/each}
+            </optgroup>
+          {/each}
         </select>
       </Field>
 
@@ -234,7 +259,10 @@
 </section>
 
 <section class="mt-10 border-t border-[var(--color-soft)] pt-6">
-  <h2>The frontier</h2>
+  <h2>Model size vs. data</h2>
+  <p class="mt-1.5 max-w-[62ch] text-sm text-[var(--color-ink-muted)]">
+    Every point on the solid line uses your full budget. The star marks the best balance.
+  </p>
   <div class="mt-4">
     <BudgetFrontier
       {dRange}
@@ -251,13 +279,15 @@
 
   <div
     class="mt-6 grid gap-5 border-t border-[var(--color-soft)] pt-5 lg:grid-cols-[minmax(0,20rem)_1fr]">
-    <Field label="Explore by" id="explore">
+    <Field label="Adjust" id="explore">
       <select
         id="explore"
         value={sel.explore_dir}
         onchange={(e) => (exploreDirOverride = e.currentTarget.value)}
         class="control">
-        {#each sel.explore_options as o (o)}<option>{o}</option>{/each}
+        {#each sel.explore_options as o (o)}<option value={o}>
+            {EXPLORE_LABELS[o] ?? o}
+          </option>{/each}
       </select>
     </Field>
 
@@ -289,7 +319,12 @@
         <span class="num text-sm">{fmtTokens(sel.selected_params)} params</span>
       </Field>
     {:else}
-      <Field label="Dataset size" id="d-slider" hint="More data, smaller model for the same spend.">
+      <Field
+        label="Dataset size"
+        id="d-slider"
+        hint={isFtWithBase
+          ? "More data costs more to train."
+          : "More data, smaller model for the same spend."}>
         <input
           id="d-slider"
           type="range"
@@ -305,7 +340,7 @@
 </section>
 
 <section class="mt-10 border-t border-[var(--color-soft)] pt-6">
-  <h2>At this point on the curve</h2>
+  <h2>Your selection</h2>
 
   <dl class="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
     <Figure label={sel.n_axis_title} value={fmtTokens(sel.selected_params)} />
@@ -313,8 +348,8 @@
     <Figure
       label="Tokens per parameter"
       value={sel.current_ratio.toFixed(1)}
-      note={isLora && isFtWithBase ? "against adapter params" : "against model params"} />
-    <Figure label="Wall-clock" value={formatWallClockTime(sel.sel_wall_clock_days)} />
+      note={isLora && isFtWithBase ? "adapter parameters only" : undefined} />
+    <Figure label="Training time" value={formatWallClockTime(sel.sel_wall_clock_days)} />
   </dl>
 
   <dl
@@ -333,10 +368,9 @@
 </section>
 
 <section class="mt-10 border-t border-[var(--color-soft)] pt-6">
-  <h2>Training schedule &amp; storage</h2>
+  <h2>Run settings</h2>
   <p class="mt-1.5 max-w-[62ch] text-sm text-[var(--color-ink-muted)]">
-    Derived from your setup. Change any of these and they hold until you edit the project setup
-    above.
+    Filled in from your setup. Your changes stay until you change the setup above.
   </p>
 
   <div class="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -350,7 +384,7 @@
         oninput={(e) => (epochsOverride = +e.currentTarget.value)}
         class="control num" />
     </Field>
-    <Field label="HP tuning trials" id="hp-trials">
+    <Field label="Tuning runs" id="hp-trials">
       <input
         id="hp-trials"
         type="number"
@@ -360,7 +394,10 @@
         oninput={(e) => (hpTrialsOverride = +e.currentTarget.value)}
         class="control num" />
     </Field>
-    <Field label="HP trial cost (%)" id="hp-pct" hint="Share of a full run's cost per trial.">
+    <Field
+      label="Tuning run length (%)"
+      id="hp-pct"
+      hint="Each tuning run as a share of a full run.">
       <input
         id="hp-pct"
         type="number"
@@ -370,7 +407,7 @@
         oninput={(e) => (hpPctOverride = +e.currentTarget.value)}
         class="control num" />
     </Field>
-    <Field label="Storage duration (months)" id="months">
+    <Field label="Storage time (months)" id="months">
       <input
         id="months"
         type="number"
@@ -380,7 +417,7 @@
         oninput={(e) => (storageMonthsOverride = +e.currentTarget.value)}
         class="control num" />
     </Field>
-    <Field label="S3 storage class" id="storage-class">
+    <Field label="Storage class" id="storage-class">
       <select
         id="storage-class"
         value={storageClass}
@@ -394,7 +431,7 @@
     <Field
       label="Instances"
       id="instances"
-      hint="Auto-recommended: {sel.recommended_instances} for a ≤60 day run.">
+      hint="Recommended: {sel.recommended_instances}, to finish within 60 days.">
       <input
         id="instances"
         type="number"
@@ -407,9 +444,8 @@
   </div>
 
   <p class="mt-6 text-xs text-[var(--color-ink-faint)]">
-    {hardware.instance_spec.display_name} · bf16 · MFU {(hardware.mfu * 100).toFixed(0)}% · ${hardware.hourly_cost.toFixed(
-      2
-    )}/hr per instance ·
+    {hardware.instance_spec.display_name} · bf16 · {(hardware.mfu * 100).toFixed(0)}% GPU
+    utilisation · ${hardware.hourly_cost.toFixed(2)}/hr per instance ·
     {sel.num_instances * hardware.gpus_per_instance} GPUs total
   </p>
 </section>

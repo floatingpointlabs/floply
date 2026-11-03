@@ -1,0 +1,22 @@
+name: "Muse Spark Open 816B-A42B"
+slug: "muse_spark_open"
+developer: "Meta"
+family: "transformer"
+parameter_count: 822036529664
+architecture:
+  num_layers: 62
+  d_model: 8192
+  num_heads: 128
+  num_kv_heads: 16
+  head_dim: 64
+  ffn_intermediate: 4096
+  ffn_type: "swiglu"
+  vocab_size: 202048
+  moe:
+    num_experts: 256
+    active_experts: 8
+    active_parameter_count: 42000000000
+source: "https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B"
+license: "Muse Model License"
+notes: >
+  Meta Muse Spark Open (Oct 2026). MoE: 256 experts, 8 per token, ~42B active. ffn_intermediate is the per-expert size. 46 sliding-window + 16 global layers.

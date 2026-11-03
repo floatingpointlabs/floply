@@ -2,7 +2,7 @@
  * Scaling-law health assessments.
  *
  * The fixtures compare these messages as whole strings, so every character is load-bearing
- * — including the non-ASCII ≥, — and ×. Editing the wording is a fixture change.
+ * — including any non-ASCII such as –. Editing the wording is a fixture change.
  */
 
 import { CHINCHILLA_OPTIMAL_RATIO } from "./constants";
@@ -26,48 +26,45 @@ export function assessPreTraining(totalTokens: number, numParams: number): Asses
   if (ratio < 1) {
     return at(
       "error",
-      `**Dataset critically undersized.** ` +
-        `${toFixedHalfEven(ratio, 2)} tok/param — fewer tokens than parameters. ` +
-        `Chinchilla-optimal requires **${fmtTokens(optimalTokens)} tokens** ` +
-        `(${CHINCHILLA_OPTIMAL_RATIO}x N). Training will likely diverge or severely underfit.`
+      `**Far too little data.** ` +
+        `${toFixedHalfEven(ratio, 2)} tokens per parameter, fewer tokens than parameters. ` +
+        `Aim for **${fmtTokens(optimalTokens)} tokens** (${CHINCHILLA_OPTIMAL_RATIO} per parameter). ` +
+        `Training will likely fail.`
     );
   }
   if (ratio < 10) {
     return at(
       "warning",
-      `**Undertrained (below Chinchilla-optimal).** ` +
-        `${toFixedHalfEven(ratio, 1)} tok/param. Need ≥ ${CHINCHILLA_OPTIMAL_RATIO} tok/param for compute efficiency — ` +
-        `at least **${fmtTokens(optimalTokens)} tokens**. ` +
-        `Consider more data or a smaller model.`
+      `**Not enough data.** ` +
+        `${toFixedHalfEven(ratio, 1)} tokens per parameter. Aim for ${CHINCHILLA_OPTIMAL_RATIO}, ` +
+        `or **${fmtTokens(optimalTokens)} tokens**. Add more data or use a smaller model.`
     );
   }
   if (ratio <= 30) {
     return at(
       "success",
-      `**Chinchilla-optimal.** ` +
-        `${toFixedHalfEven(ratio, 1)} tok/param — within the 10-30x compute-optimal zone ` +
-        `(Hoffmann et al. 2022).`
+      `**Good balance.** ` +
+        `${toFixedHalfEven(ratio, 1)} tokens per parameter, in the optimal 10–30 range.`
     );
   }
   if (ratio <= 200) {
     return at(
       "info",
-      `**Inference-optimal (over-trained vs Chinchilla).** ` +
-        `${toFixedHalfEven(ratio, 1)} tok/param. Training smaller models longer reduces ` +
-        `inference cost — the LLaMA / Mistral strategy. Fine if you expect ` +
-        `high inference volume.`
+      `**More data than optimal.** ` +
+        `${toFixedHalfEven(ratio, 1)} tokens per parameter. Training costs more, but the smaller ` +
+        `model is cheaper to run. Worth it if the model will see heavy use.`
     );
   }
   return at(
     "warning",
-    `**Heavily over-trained relative to model size.** ` +
-      `${toFixedHalfEven(ratio, 0)} tok/param (> 200x). Diminishing returns; ` +
-      `consider scaling the model up.`
+    `**More data than this model can use.** ` +
+      `${toFixedHalfEven(ratio, 0)} tokens per parameter (over 200). ` +
+      `Extra data adds little now; consider a bigger model.`
   );
 }
 
 /**
- * Full fine-tuning starts from a converged base; 1–5 tok/param is the sweet spot.
+ * Full fine-tuning starts from a trained base; 1–5 tok/param is the sweet spot.
  * Much above 10 tok/param risks catastrophic forgetting.
  */
 export function assessFullFineTuning(totalTokens: number, numParams: number): Assessment | null {
@@ -78,40 +75,40 @@ export function assessFullFineTuning(totalTokens: number, numParams: number): As
   if (ratio < 0.1) {
     return at(
       "error",
-      `**Dataset too small for full fine-tuning.** ` +
-        `${toFixedHalfEven(ratio, 3)} tok/param. You need at least ~0.5–1 tok/param ` +
-        `(**${fmtTokens(Math.trunc(numParams * 0.5))} tokens**) to see meaningful adaptation.`
+      `**Too little data for full fine-tuning.** ` +
+        `${toFixedHalfEven(ratio, 3)} tokens per parameter. You need at least ` +
+        `**${fmtTokens(Math.trunc(numParams * 0.5))} tokens** (0.5 per parameter) to see a real change.`
     );
   }
   if (ratio < 1) {
     return at(
       "warning",
-      `**Likely undertrained for full fine-tuning.** ` +
-        `${toFixedHalfEven(ratio, 2)} tok/param. Aim for 1–5 tok/param ` +
+      `**Probably not enough data.** ` +
+        `${toFixedHalfEven(ratio, 2)} tokens per parameter. Aim for 1–5 per parameter ` +
         `(**${fmtTokens(Math.trunc(numParams))}–${fmtTokens(Math.trunc(numParams * 5))} tokens**) ` +
-        `for stable full-parameter adaptation.`
+        `for stable results.`
     );
   }
   if (ratio <= 5) {
     return at(
       "success",
-      `**Good range for full fine-tuning.** ` +
-        `${toFixedHalfEven(ratio, 1)} tok/param — standard for supervised fine-tuning of large models.`
+      `**Good amount of data for full fine-tuning.** ` +
+        `${toFixedHalfEven(ratio, 1)} tokens per parameter, in the typical range.`
     );
   }
   if (ratio <= 20) {
     return at(
       "info",
-      `**Generous dataset for full fine-tuning.** ` +
-        `${toFixedHalfEven(ratio, 1)} tok/param. Effective, but watch for catastrophic forgetting ` +
-        `of the base model's general capabilities at high token counts.`
+      `**Plenty of data.** ` +
+        `${toFixedHalfEven(ratio, 1)} tokens per parameter. This works, but watch that the ` +
+        `model doesn't forget what it already knew.`
     );
   }
   return at(
     "warning",
-    `**Very large dataset for full fine-tuning (${toFixedHalfEven(ratio, 0)} tok/param).** ` +
-      `Above ~20 tok/param you risk catastrophic forgetting. ` +
-      `Consider using LoRA, which handles large datasets without degrading base capabilities.`
+    `**Too much data for full fine-tuning** (${toFixedHalfEven(ratio, 0)} tokens per parameter). ` +
+      `Above 20 per parameter, the model starts to forget what it already knew. ` +
+      `LoRA handles large datasets better.`
   );
 }
 
@@ -128,44 +125,38 @@ export function assessAdapter(
   if (totalTokens <= 0 || numAdapterParams <= 0 || baseParams <= 0) return null;
 
   const ratioAdapter = totalTokens / numAdapterParams;
-  const ratioBase = totalTokens / Math.trunc(baseParams);
   const pctTrainable = (numAdapterParams / Math.trunc(baseParams)) * 100;
+  const trained = `${toFixedHalfEven(pctTrainable, 2)}% of the model is trained`;
 
   if (ratioAdapter < 10) {
     return at(
       "warning",
       `**Possibly too little data for ${methodLabel}.** ` +
-        `${toFixedHalfEven(ratioAdapter, 1)} tok/adapter_param ` +
-        `(${toFixedHalfEven(ratioBase, 2)} tok/base_param, ${toFixedHalfEven(pctTrainable, 2)}% trainable). ` +
-        `Aim for ≥ 10 tok/adapter_param ` +
-        `(**${fmtTokens(Math.trunc(numAdapterParams * 10))} tokens**) for reliable convergence.`
+        `${toFixedHalfEven(ratioAdapter, 1)} tokens per adapter parameter (${trained}). ` +
+        `Aim for at least 10, or **${fmtTokens(Math.trunc(numAdapterParams * 10))} tokens**.`
     );
   }
   if (ratioAdapter <= 100) {
     return at(
       "success",
-      `**Good range for ${methodLabel}.** ` +
-        `${toFixedHalfEven(ratioAdapter, 0)} tok/adapter_param ` +
-        `(${toFixedHalfEven(ratioBase, 2)} tok/base_param, ${toFixedHalfEven(pctTrainable, 2)}% trainable). ` +
-        `The frozen base model provides strong priors — far less data is needed ` +
-        `than Chinchilla's 20 tok/param pre-training recommendation.`
+      `**Good amount of data for ${methodLabel}.** ` +
+        `${toFixedHalfEven(ratioAdapter, 0)} tokens per adapter parameter (${trained}). ` +
+        `Adapters need far less data than training a model from scratch.`
     );
   }
   if (ratioAdapter <= 1000) {
     return at(
       "info",
-      `**Large dataset relative to ${methodLabel} adapter size.** ` +
-        `${toFixedHalfEven(ratioAdapter, 0)} tok/adapter_param. This is fine — LoRA adapters ` +
-        `don't suffer catastrophic forgetting, so training longer generally helps. ` +
-        `Consider increasing LoRA rank (r) to give the adapter more capacity.`
+      `**Plenty of data for ${methodLabel}.** ` +
+        `${toFixedHalfEven(ratioAdapter, 0)} tokens per adapter parameter. That's fine: adapters ` +
+        `don't make the model forget what it knew. A higher rank would let the adapter learn more from it.`
     );
   }
   return at(
     "info",
-    `**Very large dataset for ${methodLabel} adapter size ` +
-      `(${toFixedHalfEven(ratioAdapter, 0)} tok/adapter_param).** ` +
-      `At this scale the adapter may be the bottleneck — consider full fine-tuning ` +
-      `or significantly increasing LoRA rank (r).`
+    `**More data than the ${methodLabel} adapter can use** ` +
+      `(${toFixedHalfEven(ratioAdapter, 0)} tokens per adapter parameter). ` +
+      `Raise the rank a lot, or switch to full fine-tuning.`
   );
 }
 
@@ -193,20 +184,20 @@ export function assessLoraRatio(ratio: number): Assessment {
   if (ratio < 10) {
     return at(
       "warning",
-      `**Below LoRA sweet spot.** ${toFixedHalfEven(ratio, 1)} tok/adapter_param ` +
-        `(target: 10–100×). Use more data or reduce rank.`
+      `**Below the ideal range.** ${toFixedHalfEven(ratio, 1)} tokens per adapter parameter ` +
+        `(aim for 10–100). Add data or lower the rank.`
     );
   }
   if (ratio <= 100) {
     return at(
       "success",
-      `**Within LoRA sweet spot.** ${toFixedHalfEven(ratio, 1)} tok/adapter_param — good range.`
+      `**In the ideal range.** ${toFixedHalfEven(ratio, 1)} tokens per adapter parameter.`
     );
   }
   return at(
     "info",
-    `**Above LoRA sweet spot.** ${toFixedHalfEven(ratio, 1)} tok/adapter_param. ` +
-      `Consider increasing rank or reducing dataset.`
+    `**Above the ideal range.** ${toFixedHalfEven(ratio, 1)} tokens per adapter parameter ` +
+      `(aim for 10–100). Raise the rank or use less data.`
   );
 }
 
@@ -220,37 +211,35 @@ export function assessChinchillaRatio(
   if (ratio < 1) {
     return at(
       "error",
-      `**Extremely data-sparse.** ${toFixedHalfEven(ratio, 2)} tok/param — fewer tokens than parameters.` +
+      `**Far too little data.** ${toFixedHalfEven(ratio, 2)} tokens per parameter, fewer tokens than parameters.` +
         suffix
     );
   }
   if (ratio < 10) {
     return at(
       "warning",
-      `**Undertrained vs. Chinchilla-optimal.** ${toFixedHalfEven(ratio, 1)} tok/param. ` +
-        `For compute-efficient training aim for ≥ ${CHINCHILLA_OPTIMAL_RATIO} tok/param ` +
-        `(**${fmtTokens(optimalTokens)} tokens**).` +
+      `**Not enough data.** ${toFixedHalfEven(ratio, 1)} tokens per parameter. ` +
+        `Aim for ${CHINCHILLA_OPTIMAL_RATIO}, or **${fmtTokens(optimalTokens)} tokens**.` +
         suffix
     );
   }
   if (ratio <= 30) {
     return at(
       "success",
-      `**Chinchilla-optimal.** ${toFixedHalfEven(ratio, 1)} tok/param — within the 10–30× compute-optimal zone ` +
-        `This is a well-balanced configuration.`
+      `**Good balance.** ${toFixedHalfEven(ratio, 1)} tokens per parameter, in the optimal 10–30 range.`
     );
   }
   if (ratio <= 200) {
     return at(
       "info",
-      `**Inference-optimal (over-trained vs. Chinchilla).** ${toFixedHalfEven(ratio, 1)} tok/param. ` +
-        `Training smaller models longer reduces inference cost — the LLaMA / Mistral strategy.`
+      `**More data than optimal.** ${toFixedHalfEven(ratio, 1)} tokens per parameter. ` +
+        `Training costs more, but the smaller model is cheaper to run.`
     );
   }
   return at(
     "warning",
-    `**Heavily over-trained relative to model size.** ${toFixedHalfEven(ratio, 0)} tok/param (> 200×). ` +
-      `Diminishing returns; consider scaling the model up.` +
+    `**More data than this model can use.** ${toFixedHalfEven(ratio, 0)} tokens per parameter (over 200). ` +
+      `Consider a bigger model.` +
       suffix
   );
 }

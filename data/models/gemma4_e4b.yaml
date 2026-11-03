@@ -1,0 +1,18 @@
+name: "Gemma 4 E4B"
+slug: "gemma4_e4b"
+developer: "Google"
+family: "transformer"
+parameter_count: 7996156490
+architecture:
+  num_layers: 42
+  d_model: 2560
+  num_heads: 8
+  num_kv_heads: 2
+  head_dim: 256
+  ffn_intermediate: 10240
+  ffn_type: "geglu"
+  vocab_size: 262144
+source: "https://huggingface.co/google/gemma-4-E4B"
+license: "apache-2.0"
+notes: >
+  Gemma 4 E4B (Mar 2026). ~4.5B effective parameters; the 8B total includes per-layer embedding tables and vision/audio encoders, so compute is overstated. 35 sliding-window + 7 global layers.

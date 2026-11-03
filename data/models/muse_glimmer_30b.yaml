@@ -1,0 +1,18 @@
+name: "Muse Glimmer 30B"
+slug: "muse_glimmer_30b"
+developer: "Meta"
+family: "transformer"
+parameter_count: 29776626688
+architecture:
+  num_layers: 52
+  d_model: 6656
+  num_heads: 32
+  num_kv_heads: 2
+  head_dim: 128
+  ffn_intermediate: 19968
+  ffn_type: "swiglu"
+  vocab_size: 202048
+source: "https://huggingface.co/meta-models/Muse-Glimmer-30B"
+license: "apache-2.0"
+notes: >
+  Meta Muse Glimmer 30B (Aug 2026). Dense. 39 sliding-window + 13 global layers. Total includes a ~1.8B vision encoder.

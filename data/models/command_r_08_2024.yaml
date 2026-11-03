@@ -1,0 +1,18 @@
+name: "Command R 32B (08-2024)"
+slug: "command_r_08_2024"
+developer: "Cohere"
+family: "transformer"
+parameter_count: 32296476672
+architecture:
+  num_layers: 40
+  d_model: 8192
+  num_heads: 64
+  num_kv_heads: 8
+  head_dim: 128
+  ffn_intermediate: 24576
+  ffn_type: "swiglu"
+  vocab_size: 256000
+source: "https://huggingface.co/CohereLabs/c4ai-command-r-08-2024"
+license: "cc-by-nc-4.0"
+notes: >
+  Cohere Command R 08-2024. Marketed as 35B; the actual count is 32.3B. Non-commercial licence. Full attention.

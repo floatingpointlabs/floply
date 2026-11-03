@@ -1,0 +1,22 @@
+name: "Qwen3.5 122B-A10B"
+slug: "qwen35_122b_a10b"
+developer: "Alibaba (Qwen)"
+family: "transformer"
+parameter_count: 125086497008
+architecture:
+  num_layers: 48
+  d_model: 3072
+  num_heads: 32
+  num_kv_heads: 2
+  head_dim: 256
+  ffn_intermediate: 1024
+  ffn_type: "swiglu"
+  vocab_size: 248320
+  moe:
+    num_experts: 256
+    active_experts: 8
+    active_parameter_count: 10000000000
+source: "https://huggingface.co/Qwen/Qwen3.5-122B-A10B"
+license: "apache-2.0"
+notes: >
+  Qwen3.5 122B-A10B (Feb 2026). MoE: 256 experts, 8 routed + 1 shared per token, ~10B active. Hybrid: 36 Gated DeltaNet + 12 full-attention layers. ffn_intermediate is the per-expert size.

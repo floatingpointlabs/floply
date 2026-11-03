@@ -1,0 +1,22 @@
+name: "Gemma 4 26B-A4B"
+slug: "gemma4_26b_a4b"
+developer: "Google"
+family: "transformer"
+parameter_count: 25805936206
+architecture:
+  num_layers: 30
+  d_model: 2816
+  num_heads: 16
+  num_kv_heads: 8
+  head_dim: 256
+  ffn_intermediate: 704
+  ffn_type: "geglu"
+  vocab_size: 262144
+  moe:
+    num_experts: 128
+    active_experts: 8
+    active_parameter_count: 3800000000
+source: "https://huggingface.co/google/gemma-4-26B-A4B"
+license: "apache-2.0"
+notes: >
+  Gemma 4 26B-A4B (Mar 2026). MoE: 128 experts, 8 routed + 1 shared per token, ~3.8B active. ffn_intermediate is the per-expert size. 25 sliding-window + 5 global layers.

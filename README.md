@@ -4,12 +4,12 @@ Floply is an open-source ML training cost estimator. Given a dataset's dimension
 
 Four tools:
 
-|                      |                                                                                                      |
-| -------------------- | ---------------------------------------------------------------------------------------------------- |
-| **Minimum data**     | How much data a model needs, from Chinchilla and practical fine-tuning thresholds                    |
-| **Budget optimizer** | Given a budget, the largest model and dataset you can afford, and where the scaling-law optimum sits |
-| **Training budget**  | Bottom-up cost for a whole project: compute, storage, sweeps and ablations                           |
-| **Methodology**      | Every formula behind the estimates, and what they assume                                             |
+|                      |                                                                        |
+| -------------------- | ---------------------------------------------------------------------- |
+| **Data needed**      | How much training data a model needs                                   |
+| **Budget optimizer** | The biggest model and dataset your budget can train                    |
+| **Project cost**     | The full cost of a project: compute, storage, tuning and ablation runs |
+| **How it works**     | Every formula behind the estimates, and what they assume               |
 
 ## Setup
 

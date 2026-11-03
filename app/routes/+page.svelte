@@ -15,8 +15,7 @@
   } from "$lib/engine/dataset";
   import { UNIT_MULTIPLIERS, fmtSamples, fmtTokens } from "$lib/engine/formatting";
   import { DEFAULT_TARGET_MODULES } from "$lib/engine/budgetOptimizer";
-  import { MODELS } from "$lib/engine/gpuSpecs";
-  import { CHINCHILLA_OPTIMAL_RATIO } from "$lib/engine/constants";
+  import { DEFAULT_MODEL, MODELS, MODEL_GROUPS } from "$lib/engine/gpuSpecs";
   import { FULL_FT_TIERS, LORA_TIERS, PRE_TRAINING_TIERS } from "$lib/engine/tiers";
 
   let trainingType = $state<"Pre-Training" | "Fine-Tuning">("Pre-Training");
@@ -24,7 +23,7 @@
   let preParams = $state(7);
   let preUnit = $state("B");
 
-  let baseModelName = $state<string>(MODELS[0].name);
+  let baseModelName = $state<string>(DEFAULT_MODEL.name);
   let customParams = $state(7);
   let customUnit = $state("B");
   let customDModel = $state(4096);
@@ -132,35 +131,35 @@
 </script>
 
 <svelte:head>
-  <title>Minimum data — Floply</title>
-  <meta
-    name="description"
-    content="How much training data a model needs, from Chinchilla scaling laws and practical fine-tuning thresholds." />
+  <title>Data needed — Floply</title>
+  <meta name="description" content="Find out how much training data your model needs." />
 </svelte:head>
+
 <h1>How much data do I need?</h1>
 <p class="mt-2 max-w-[62ch] text-[var(--color-ink-muted)]">
-  Scaling laws set a floor and a ceiling on useful dataset size. Pick a model and see where your
-  data lands.
+  Pick a model to see how much training data it needs, from too little to more than enough.
 </p>
 
 <section class="mt-8 border-t border-[var(--color-soft)] pt-6">
   <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
     <Field label="Training type" id="training-type">
       <select id="training-type" bind:value={trainingType} class="control">
-        <option>Pre-Training</option>
-        <option>Fine-Tuning</option>
+        <option value="Pre-Training">Pre-training</option>
+        <option value="Fine-Tuning">Fine-tuning</option>
       </select>
     </Field>
 
     {#if trainingType === "Pre-Training"}
-      <Field label="Parameter count" id="pre-params">
+      <Field label="Model size (parameters)" id="pre-params">
         <ScaledNumber id="pre-params" bind:value={preParams} bind:unit={preUnit} />
       </Field>
     {:else}
       <Field label="Base model" id="base-model">
         <select id="base-model" bind:value={baseModelName} class="control">
-          {#each MODELS as model (model.slug)}
-            <option value={model.name}>{model.name}</option>
+          {#each MODEL_GROUPS as g (g.developer)}
+            <optgroup label={g.developer}>
+              {#each g.models as m (m.slug)}<option value={m.name}>{m.name}</option>{/each}
+            </optgroup>
           {/each}
           <option value="Custom">Custom</option>
         </select>
@@ -168,17 +167,17 @@
 
       <Field label="Fine-tuning method" id="ft-method">
         <select id="ft-method" bind:value={ftMethod} class="control">
-          <option>Full Fine-Tuning</option>
+          <option value="Full Fine-Tuning">Full fine-tuning</option>
           <option>LoRA</option>
           <option>QLoRA</option>
         </select>
       </Field>
 
       {#if isCustom}
-        <Field label="Parameter count" id="custom-params">
+        <Field label="Model size (parameters)" id="custom-params">
           <ScaledNumber id="custom-params" bind:value={customParams} bind:unit={customUnit} />
         </Field>
-        <Field label="Hidden dimension" id="custom-d-model">
+        <Field label="Hidden size" id="custom-d-model">
           <input
             id="custom-d-model"
             type="number"
@@ -203,12 +202,12 @@
         <Field
           label="LoRA rank (r)"
           id="lora-rank"
-          hint="Higher rank is more expressive, and more parameters to train.">
+          hint="Higher rank learns more, but trains more parameters.">
           <input id="lora-rank" type="range" bind:value={loraRank} min="1" max="128" step="1" />
           <span class="num text-sm">{loraRank}</span>
         </Field>
 
-        <Field label="Target modules" id="target-modules">
+        <Field label="Target modules" id="target-modules" hint="The layers that get an adapter.">
           <div id="target-modules" class="flex flex-wrap gap-1.5">
             {#each ALL_MODULES as mod (mod)}
               {@const on = targetModules.includes(mod)}
@@ -232,9 +231,9 @@
   {#if trainingType === "Fine-Tuning" && isLora && trainableParams > 0}
     <p class="mt-4 text-xs text-[var(--color-ink-faint)]">
       <span class="num">{fmtTokens(trainableParams)}</span>
-      trainable adapter parameters &mdash;
+      parameters to train,
       <span class="num">{((trainableParams / ftParams) * 100).toFixed(2)}%</span>
-      of the {fmtTokens(ftParams)}-parameter base.
+      of the full {fmtTokens(ftParams)} model.
     </p>
   {/if}
 </section>
@@ -243,25 +242,24 @@
   {#if effectiveCount > 0}
     <h2>
       {trainingType === "Pre-Training"
-        ? "Pre-training data requirements"
+        ? "Data needed for pre-training"
         : isLora
-          ? `${ftMethod} data requirements`
-          : "Full fine-tuning data requirements"}
+          ? `Data needed for ${ftMethod}`
+          : "Data needed for full fine-tuning"}
     </h2>
     <!-- The count runs straight into "-parameter", so a newline after the span would
          render as "7.0B -parameter model". -->
     <!-- prettier-ignore -->
     <p class="mt-1.5 max-w-[68ch] text-sm text-[var(--color-ink-muted)]">
       {#if trainingType === "Pre-Training"}
-        Chinchilla scaling laws (Hoffmann et al. 2022) for a
-        <span class="num">{fmtTokens(effectiveCount)}</span>-parameter model.
+        For a <span class="num">{fmtTokens(effectiveCount)}</span>-parameter model. Aim for
+        the Optimal range.
       {:else if isLora}
-        Thresholds measured against adapter parameters, not the full base model. The frozen base
-        provides strong priors, so far less data is needed than Chinchilla's
-        {CHINCHILLA_OPTIMAL_RATIO} tok/param pre-training recommendation.
+        Based on the <span class="num">{fmtTokens(effectiveCount)}</span> adapter parameters,
+        not the full model, so far less data is needed. Aim for the Optimal range.
       {:else}
-        Practical thresholds for a
-        <span class="num">{fmtTokens(effectiveCount)}</span>-parameter base model.
+        For a <span class="num">{fmtTokens(effectiveCount)}</span>-parameter base model. Aim for
+        the Optimal range.
       {/if}
     </p>
 
@@ -270,20 +268,20 @@
     </div>
   {:else}
     <p class="text-sm text-[var(--color-ink-muted)]">
-      Choose a larger model or add target modules to see data requirements.
+      Enter a model size, or select at least one target module.
     </p>
   {/if}
 </section>
 
 {#if effectiveCount > 0}
   <section class="mt-10 border-t border-[var(--color-soft)] pt-6">
-    <h2>In real examples</h2>
+    <h2>In examples</h2>
     <p class="mt-1.5 max-w-[62ch] text-sm text-[var(--color-ink-muted)]">
-      Token counts are hard to picture. Convert them into the thing you actually collect.
+      The same ranges as a number of texts, images or clips.
     </p>
 
     <div class="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-      <Field label="Modality" id="modality">
+      <Field label="Data type" id="modality">
         <select id="modality" bind:value={modality} class="control">
           <option>Text</option>
           <option>Image</option>
@@ -293,7 +291,7 @@
       </Field>
 
       {#if modality === "Text"}
-        <Field label="Average length (words)" id="avg-words" hint="1 word ≈ 1.3 BPE tokens.">
+        <Field label="Average length (words)" id="avg-words" hint="About 1.3 tokens per word.">
           <input
             id="avg-words"
             type="number"
@@ -330,9 +328,9 @@
         </Field>
         <Field label="Tokenizer" id="audio-tokenizer">
           <select id="audio-tokenizer" bind:value={audioTokenizer} class="control">
-            <option value="Whisper">Whisper (50 tok/sec)</option>
-            <option value="EnCodec">EnCodec 24kHz (75 tok/sec × codebooks)</option>
-            <option value="SoundStream">SoundStream (50 tok/sec × codebooks)</option>
+            <option value="Whisper">Whisper (50 tokens/sec)</option>
+            <option value="EnCodec">EnCodec 24 kHz (75 tokens/sec per codebook)</option>
+            <option value="SoundStream">SoundStream (50 tokens/sec per codebook)</option>
           </select>
         </Field>
         {#if audioTokenizer !== "Whisper"}
@@ -358,9 +356,9 @@
             class="control num" />
         </Field>
         <Field
-          label="Sampled FPS"
+          label="Frames per second"
           id="sampled-fps"
-          hint="Frames sampled per second, not source frame rate.">
+          hint="Frames you sample each second, not the video's frame rate.">
           <input
             id="sampled-fps"
             type="number"
@@ -395,7 +393,7 @@
         {/each}
       </dl>
       <p class="mt-4 text-xs text-[var(--color-ink-faint)]">
-        {sampleUnit.replace(/^./, (c) => c.toUpperCase())} needed to reach each tier.
+        {sampleUnit.replace(/^./, (c) => c.toUpperCase())} needed for each range.
       </p>
     {/if}
   </section>
