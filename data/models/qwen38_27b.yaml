@@ -1,0 +1,18 @@
+name: "Qwen3.8 27B"
+slug: "qwen38_27b"
+developer: "Alibaba (Qwen)"
+family: "transformer"
+parameter_count: 27781427952
+architecture:
+  num_layers: 64
+  d_model: 5120
+  num_heads: 24
+  num_kv_heads: 4
+  head_dim: 256
+  ffn_intermediate: 17408
+  ffn_type: "swiglu"
+  vocab_size: 248320
+source: "https://huggingface.co/Qwen/Qwen3.8-27B"
+license: "apache-2.0"
+notes: >
+  Qwen3.8 27B (Aug 2026). Same architecture as Qwen3.5/3.6 27B. Hybrid: 48 Gated DeltaNet linear-attention layers + 16 full-attention layers. Total includes the vision encoder and MTP head.

@@ -1,5 +1,6 @@
 name: "Gemma 2 9B"
 slug: "gemma2_9b"
+developer: "Google"
 family: "transformer"
 parameter_count: 9240000000
 architecture:
@@ -7,6 +8,7 @@ architecture:
   d_model: 3584
   num_heads: 16
   num_kv_heads: 8 # Grouped Query Attention
+  head_dim: 256 # wider than d_model / num_heads (224)
   ffn_intermediate: 14336
   ffn_type: "gelu"
   vocab_size: 256000

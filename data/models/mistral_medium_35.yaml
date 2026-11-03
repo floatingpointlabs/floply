@@ -1,0 +1,18 @@
+name: "Mistral Medium 3.5 128B"
+slug: "mistral_medium_35"
+developer: "Mistral AI"
+family: "transformer"
+parameter_count: 127704210176
+architecture:
+  num_layers: 88
+  d_model: 12288
+  num_heads: 96
+  num_kv_heads: 8
+  head_dim: 128
+  ffn_intermediate: 28672
+  ffn_type: "swiglu"
+  vocab_size: 131072
+source: "https://huggingface.co/mistralai/Mistral-Medium-3.5-128B"
+license: "Modified MIT (restrictions for large companies)"
+notes: >
+  Mistral Medium 3.5 (Mar 2026). Dense, grouped-query attention. Total includes the vision encoder.

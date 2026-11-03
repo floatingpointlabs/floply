@@ -1,5 +1,6 @@
 name: "DeepSeek V3"
 slug: "deepseek_v3"
+developer: "DeepSeek"
 family: "transformer"
 parameter_count: 671000000000 # Total parameters
 architecture:

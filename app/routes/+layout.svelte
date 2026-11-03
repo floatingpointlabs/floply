@@ -10,10 +10,10 @@
   const pricingUsable = $derived(data.catalog.provenance.source !== "unavailable");
 
   const tabs = [
-    { href: "/", label: "Minimum data" },
+    { href: "/", label: "Data needed" },
     { href: "/budget-optimizer", label: "Budget optimizer" },
-    { href: "/training-budget", label: "Training budget" },
-    { href: "/methodology", label: "Methodology" }
+    { href: "/training-budget", label: "Project cost" },
+    { href: "/methodology", label: "How it works" }
   ];
 
   const current = $derived(page.url.pathname);
@@ -22,12 +22,10 @@
 <svelte:head>
   <meta property="og:site_name" content="Floply" />
   <meta property="og:type" content="website" />
-  <meta
-    property="og:title"
-    content="Floply — what a training run costs, before you commit the budget" />
+  <meta property="og:title" content="Floply — estimate what it costs to train an ML model" />
   <meta
     property="og:description"
-    content="Estimate GPU hours, wall-clock time, memory and total cost for an ML training project — compute, storage, sweeps and ablations." />
+    content="Estimate the data, GPU time, memory and total cost of training an ML model." />
   <meta name="twitter:card" content="summary" />
 
   {#if data.umami}
@@ -48,7 +46,7 @@
         flop<span class="text-[var(--color-indigo)]">ly</span>
       </a>
       <p class="text-sm text-[var(--color-ink-muted)]">
-        What a training run costs, before you commit the budget.
+        Estimate what it costs to train an ML model.
       </p>
       <div class="ms-auto">
         <RegionPicker regions={data.regions} provenance={data.catalog.provenance} />
@@ -84,13 +82,13 @@
       {@render children()}
     {:else}
       <section class="max-w-2xl">
-        <h1 class="text-xl font-semibold">Pricing unavailable for {data.catalog.region}.</h1>
+        <h1 class="text-xl font-semibold">Can't load prices for {data.catalog.region}.</h1>
         <p class="mt-3 text-sm text-[var(--color-ink-muted)]">
           {data.catalog.provenance.last_error}
         </p>
         <p class="mt-3 text-sm text-[var(--color-ink-muted)]">
-          Floply reads live AWS pricing and has no bundled fallback. Check that credentials are
-          configured and that the IAM policy allows these read-only actions:
+          Floply uses live AWS prices and has no offline copy. Check that AWS credentials are set
+          and that the IAM policy allows these read-only actions:
         </p>
         <ul class="mt-2 list-disc pl-5 text-sm text-[var(--color-ink-muted)]">
           <li><code>pricing:GetProducts</code></li>
@@ -115,8 +113,8 @@
       </a>
 
       <p class="max-w-[52ch] text-xs leading-relaxed text-[var(--color-ink-faint)]">
-        Estimates only. FLOPs-based modelling assumes ideal scaling; real runs vary with data
-        loading, checkpointing overhead, and cluster utilisation.
+        Estimates only. They assume ideal conditions, so real runs usually take longer and cost
+        more.
       </p>
     </div>
   </footer>

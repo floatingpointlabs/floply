@@ -10,6 +10,8 @@ export interface ModelArchitecture {
   d_model?: number;
   num_heads?: number;
   num_kv_heads?: number;
+  /** Per-head width. Many recent models decouple it from d_model / num_heads. */
+  head_dim?: number;
   ffn_intermediate?: number;
   ffn_type?: string;
   vocab_size?: number;
@@ -20,6 +22,8 @@ export interface ModelDefinition {
   name: string;
   slug: string;
   family: string;
+  /** Who released it. The model pickers group by this. */
+  developer: string;
   /** Total params across all experts. Checkpoints and VRAM scale with this. */
   parameter_count: number;
   architecture: ModelArchitecture;

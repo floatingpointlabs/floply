@@ -1786,6 +1786,48 @@
         }
       },
       "expect": 20971520
+    },
+    {
+      "args": {
+        "ft_method": "LoRA",
+        "base_params": 9240000000,
+        "target_modules": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj"
+        ],
+        "d_model": 3584,
+        "num_layers": 42,
+        "lora_rank": 16,
+        "architecture": {
+          "d_model": 3584,
+          "num_heads": 16,
+          "num_kv_heads": 8,
+          "head_dim": 256
+        }
+      },
+      "expect": 17891328
+    },
+    {
+      "args": {
+        "ft_method": "LoRA",
+        "base_params": 20900000000,
+        "target_modules": [
+          "q_proj",
+          "o_proj"
+        ],
+        "d_model": 2880,
+        "num_layers": 24,
+        "lora_rank": 8,
+        "architecture": {
+          "d_model": 2880,
+          "num_heads": 64,
+          "num_kv_heads": 8,
+          "head_dim": 64
+        }
+      },
+      "expect": 2678784
     }
   ],
   "calculate_checkpoint_storage_tb": [
@@ -2858,7 +2900,7 @@
       },
       "expect": {
         "level": "error",
-        "message": "**Dataset critically undersized.** 0.05 tok/param — fewer tokens than parameters. Chinchilla-optimal requires **20.00B tokens** (20x N). Training will likely diverge or severely underfit."
+        "message": "**Far too little data.** 0.05 tokens per parameter, fewer tokens than parameters. Aim for **20.00B tokens** (20 per parameter). Training will likely fail."
       }
     },
     {
@@ -2871,7 +2913,7 @@
       },
       "expect": {
         "level": "error",
-        "message": "**Dataset too small for full fine-tuning.** 0.050 tok/param. You need at least ~0.5–1 tok/param (**500.00M tokens**) to see meaningful adaptation."
+        "message": "**Too little data for full fine-tuning.** 0.050 tokens per parameter. You need at least **500.00M tokens** (0.5 per parameter) to see a real change."
       }
     },
     {
@@ -2884,7 +2926,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for LoRA.** 0.1 tok/adapter_param (0.01 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for LoRA.** 0.1 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -2897,7 +2939,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for QLoRA.** 0.1 tok/adapter_param (0.01 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for QLoRA.** 0.1 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -2910,7 +2952,7 @@
       },
       "expect": {
         "level": "error",
-        "message": "**Dataset critically undersized.** 0.09 tok/param — fewer tokens than parameters. Chinchilla-optimal requires **20.00B tokens** (20x N). Training will likely diverge or severely underfit."
+        "message": "**Far too little data.** 0.09 tokens per parameter, fewer tokens than parameters. Aim for **20.00B tokens** (20 per parameter). Training will likely fail."
       }
     },
     {
@@ -2923,7 +2965,7 @@
       },
       "expect": {
         "level": "error",
-        "message": "**Dataset too small for full fine-tuning.** 0.090 tok/param. You need at least ~0.5–1 tok/param (**500.00M tokens**) to see meaningful adaptation."
+        "message": "**Too little data for full fine-tuning.** 0.090 tokens per parameter. You need at least **500.00M tokens** (0.5 per parameter) to see a real change."
       }
     },
     {
@@ -2936,7 +2978,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for LoRA.** 0.1 tok/adapter_param (0.01 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for LoRA.** 0.1 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -2949,7 +2991,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for QLoRA.** 0.1 tok/adapter_param (0.01 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for QLoRA.** 0.1 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -2962,7 +3004,7 @@
       },
       "expect": {
         "level": "error",
-        "message": "**Dataset critically undersized.** 0.10 tok/param — fewer tokens than parameters. Chinchilla-optimal requires **20.00B tokens** (20x N). Training will likely diverge or severely underfit."
+        "message": "**Far too little data.** 0.10 tokens per parameter, fewer tokens than parameters. Aim for **20.00B tokens** (20 per parameter). Training will likely fail."
       }
     },
     {
@@ -2975,7 +3017,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Likely undertrained for full fine-tuning.** 0.10 tok/param. Aim for 1–5 tok/param (**1.00B–5.00B tokens**) for stable full-parameter adaptation."
+        "message": "**Probably not enough data.** 0.10 tokens per parameter. Aim for 1–5 per parameter (**1.00B–5.00B tokens**) for stable results."
       }
     },
     {
@@ -2988,7 +3030,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for LoRA.** 0.1 tok/adapter_param (0.01 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for LoRA.** 0.1 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -3001,7 +3043,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for QLoRA.** 0.1 tok/adapter_param (0.01 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for QLoRA.** 0.1 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -3014,7 +3056,7 @@
       },
       "expect": {
         "level": "error",
-        "message": "**Dataset critically undersized.** 0.50 tok/param — fewer tokens than parameters. Chinchilla-optimal requires **20.00B tokens** (20x N). Training will likely diverge or severely underfit."
+        "message": "**Far too little data.** 0.50 tokens per parameter, fewer tokens than parameters. Aim for **20.00B tokens** (20 per parameter). Training will likely fail."
       }
     },
     {
@@ -3027,7 +3069,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Likely undertrained for full fine-tuning.** 0.50 tok/param. Aim for 1–5 tok/param (**1.00B–5.00B tokens**) for stable full-parameter adaptation."
+        "message": "**Probably not enough data.** 0.50 tokens per parameter. Aim for 1–5 per parameter (**1.00B–5.00B tokens**) for stable results."
       }
     },
     {
@@ -3040,7 +3082,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for LoRA.** 0.5 tok/adapter_param (0.06 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for LoRA.** 0.5 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -3053,7 +3095,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for QLoRA.** 0.5 tok/adapter_param (0.06 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for QLoRA.** 0.5 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -3066,7 +3108,7 @@
       },
       "expect": {
         "level": "error",
-        "message": "**Dataset critically undersized.** 0.99 tok/param — fewer tokens than parameters. Chinchilla-optimal requires **20.00B tokens** (20x N). Training will likely diverge or severely underfit."
+        "message": "**Far too little data.** 0.99 tokens per parameter, fewer tokens than parameters. Aim for **20.00B tokens** (20 per parameter). Training will likely fail."
       }
     },
     {
@@ -3079,7 +3121,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Likely undertrained for full fine-tuning.** 0.99 tok/param. Aim for 1–5 tok/param (**1.00B–5.00B tokens**) for stable full-parameter adaptation."
+        "message": "**Probably not enough data.** 0.99 tokens per parameter. Aim for 1–5 per parameter (**1.00B–5.00B tokens**) for stable results."
       }
     },
     {
@@ -3092,7 +3134,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for LoRA.** 1.0 tok/adapter_param (0.12 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for LoRA.** 1.0 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -3105,7 +3147,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for QLoRA.** 1.0 tok/adapter_param (0.12 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for QLoRA.** 1.0 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -3118,7 +3160,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Undertrained (below Chinchilla-optimal).** 1.0 tok/param. Need ≥ 20 tok/param for compute efficiency — at least **20.00B tokens**. Consider more data or a smaller model."
+        "message": "**Not enough data.** 1.0 tokens per parameter. Aim for 20, or **20.00B tokens**. Add more data or use a smaller model."
       }
     },
     {
@@ -3131,7 +3173,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Good range for full fine-tuning.** 1.0 tok/param — standard for supervised fine-tuning of large models."
+        "message": "**Good amount of data for full fine-tuning.** 1.0 tokens per parameter, in the typical range."
       }
     },
     {
@@ -3144,7 +3186,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for LoRA.** 1.0 tok/adapter_param (0.12 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for LoRA.** 1.0 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -3157,7 +3199,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for QLoRA.** 1.0 tok/adapter_param (0.12 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for QLoRA.** 1.0 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -3170,7 +3212,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Undertrained (below Chinchilla-optimal).** 1.5 tok/param. Need ≥ 20 tok/param for compute efficiency — at least **20.00B tokens**. Consider more data or a smaller model."
+        "message": "**Not enough data.** 1.5 tokens per parameter. Aim for 20, or **20.00B tokens**. Add more data or use a smaller model."
       }
     },
     {
@@ -3183,7 +3225,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Good range for full fine-tuning.** 1.5 tok/param — standard for supervised fine-tuning of large models."
+        "message": "**Good amount of data for full fine-tuning.** 1.5 tokens per parameter, in the typical range."
       }
     },
     {
@@ -3196,7 +3238,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for LoRA.** 1.5 tok/adapter_param (0.19 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for LoRA.** 1.5 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -3209,7 +3251,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for QLoRA.** 1.5 tok/adapter_param (0.19 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for QLoRA.** 1.5 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -3222,7 +3264,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Undertrained (below Chinchilla-optimal).** 5.0 tok/param. Need ≥ 20 tok/param for compute efficiency — at least **20.00B tokens**. Consider more data or a smaller model."
+        "message": "**Not enough data.** 5.0 tokens per parameter. Aim for 20, or **20.00B tokens**. Add more data or use a smaller model."
       }
     },
     {
@@ -3235,7 +3277,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Good range for full fine-tuning.** 5.0 tok/param — standard for supervised fine-tuning of large models."
+        "message": "**Good amount of data for full fine-tuning.** 5.0 tokens per parameter, in the typical range."
       }
     },
     {
@@ -3248,7 +3290,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for LoRA.** 5.0 tok/adapter_param (0.62 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for LoRA.** 5.0 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -3261,7 +3303,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for QLoRA.** 5.0 tok/adapter_param (0.62 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for QLoRA.** 5.0 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -3274,7 +3316,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Undertrained (below Chinchilla-optimal).** 10.0 tok/param. Need ≥ 20 tok/param for compute efficiency — at least **20.00B tokens**. Consider more data or a smaller model."
+        "message": "**Not enough data.** 10.0 tokens per parameter. Aim for 20, or **20.00B tokens**. Add more data or use a smaller model."
       }
     },
     {
@@ -3287,7 +3329,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Generous dataset for full fine-tuning.** 10.0 tok/param. Effective, but watch for catastrophic forgetting of the base model's general capabilities at high token counts."
+        "message": "**Plenty of data.** 10.0 tokens per parameter. This works, but watch that the model doesn't forget what it already knew."
       }
     },
     {
@@ -3300,7 +3342,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for LoRA.** 10.0 tok/adapter_param (1.25 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for LoRA.** 10.0 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -3313,7 +3355,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Possibly too little data for QLoRA.** 10.0 tok/adapter_param (1.25 tok/base_param, 12.50% trainable). Aim for ≥ 10 tok/adapter_param (**10.00B tokens**) for reliable convergence."
+        "message": "**Possibly too little data for QLoRA.** 10.0 tokens per adapter parameter (12.50% of the model is trained). Aim for at least 10, or **10.00B tokens**."
       }
     },
     {
@@ -3326,7 +3368,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Chinchilla-optimal.** 10.0 tok/param — within the 10-30x compute-optimal zone (Hoffmann et al. 2022)."
+        "message": "**Good balance.** 10.0 tokens per parameter, in the optimal 10–30 range."
       }
     },
     {
@@ -3339,7 +3381,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Generous dataset for full fine-tuning.** 10.0 tok/param. Effective, but watch for catastrophic forgetting of the base model's general capabilities at high token counts."
+        "message": "**Plenty of data.** 10.0 tokens per parameter. This works, but watch that the model doesn't forget what it already knew."
       }
     },
     {
@@ -3352,7 +3394,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Good range for LoRA.** 10 tok/adapter_param (1.25 tok/base_param, 12.50% trainable). The frozen base model provides strong priors — far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+        "message": "**Good amount of data for LoRA.** 10 tokens per adapter parameter (12.50% of the model is trained). Adapters need far less data than training a model from scratch."
       }
     },
     {
@@ -3365,7 +3407,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Good range for QLoRA.** 10 tok/adapter_param (1.25 tok/base_param, 12.50% trainable). The frozen base model provides strong priors — far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+        "message": "**Good amount of data for QLoRA.** 10 tokens per adapter parameter (12.50% of the model is trained). Adapters need far less data than training a model from scratch."
       }
     },
     {
@@ -3378,7 +3420,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Chinchilla-optimal.** 20.0 tok/param — within the 10-30x compute-optimal zone (Hoffmann et al. 2022)."
+        "message": "**Good balance.** 20.0 tokens per parameter, in the optimal 10–30 range."
       }
     },
     {
@@ -3391,7 +3433,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Generous dataset for full fine-tuning.** 20.0 tok/param. Effective, but watch for catastrophic forgetting of the base model's general capabilities at high token counts."
+        "message": "**Plenty of data.** 20.0 tokens per parameter. This works, but watch that the model doesn't forget what it already knew."
       }
     },
     {
@@ -3404,7 +3446,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Good range for LoRA.** 20 tok/adapter_param (2.50 tok/base_param, 12.50% trainable). The frozen base model provides strong priors — far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+        "message": "**Good amount of data for LoRA.** 20 tokens per adapter parameter (12.50% of the model is trained). Adapters need far less data than training a model from scratch."
       }
     },
     {
@@ -3417,7 +3459,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Good range for QLoRA.** 20 tok/adapter_param (2.50 tok/base_param, 12.50% trainable). The frozen base model provides strong priors — far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+        "message": "**Good amount of data for QLoRA.** 20 tokens per adapter parameter (12.50% of the model is trained). Adapters need far less data than training a model from scratch."
       }
     },
     {
@@ -3430,7 +3472,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Chinchilla-optimal.** 30.0 tok/param — within the 10-30x compute-optimal zone (Hoffmann et al. 2022)."
+        "message": "**Good balance.** 30.0 tokens per parameter, in the optimal 10–30 range."
       }
     },
     {
@@ -3443,7 +3485,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Very large dataset for full fine-tuning (30 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+        "message": "**Too much data for full fine-tuning** (30 tokens per parameter). Above 20 per parameter, the model starts to forget what it already knew. LoRA handles large datasets better."
       }
     },
     {
@@ -3456,7 +3498,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Good range for LoRA.** 30 tok/adapter_param (3.75 tok/base_param, 12.50% trainable). The frozen base model provides strong priors — far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+        "message": "**Good amount of data for LoRA.** 30 tokens per adapter parameter (12.50% of the model is trained). Adapters need far less data than training a model from scratch."
       }
     },
     {
@@ -3469,7 +3511,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Good range for QLoRA.** 30 tok/adapter_param (3.75 tok/base_param, 12.50% trainable). The frozen base model provides strong priors — far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+        "message": "**Good amount of data for QLoRA.** 30 tokens per adapter parameter (12.50% of the model is trained). Adapters need far less data than training a model from scratch."
       }
     },
     {
@@ -3482,7 +3524,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Inference-optimal (over-trained vs Chinchilla).** 30.1 tok/param. Training smaller models longer reduces inference cost — the LLaMA / Mistral strategy. Fine if you expect high inference volume."
+        "message": "**More data than optimal.** 30.1 tokens per parameter. Training costs more, but the smaller model is cheaper to run. Worth it if the model will see heavy use."
       }
     },
     {
@@ -3495,7 +3537,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Very large dataset for full fine-tuning (30 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+        "message": "**Too much data for full fine-tuning** (30 tokens per parameter). Above 20 per parameter, the model starts to forget what it already knew. LoRA handles large datasets better."
       }
     },
     {
@@ -3508,7 +3550,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Good range for LoRA.** 30 tok/adapter_param (3.76 tok/base_param, 12.50% trainable). The frozen base model provides strong priors — far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+        "message": "**Good amount of data for LoRA.** 30 tokens per adapter parameter (12.50% of the model is trained). Adapters need far less data than training a model from scratch."
       }
     },
     {
@@ -3521,7 +3563,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Good range for QLoRA.** 30 tok/adapter_param (3.76 tok/base_param, 12.50% trainable). The frozen base model provides strong priors — far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+        "message": "**Good amount of data for QLoRA.** 30 tokens per adapter parameter (12.50% of the model is trained). Adapters need far less data than training a model from scratch."
       }
     },
     {
@@ -3534,7 +3576,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Inference-optimal (over-trained vs Chinchilla).** 100.0 tok/param. Training smaller models longer reduces inference cost — the LLaMA / Mistral strategy. Fine if you expect high inference volume."
+        "message": "**More data than optimal.** 100.0 tokens per parameter. Training costs more, but the smaller model is cheaper to run. Worth it if the model will see heavy use."
       }
     },
     {
@@ -3547,7 +3589,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Very large dataset for full fine-tuning (100 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+        "message": "**Too much data for full fine-tuning** (100 tokens per parameter). Above 20 per parameter, the model starts to forget what it already knew. LoRA handles large datasets better."
       }
     },
     {
@@ -3560,7 +3602,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Good range for LoRA.** 100 tok/adapter_param (12.50 tok/base_param, 12.50% trainable). The frozen base model provides strong priors — far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+        "message": "**Good amount of data for LoRA.** 100 tokens per adapter parameter (12.50% of the model is trained). Adapters need far less data than training a model from scratch."
       }
     },
     {
@@ -3573,7 +3615,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Good range for QLoRA.** 100 tok/adapter_param (12.50 tok/base_param, 12.50% trainable). The frozen base model provides strong priors — far less data is needed than Chinchilla's 20 tok/param pre-training recommendation."
+        "message": "**Good amount of data for QLoRA.** 100 tokens per adapter parameter (12.50% of the model is trained). Adapters need far less data than training a model from scratch."
       }
     },
     {
@@ -3586,7 +3628,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Inference-optimal (over-trained vs Chinchilla).** 200.0 tok/param. Training smaller models longer reduces inference cost — the LLaMA / Mistral strategy. Fine if you expect high inference volume."
+        "message": "**More data than optimal.** 200.0 tokens per parameter. Training costs more, but the smaller model is cheaper to run. Worth it if the model will see heavy use."
       }
     },
     {
@@ -3599,7 +3641,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Very large dataset for full fine-tuning (200 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+        "message": "**Too much data for full fine-tuning** (200 tokens per parameter). Above 20 per parameter, the model starts to forget what it already knew. LoRA handles large datasets better."
       }
     },
     {
@@ -3612,7 +3654,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Large dataset relative to LoRA adapter size.** 200 tok/adapter_param. This is fine — LoRA adapters don't suffer catastrophic forgetting, so training longer generally helps. Consider increasing LoRA rank (r) to give the adapter more capacity."
+        "message": "**Plenty of data for LoRA.** 200 tokens per adapter parameter. That's fine: adapters don't make the model forget what it knew. A higher rank would let the adapter learn more from it."
       }
     },
     {
@@ -3625,7 +3667,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Large dataset relative to QLoRA adapter size.** 200 tok/adapter_param. This is fine — LoRA adapters don't suffer catastrophic forgetting, so training longer generally helps. Consider increasing LoRA rank (r) to give the adapter more capacity."
+        "message": "**Plenty of data for QLoRA.** 200 tokens per adapter parameter. That's fine: adapters don't make the model forget what it knew. A higher rank would let the adapter learn more from it."
       }
     },
     {
@@ -3638,7 +3680,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Heavily over-trained relative to model size.** 200 tok/param (> 200x). Diminishing returns; consider scaling the model up."
+        "message": "**More data than this model can use.** 200 tokens per parameter (over 200). Extra data adds little now; consider a bigger model."
       }
     },
     {
@@ -3651,7 +3693,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Very large dataset for full fine-tuning (200 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+        "message": "**Too much data for full fine-tuning** (200 tokens per parameter). Above 20 per parameter, the model starts to forget what it already knew. LoRA handles large datasets better."
       }
     },
     {
@@ -3664,7 +3706,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Large dataset relative to LoRA adapter size.** 200 tok/adapter_param. This is fine — LoRA adapters don't suffer catastrophic forgetting, so training longer generally helps. Consider increasing LoRA rank (r) to give the adapter more capacity."
+        "message": "**Plenty of data for LoRA.** 200 tokens per adapter parameter. That's fine: adapters don't make the model forget what it knew. A higher rank would let the adapter learn more from it."
       }
     },
     {
@@ -3677,7 +3719,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Large dataset relative to QLoRA adapter size.** 200 tok/adapter_param. This is fine — LoRA adapters don't suffer catastrophic forgetting, so training longer generally helps. Consider increasing LoRA rank (r) to give the adapter more capacity."
+        "message": "**Plenty of data for QLoRA.** 200 tokens per adapter parameter. That's fine: adapters don't make the model forget what it knew. A higher rank would let the adapter learn more from it."
       }
     },
     {
@@ -3690,7 +3732,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Heavily over-trained relative to model size.** 999 tok/param (> 200x). Diminishing returns; consider scaling the model up."
+        "message": "**More data than this model can use.** 999 tokens per parameter (over 200). Extra data adds little now; consider a bigger model."
       }
     },
     {
@@ -3703,7 +3745,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Very large dataset for full fine-tuning (999 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+        "message": "**Too much data for full fine-tuning** (999 tokens per parameter). Above 20 per parameter, the model starts to forget what it already knew. LoRA handles large datasets better."
       }
     },
     {
@@ -3716,7 +3758,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Large dataset relative to LoRA adapter size.** 999 tok/adapter_param. This is fine — LoRA adapters don't suffer catastrophic forgetting, so training longer generally helps. Consider increasing LoRA rank (r) to give the adapter more capacity."
+        "message": "**Plenty of data for LoRA.** 999 tokens per adapter parameter. That's fine: adapters don't make the model forget what it knew. A higher rank would let the adapter learn more from it."
       }
     },
     {
@@ -3729,7 +3771,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Large dataset relative to QLoRA adapter size.** 999 tok/adapter_param. This is fine — LoRA adapters don't suffer catastrophic forgetting, so training longer generally helps. Consider increasing LoRA rank (r) to give the adapter more capacity."
+        "message": "**Plenty of data for QLoRA.** 999 tokens per adapter parameter. That's fine: adapters don't make the model forget what it knew. A higher rank would let the adapter learn more from it."
       }
     },
     {
@@ -3742,7 +3784,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Heavily over-trained relative to model size.** 1000 tok/param (> 200x). Diminishing returns; consider scaling the model up."
+        "message": "**More data than this model can use.** 1000 tokens per parameter (over 200). Extra data adds little now; consider a bigger model."
       }
     },
     {
@@ -3755,7 +3797,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Very large dataset for full fine-tuning (1000 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+        "message": "**Too much data for full fine-tuning** (1000 tokens per parameter). Above 20 per parameter, the model starts to forget what it already knew. LoRA handles large datasets better."
       }
     },
     {
@@ -3768,7 +3810,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Large dataset relative to LoRA adapter size.** 1000 tok/adapter_param. This is fine — LoRA adapters don't suffer catastrophic forgetting, so training longer generally helps. Consider increasing LoRA rank (r) to give the adapter more capacity."
+        "message": "**Plenty of data for LoRA.** 1000 tokens per adapter parameter. That's fine: adapters don't make the model forget what it knew. A higher rank would let the adapter learn more from it."
       }
     },
     {
@@ -3781,7 +3823,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Large dataset relative to QLoRA adapter size.** 1000 tok/adapter_param. This is fine — LoRA adapters don't suffer catastrophic forgetting, so training longer generally helps. Consider increasing LoRA rank (r) to give the adapter more capacity."
+        "message": "**Plenty of data for QLoRA.** 1000 tokens per adapter parameter. That's fine: adapters don't make the model forget what it knew. A higher rank would let the adapter learn more from it."
       }
     },
     {
@@ -3794,7 +3836,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Heavily over-trained relative to model size.** 1000 tok/param (> 200x). Diminishing returns; consider scaling the model up."
+        "message": "**More data than this model can use.** 1000 tokens per parameter (over 200). Extra data adds little now; consider a bigger model."
       }
     },
     {
@@ -3807,7 +3849,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Very large dataset for full fine-tuning (1000 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+        "message": "**Too much data for full fine-tuning** (1000 tokens per parameter). Above 20 per parameter, the model starts to forget what it already knew. LoRA handles large datasets better."
       }
     },
     {
@@ -3820,7 +3862,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Very large dataset for LoRA adapter size (1000 tok/adapter_param).** At this scale the adapter may be the bottleneck — consider full fine-tuning or significantly increasing LoRA rank (r)."
+        "message": "**More data than the LoRA adapter can use** (1000 tokens per adapter parameter). Raise the rank a lot, or switch to full fine-tuning."
       }
     },
     {
@@ -3833,7 +3875,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Very large dataset for QLoRA adapter size (1000 tok/adapter_param).** At this scale the adapter may be the bottleneck — consider full fine-tuning or significantly increasing LoRA rank (r)."
+        "message": "**More data than the QLoRA adapter can use** (1000 tokens per adapter parameter). Raise the rank a lot, or switch to full fine-tuning."
       }
     },
     {
@@ -3846,7 +3888,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Heavily over-trained relative to model size.** 5000 tok/param (> 200x). Diminishing returns; consider scaling the model up."
+        "message": "**More data than this model can use.** 5000 tokens per parameter (over 200). Extra data adds little now; consider a bigger model."
       }
     },
     {
@@ -3859,7 +3901,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Very large dataset for full fine-tuning (5000 tok/param).** Above ~20 tok/param you risk catastrophic forgetting. Consider using LoRA, which handles large datasets without degrading base capabilities."
+        "message": "**Too much data for full fine-tuning** (5000 tokens per parameter). Above 20 per parameter, the model starts to forget what it already knew. LoRA handles large datasets better."
       }
     },
     {
@@ -3872,7 +3914,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Very large dataset for LoRA adapter size (5000 tok/adapter_param).** At this scale the adapter may be the bottleneck — consider full fine-tuning or significantly increasing LoRA rank (r)."
+        "message": "**More data than the LoRA adapter can use** (5000 tokens per adapter parameter). Raise the rank a lot, or switch to full fine-tuning."
       }
     },
     {
@@ -3885,7 +3927,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Very large dataset for QLoRA adapter size (5000 tok/adapter_param).** At this scale the adapter may be the bottleneck — consider full fine-tuning or significantly increasing LoRA rank (r)."
+        "message": "**More data than the QLoRA adapter can use** (5000 tokens per adapter parameter). Raise the rank a lot, or switch to full fine-tuning."
       }
     },
     {
@@ -3956,7 +3998,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Below LoRA sweet spot.** 0.5 tok/adapter_param (target: 10–100×). Use more data or reduce rank."
+        "message": "**Below the ideal range.** 0.5 tokens per adapter parameter (aim for 10–100). Add data or lower the rank."
       }
     },
     {
@@ -3965,7 +4007,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Below LoRA sweet spot.** 5.0 tok/adapter_param (target: 10–100×). Use more data or reduce rank."
+        "message": "**Below the ideal range.** 5.0 tokens per adapter parameter (aim for 10–100). Add data or lower the rank."
       }
     },
     {
@@ -3974,7 +4016,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Below LoRA sweet spot.** 10.0 tok/adapter_param (target: 10–100×). Use more data or reduce rank."
+        "message": "**Below the ideal range.** 10.0 tokens per adapter parameter (aim for 10–100). Add data or lower the rank."
       }
     },
     {
@@ -3983,7 +4025,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Within LoRA sweet spot.** 10.0 tok/adapter_param — good range."
+        "message": "**In the ideal range.** 10.0 tokens per adapter parameter."
       }
     },
     {
@@ -3992,7 +4034,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Within LoRA sweet spot.** 25.0 tok/adapter_param — good range."
+        "message": "**In the ideal range.** 25.0 tokens per adapter parameter."
       }
     },
     {
@@ -4001,7 +4043,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Within LoRA sweet spot.** 50.0 tok/adapter_param — good range."
+        "message": "**In the ideal range.** 50.0 tokens per adapter parameter."
       }
     },
     {
@@ -4010,7 +4052,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Within LoRA sweet spot.** 99.9 tok/adapter_param — good range."
+        "message": "**In the ideal range.** 99.9 tokens per adapter parameter."
       }
     },
     {
@@ -4019,7 +4061,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Within LoRA sweet spot.** 100.0 tok/adapter_param — good range."
+        "message": "**In the ideal range.** 100.0 tokens per adapter parameter."
       }
     },
     {
@@ -4028,7 +4070,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Above LoRA sweet spot.** 100.1 tok/adapter_param. Consider increasing rank or reducing dataset."
+        "message": "**Above the ideal range.** 100.1 tokens per adapter parameter (aim for 10–100). Raise the rank or use less data."
       }
     },
     {
@@ -4037,7 +4079,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Above LoRA sweet spot.** 500.0 tok/adapter_param. Consider increasing rank or reducing dataset."
+        "message": "**Above the ideal range.** 500.0 tokens per adapter parameter (aim for 10–100). Raise the rank or use less data."
       }
     },
     {
@@ -4046,7 +4088,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Above LoRA sweet spot.** 5000.0 tok/adapter_param. Consider increasing rank or reducing dataset."
+        "message": "**Above the ideal range.** 5000.0 tokens per adapter parameter (aim for 10–100). Raise the rank or use less data."
       }
     }
   ],
@@ -4059,7 +4101,7 @@
       },
       "expect": {
         "level": "error",
-        "message": "**Extremely data-sparse.** 0.50 tok/param — fewer tokens than parameters."
+        "message": "**Far too little data.** 0.50 tokens per parameter, fewer tokens than parameters."
       }
     },
     {
@@ -4070,7 +4112,7 @@
       },
       "expect": {
         "level": "error",
-        "message": "**Extremely data-sparse.** 0.50 tok/param — fewer tokens than parameters. Move the slider toward the star."
+        "message": "**Far too little data.** 0.50 tokens per parameter, fewer tokens than parameters. Move the slider toward the star."
       }
     },
     {
@@ -4081,7 +4123,7 @@
       },
       "expect": {
         "level": "error",
-        "message": "**Extremely data-sparse.** 0.99 tok/param — fewer tokens than parameters."
+        "message": "**Far too little data.** 0.99 tokens per parameter, fewer tokens than parameters."
       }
     },
     {
@@ -4092,7 +4134,7 @@
       },
       "expect": {
         "level": "error",
-        "message": "**Extremely data-sparse.** 0.99 tok/param — fewer tokens than parameters. Move the slider toward the star."
+        "message": "**Far too little data.** 0.99 tokens per parameter, fewer tokens than parameters. Move the slider toward the star."
       }
     },
     {
@@ -4103,7 +4145,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Undertrained vs. Chinchilla-optimal.** 1.0 tok/param. For compute-efficient training aim for ≥ 20 tok/param (**20.00B tokens**)."
+        "message": "**Not enough data.** 1.0 tokens per parameter. Aim for 20, or **20.00B tokens**."
       }
     },
     {
@@ -4114,7 +4156,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Undertrained vs. Chinchilla-optimal.** 1.0 tok/param. For compute-efficient training aim for ≥ 20 tok/param (**20.00B tokens**). Move the slider toward the star."
+        "message": "**Not enough data.** 1.0 tokens per parameter. Aim for 20, or **20.00B tokens**. Move the slider toward the star."
       }
     },
     {
@@ -4125,7 +4167,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Undertrained vs. Chinchilla-optimal.** 5.0 tok/param. For compute-efficient training aim for ≥ 20 tok/param (**20.00B tokens**)."
+        "message": "**Not enough data.** 5.0 tokens per parameter. Aim for 20, or **20.00B tokens**."
       }
     },
     {
@@ -4136,7 +4178,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Undertrained vs. Chinchilla-optimal.** 5.0 tok/param. For compute-efficient training aim for ≥ 20 tok/param (**20.00B tokens**). Move the slider toward the star."
+        "message": "**Not enough data.** 5.0 tokens per parameter. Aim for 20, or **20.00B tokens**. Move the slider toward the star."
       }
     },
     {
@@ -4147,7 +4189,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Undertrained vs. Chinchilla-optimal.** 10.0 tok/param. For compute-efficient training aim for ≥ 20 tok/param (**20.00B tokens**)."
+        "message": "**Not enough data.** 10.0 tokens per parameter. Aim for 20, or **20.00B tokens**."
       }
     },
     {
@@ -4158,7 +4200,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Undertrained vs. Chinchilla-optimal.** 10.0 tok/param. For compute-efficient training aim for ≥ 20 tok/param (**20.00B tokens**). Move the slider toward the star."
+        "message": "**Not enough data.** 10.0 tokens per parameter. Aim for 20, or **20.00B tokens**. Move the slider toward the star."
       }
     },
     {
@@ -4169,7 +4211,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Chinchilla-optimal.** 10.0 tok/param — within the 10–30× compute-optimal zone This is a well-balanced configuration."
+        "message": "**Good balance.** 10.0 tokens per parameter, in the optimal 10–30 range."
       }
     },
     {
@@ -4180,7 +4222,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Chinchilla-optimal.** 10.0 tok/param — within the 10–30× compute-optimal zone This is a well-balanced configuration."
+        "message": "**Good balance.** 10.0 tokens per parameter, in the optimal 10–30 range."
       }
     },
     {
@@ -4191,7 +4233,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Chinchilla-optimal.** 25.0 tok/param — within the 10–30× compute-optimal zone This is a well-balanced configuration."
+        "message": "**Good balance.** 25.0 tokens per parameter, in the optimal 10–30 range."
       }
     },
     {
@@ -4202,7 +4244,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Chinchilla-optimal.** 25.0 tok/param — within the 10–30× compute-optimal zone This is a well-balanced configuration."
+        "message": "**Good balance.** 25.0 tokens per parameter, in the optimal 10–30 range."
       }
     },
     {
@@ -4213,7 +4255,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Chinchilla-optimal.** 30.0 tok/param — within the 10–30× compute-optimal zone This is a well-balanced configuration."
+        "message": "**Good balance.** 30.0 tokens per parameter, in the optimal 10–30 range."
       }
     },
     {
@@ -4224,7 +4266,7 @@
       },
       "expect": {
         "level": "success",
-        "message": "**Chinchilla-optimal.** 30.0 tok/param — within the 10–30× compute-optimal zone This is a well-balanced configuration."
+        "message": "**Good balance.** 30.0 tokens per parameter, in the optimal 10–30 range."
       }
     },
     {
@@ -4235,7 +4277,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Inference-optimal (over-trained vs. Chinchilla).** 30.1 tok/param. Training smaller models longer reduces inference cost — the LLaMA / Mistral strategy."
+        "message": "**More data than optimal.** 30.1 tokens per parameter. Training costs more, but the smaller model is cheaper to run."
       }
     },
     {
@@ -4246,7 +4288,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Inference-optimal (over-trained vs. Chinchilla).** 30.1 tok/param. Training smaller models longer reduces inference cost — the LLaMA / Mistral strategy."
+        "message": "**More data than optimal.** 30.1 tokens per parameter. Training costs more, but the smaller model is cheaper to run."
       }
     },
     {
@@ -4257,7 +4299,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Inference-optimal (over-trained vs. Chinchilla).** 150.0 tok/param. Training smaller models longer reduces inference cost — the LLaMA / Mistral strategy."
+        "message": "**More data than optimal.** 150.0 tokens per parameter. Training costs more, but the smaller model is cheaper to run."
       }
     },
     {
@@ -4268,7 +4310,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Inference-optimal (over-trained vs. Chinchilla).** 150.0 tok/param. Training smaller models longer reduces inference cost — the LLaMA / Mistral strategy."
+        "message": "**More data than optimal.** 150.0 tokens per parameter. Training costs more, but the smaller model is cheaper to run."
       }
     },
     {
@@ -4279,7 +4321,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Inference-optimal (over-trained vs. Chinchilla).** 200.0 tok/param. Training smaller models longer reduces inference cost — the LLaMA / Mistral strategy."
+        "message": "**More data than optimal.** 200.0 tokens per parameter. Training costs more, but the smaller model is cheaper to run."
       }
     },
     {
@@ -4290,7 +4332,7 @@
       },
       "expect": {
         "level": "info",
-        "message": "**Inference-optimal (over-trained vs. Chinchilla).** 200.0 tok/param. Training smaller models longer reduces inference cost — the LLaMA / Mistral strategy."
+        "message": "**More data than optimal.** 200.0 tokens per parameter. Training costs more, but the smaller model is cheaper to run."
       }
     },
     {
@@ -4301,7 +4343,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Heavily over-trained relative to model size.** 200 tok/param (> 200×). Diminishing returns; consider scaling the model up."
+        "message": "**More data than this model can use.** 200 tokens per parameter (over 200). Consider a bigger model."
       }
     },
     {
@@ -4312,7 +4354,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Heavily over-trained relative to model size.** 200 tok/param (> 200×). Diminishing returns; consider scaling the model up. Move the slider toward the star."
+        "message": "**More data than this model can use.** 200 tokens per parameter (over 200). Consider a bigger model. Move the slider toward the star."
       }
     },
     {
@@ -4323,7 +4365,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Heavily over-trained relative to model size.** 10000 tok/param (> 200×). Diminishing returns; consider scaling the model up."
+        "message": "**More data than this model can use.** 10000 tokens per parameter (over 200). Consider a bigger model."
       }
     },
     {
@@ -4334,7 +4376,7 @@
       },
       "expect": {
         "level": "warning",
-        "message": "**Heavily over-trained relative to model size.** 10000 tok/param (> 200×). Diminishing returns; consider scaling the model up. Move the slider toward the star."
+        "message": "**More data than this model can use.** 10000 tokens per parameter (over 200). Consider a bigger model. Move the slider toward the star."
       }
     }
   ],
@@ -4613,36 +4655,36 @@
       },
       "expect": [
         {
-          "tier": "Hard floor",
+          "tier": "Too little",
           "ratio_min": 0,
           "ratio_max": 1,
           "ratio_min_chart": 0.1,
-          "label": "< 1 tok/param",
-          "meaning": "Fewer tokens than parameters — training will likely diverge or severely underfit."
+          "label": "Under 1 token per parameter",
+          "meaning": "Fewer tokens than parameters. Training will likely fail."
         },
         {
-          "tier": "Practical minimum",
+          "tier": "Bare minimum",
           "ratio_min": 1,
           "ratio_max": 10,
           "ratio_min_chart": 1,
-          "label": "1–10 tok/param",
-          "meaning": "Usable but significantly undertrained — expect poor generalisation and high loss."
+          "label": "1–10 tokens per parameter",
+          "meaning": "Trains, but the model will be weak."
         },
         {
-          "tier": "Compute-optimal",
+          "tier": "Optimal",
           "ratio_min": 10,
           "ratio_max": 30,
           "ratio_min_chart": 10,
-          "label": "10–30 tok/param",
-          "meaning": "Chinchilla-optimal zone (Hoffmann et al. 2022) — best loss per FLOP."
+          "label": "10–30 tokens per parameter",
+          "meaning": "The best model for the compute you spend."
         },
         {
-          "tier": "Inference-optimal",
+          "tier": "Extended",
           "ratio_min": 30,
           "ratio_max": 200,
           "ratio_min_chart": 30,
-          "label": "30–200 tok/param",
-          "meaning": "Training smaller models longer reduces inference cost — the LLaMA / Mistral strategy."
+          "label": "30–200 tokens per parameter",
+          "meaning": "Costs more to train, but gives a smaller model that is cheaper to run."
         }
       ]
     },
@@ -4652,36 +4694,36 @@
       },
       "expect": [
         {
-          "tier": "Too small",
+          "tier": "Too little",
           "ratio_min": 0,
           "ratio_max": 0.5,
           "ratio_min_chart": 0.05,
-          "label": "< 0.5 tok/param",
-          "meaning": "Likely insufficient for meaningful task adaptation — model may not converge on the target task."
+          "label": "Under 0.5 tokens per parameter",
+          "meaning": "Probably not enough for the model to learn the new task."
         },
         {
-          "tier": "Minimum viable",
+          "tier": "Bare minimum",
           "ratio_min": 0.5,
           "ratio_max": 1,
           "ratio_min_chart": 0.5,
-          "label": "0.5–1 tok/param",
-          "meaning": "Lower bound for stable full-parameter fine-tuning — expect some instability."
+          "label": "0.5–1 tokens per parameter",
+          "meaning": "Enough to work, but results may be unstable."
         },
         {
-          "tier": "Sweet spot",
+          "tier": "Optimal",
           "ratio_min": 1,
           "ratio_max": 5,
           "ratio_min_chart": 1,
-          "label": "1–5 tok/param",
-          "meaning": "Standard supervised fine-tuning range for large models — stable and effective."
+          "label": "1–5 tokens per parameter",
+          "meaning": "The typical range for fine-tuning. Stable and effective."
         },
         {
-          "tier": "Forgetting risk",
+          "tier": "Lots of data",
           "ratio_min": 5,
           "ratio_max": 20,
           "ratio_min_chart": 5,
-          "label": "5–20 tok/param",
-          "meaning": "Generous dataset — effective, but monitor for catastrophic forgetting of base model capabilities."
+          "label": "5–20 tokens per parameter",
+          "meaning": "Works, but the model may start to forget what it already knew."
         }
       ]
     },
@@ -4691,41 +4733,77 @@
       },
       "expect": [
         {
-          "tier": "Too small",
+          "tier": "Too little",
           "ratio_min": 0,
           "ratio_max": 10,
           "ratio_min_chart": 1,
-          "label": "< 10 tok/adapter_param",
-          "meaning": "Adapter likely won't converge reliably — insufficient signal for low-rank matrices."
+          "label": "Under 10 tokens per adapter parameter",
+          "meaning": "Not enough data for the adapter to learn reliably."
         },
         {
-          "tier": "Minimum viable",
+          "tier": "Bare minimum",
           "ratio_min": 10,
           "ratio_max": 50,
           "ratio_min_chart": 10,
-          "label": "10–50 tok/adapter_param",
-          "meaning": "Lower bound of the convergence zone — reliable but not yet in the ideal range."
+          "label": "10–50 tokens per adapter parameter",
+          "meaning": "Enough to learn, but below the ideal range."
         },
         {
-          "tier": "Sweet spot",
+          "tier": "Optimal",
           "ratio_min": 50,
           "ratio_max": 100,
           "ratio_min_chart": 50,
-          "label": "50–100 tok/adapter_param",
-          "meaning": "Practical sweet spot for task adaptation — strong convergence with low forgetting risk."
+          "label": "50–100 tokens per adapter parameter",
+          "meaning": "The ideal range for LoRA."
         },
         {
-          "tier": "Consider full FT",
+          "tier": "Outgrowing LoRA",
           "ratio_min": 100,
           "ratio_max": 1000,
           "ratio_min_chart": 100,
-          "label": "100–1000 tok/adapter_param",
-          "meaning": "Large dataset relative to adapter size — consider increasing LoRA rank or switching to full fine-tuning."
+          "label": "100–1,000 tokens per adapter parameter",
+          "meaning": "More data than the adapter can use. Raise the rank or switch to full fine-tuning."
         }
       ]
     }
   ],
   "model_definitions": [
+    {
+      "args": {
+        "slug": "tiny_aya"
+      },
+      "expect": {
+        "name": "Tiny Aya 3B",
+        "family": "transformer",
+        "parameter_count": 3349227520,
+        "effective_parameter_count": 3349227520,
+        "display_name": "Tiny Aya 3B (3.3B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "qwen35_4b"
+      },
+      "expect": {
+        "name": "Qwen3.5 4B",
+        "family": "transformer",
+        "parameter_count": 4659865088,
+        "effective_parameter_count": 4659865088,
+        "display_name": "Qwen3.5 4B (4.7B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "gemma4_e2b"
+      },
+      "expect": {
+        "name": "Gemma 4 E2B",
+        "family": "transformer",
+        "parameter_count": 5123178051,
+        "effective_parameter_count": 5123178051,
+        "display_name": "Gemma 4 E2B (5.1B params)"
+      }
+    },
     {
       "args": {
         "slug": "mistral_7b"
@@ -4740,14 +4818,50 @@
     },
     {
       "args": {
+        "slug": "gemma4_e4b"
+      },
+      "expect": {
+        "name": "Gemma 4 E4B",
+        "family": "transformer",
+        "parameter_count": 7996156490,
+        "effective_parameter_count": 7996156490,
+        "display_name": "Gemma 4 E4B (8.0B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "aya_expanse_8b"
+      },
+      "expect": {
+        "name": "Aya Expanse 8B",
+        "family": "transformer",
+        "parameter_count": 8028033024,
+        "effective_parameter_count": 8028033024,
+        "display_name": "Aya Expanse 8B (8.0B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "command_r7b"
+      },
+      "expect": {
+        "name": "Command R7B",
+        "family": "transformer",
+        "parameter_count": 8028033024,
+        "effective_parameter_count": 8028033024,
+        "display_name": "Command R7B (8.0B params)"
+      }
+    },
+    {
+      "args": {
         "slug": "llama3_8b"
       },
       "expect": {
-        "name": "LLaMA 3 8B",
+        "name": "Llama 3.1 8B",
         "family": "transformer",
-        "parameter_count": 8030000000,
-        "effective_parameter_count": 8030000000,
-        "display_name": "LLaMA 3 8B (8.0B params)"
+        "parameter_count": 8030261248,
+        "effective_parameter_count": 8030261248,
+        "display_name": "Llama 3.1 8B (8.0B params)"
       }
     },
     {
@@ -4764,6 +4878,30 @@
     },
     {
       "args": {
+        "slug": "qwen35_9b"
+      },
+      "expect": {
+        "name": "Qwen3.5 9B",
+        "family": "transformer",
+        "parameter_count": 9653104368,
+        "effective_parameter_count": 9653104368,
+        "display_name": "Qwen3.5 9B (9.7B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "gemma4_12b"
+      },
+      "expect": {
+        "name": "Gemma 4 12B",
+        "family": "transformer",
+        "parameter_count": 11959730224,
+        "effective_parameter_count": 11959730224,
+        "display_name": "Gemma 4 12B (12.0B params)"
+      }
+    },
+    {
+      "args": {
         "slug": "phi4_14b"
       },
       "expect": {
@@ -4776,14 +4914,122 @@
     },
     {
       "args": {
+        "slug": "gpt_oss_20b"
+      },
+      "expect": {
+        "name": "gpt-oss 20B",
+        "family": "transformer",
+        "parameter_count": 20914757184,
+        "effective_parameter_count": 3600000000,
+        "display_name": "gpt-oss 20B (20.9B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "gemma4_26b_a4b"
+      },
+      "expect": {
+        "name": "Gemma 4 26B-A4B",
+        "family": "transformer",
+        "parameter_count": 25805936206,
+        "effective_parameter_count": 3800000000,
+        "display_name": "Gemma 4 26B-A4B (25.8B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "qwen38_27b"
+      },
+      "expect": {
+        "name": "Qwen3.8 27B",
+        "family": "transformer",
+        "parameter_count": 27781427952,
+        "effective_parameter_count": 27781427952,
+        "display_name": "Qwen3.8 27B (27.8B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "muse_glimmer_30b"
+      },
+      "expect": {
+        "name": "Muse Glimmer 30B",
+        "family": "transformer",
+        "parameter_count": 29776626688,
+        "effective_parameter_count": 29776626688,
+        "display_name": "Muse Glimmer 30B (29.8B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "north_mini_code"
+      },
+      "expect": {
+        "name": "North Mini Code 30B-A3B",
+        "family": "transformer",
+        "parameter_count": 30484303872,
+        "effective_parameter_count": 3305213952,
+        "display_name": "North Mini Code 30B-A3B (30.5B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "gemma4_31b"
+      },
+      "expect": {
+        "name": "Gemma 4 31B",
+        "family": "transformer",
+        "parameter_count": 31273088876,
+        "effective_parameter_count": 31273088876,
+        "display_name": "Gemma 4 31B (31.3B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "aya_expanse_32b"
+      },
+      "expect": {
+        "name": "Aya Expanse 32B",
+        "family": "transformer",
+        "parameter_count": 32296476672,
+        "effective_parameter_count": 32296476672,
+        "display_name": "Aya Expanse 32B (32.3B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "command_r_08_2024"
+      },
+      "expect": {
+        "name": "Command R 32B (08-2024)",
+        "family": "transformer",
+        "parameter_count": 32296476672,
+        "effective_parameter_count": 32296476672,
+        "display_name": "Command R 32B (08-2024) (32.3B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "qwen36_35b_a3b"
+      },
+      "expect": {
+        "name": "Qwen3.6 35B-A3B",
+        "family": "transformer",
+        "parameter_count": 35951822704,
+        "effective_parameter_count": 3000000000,
+        "display_name": "Qwen3.6 35B-A3B (36.0B params)"
+      }
+    },
+    {
+      "args": {
         "slug": "llama3_70b"
       },
       "expect": {
-        "name": "LLaMA 3 70B",
+        "name": "Llama 3.1 70B",
         "family": "transformer",
-        "parameter_count": 70600000000,
-        "effective_parameter_count": 70600000000,
-        "display_name": "LLaMA 3 70B (70.6B params)"
+        "parameter_count": 70553706496,
+        "effective_parameter_count": 70553706496,
+        "display_name": "Llama 3.1 70B (70.6B params)"
       }
     },
     {
@@ -4800,14 +5046,134 @@
     },
     {
       "args": {
-        "slug": "gpt3_175b"
+        "slug": "command_r_plus_08_2024"
       },
       "expect": {
-        "name": "GPT-3 175B",
+        "name": "Command R+ 104B (08-2024)",
         "family": "transformer",
-        "parameter_count": 175000000000,
-        "effective_parameter_count": 175000000000,
-        "display_name": "GPT-3 175B (175.0B params)"
+        "parameter_count": 103810674688,
+        "effective_parameter_count": 103810674688,
+        "display_name": "Command R+ 104B (08-2024) (103.8B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "llama4_scout"
+      },
+      "expect": {
+        "name": "Llama 4 Scout 17B-16E",
+        "family": "transformer",
+        "parameter_count": 108641793536,
+        "effective_parameter_count": 17000000000,
+        "display_name": "Llama 4 Scout 17B-16E (108.6B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "command_a"
+      },
+      "expect": {
+        "name": "Command A 111B",
+        "family": "transformer",
+        "parameter_count": 111057580032,
+        "effective_parameter_count": 111057580032,
+        "display_name": "Command A 111B (111.1B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "gpt_oss_120b"
+      },
+      "expect": {
+        "name": "gpt-oss 120B",
+        "family": "transformer",
+        "parameter_count": 116829156672,
+        "effective_parameter_count": 5100000000,
+        "display_name": "gpt-oss 120B (116.8B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "mistral_small_4"
+      },
+      "expect": {
+        "name": "Mistral Small 4 119B-A6.5B",
+        "family": "transformer",
+        "parameter_count": 119401317376,
+        "effective_parameter_count": 6500000000,
+        "display_name": "Mistral Small 4 119B-A6.5B (119.4B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "qwen35_122b_a10b"
+      },
+      "expect": {
+        "name": "Qwen3.5 122B-A10B",
+        "family": "transformer",
+        "parameter_count": 125086497008,
+        "effective_parameter_count": 10000000000,
+        "display_name": "Qwen3.5 122B-A10B (125.1B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "mistral_medium_35"
+      },
+      "expect": {
+        "name": "Mistral Medium 3.5 128B",
+        "family": "transformer",
+        "parameter_count": 127704210176,
+        "effective_parameter_count": 127704210176,
+        "display_name": "Mistral Medium 3.5 128B (127.7B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "command_a_plus"
+      },
+      "expect": {
+        "name": "Command A+ 218B-A25B",
+        "family": "transformer",
+        "parameter_count": 218750277872,
+        "effective_parameter_count": 24981409792,
+        "display_name": "Command A+ 218B-A25B (218.8B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "inkling_small"
+      },
+      "expect": {
+        "name": "Inkling-Small 266B-A12B",
+        "family": "transformer",
+        "parameter_count": 265956439090,
+        "effective_parameter_count": 12000000000,
+        "display_name": "Inkling-Small 266B-A12B (266.0B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "deepseek_v4_flash"
+      },
+      "expect": {
+        "name": "DeepSeek V4 Flash 284B-A13B",
+        "family": "transformer",
+        "parameter_count": 284000000000,
+        "effective_parameter_count": 13000000000,
+        "display_name": "DeepSeek V4 Flash 284B-A13B (284.0B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "glm_53_flash"
+      },
+      "expect": {
+        "name": "GLM-5.3 Flash 320B-A18B",
+        "family": "transformer",
+        "parameter_count": 321323031390,
+        "effective_parameter_count": 18000000000,
+        "display_name": "GLM-5.3 Flash 320B-A18B (321.3B params)"
       }
     },
     {
@@ -4820,6 +5186,66 @@
         "parameter_count": 671000000000,
         "effective_parameter_count": 37000000000,
         "display_name": "DeepSeek V3 (671.0B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "glm_53"
+      },
+      "expect": {
+        "name": "GLM-5.3 753B-A40B",
+        "family": "transformer",
+        "parameter_count": 753329940480,
+        "effective_parameter_count": 40000000000,
+        "display_name": "GLM-5.3 753B-A40B (753.3B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "muse_spark_open"
+      },
+      "expect": {
+        "name": "Muse Spark Open 816B-A42B",
+        "family": "transformer",
+        "parameter_count": 822036529664,
+        "effective_parameter_count": 42000000000,
+        "display_name": "Muse Spark Open 816B-A42B (822.0B params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "mistral_large_4"
+      },
+      "expect": {
+        "name": "Mistral Large 4 1T-A49B",
+        "family": "transformer",
+        "parameter_count": 1053225397792,
+        "effective_parameter_count": 49000000000,
+        "display_name": "Mistral Large 4 1T-A49B (1.1T params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "deepseek_v4_pro"
+      },
+      "expect": {
+        "name": "DeepSeek V4 Pro 1.6T-A49B",
+        "family": "transformer",
+        "parameter_count": 1600000000000,
+        "effective_parameter_count": 49000000000,
+        "display_name": "DeepSeek V4 Pro 1.6T-A49B (1.6T params)"
+      }
+    },
+    {
+      "args": {
+        "slug": "kimi_k3"
+      },
+      "expect": {
+        "name": "Kimi K3 2.8T-A104B",
+        "family": "transformer",
+        "parameter_count": 2800000000000,
+        "effective_parameter_count": 104000000000,
+        "display_name": "Kimi K3 2.8T-A104B (2.8T params)"
       }
     }
   ]

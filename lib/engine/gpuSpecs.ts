@@ -3,6 +3,17 @@ import type { Catalog, GpuHardware, InstanceSpec, ModelDefinition } from "./type
 
 export { GPU_HARDWARE, MODELS };
 
+/** Preselected base model: the most fine-tuned open model at the time of writing. */
+export const DEFAULT_MODEL: ModelDefinition =
+  MODELS.find((m) => m.slug === "qwen35_9b") ?? MODELS[0];
+
+/** MODELS grouped by developer for the pickers: developers A–Z, models smallest first. */
+export const MODEL_GROUPS: { developer: string; models: ModelDefinition[] }[] = [
+  ...new Set(MODELS.map((m) => m.developer))
+]
+  .sort((a, b) => a.localeCompare(b))
+  .map((developer) => ({ developer, models: MODELS.filter((m) => m.developer === developer) }));
+
 const PRECISION_ORDER = ["fp4", "int8", "fp8", "bf16", "fp16", "tf32", "fp32"];
 
 export class UnsupportedPrecisionError extends Error {

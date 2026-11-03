@@ -40,15 +40,9 @@
 
 <figure class="m-0" bind:clientWidth={width}>
   {#if !renderable}
-    <p class="text-sm text-[var(--color-ink-muted)]">
-      No parameter count yet, so there is nothing to plot.
-    </p>
+    <p class="text-sm text-[var(--color-ink-muted)]">Enter a model size to see the chart.</p>
   {:else}
-    <svg
-      {width}
-      {height}
-      role="img"
-      aria-label="Token requirements by scaling-law tier, on a logarithmic scale">
+    <svg {width} {height} role="img" aria-label="Tokens needed for each range, on a log scale">
       <!-- Gridlines first so bars sit on top of them -->
       <g transform="translate({LABEL_WIDTH},0)">
         {#each ticks as tick (tick)}
@@ -107,7 +101,7 @@
   {/if}
 
   <figcaption class="sr-only">
-    Each bar spans the token range for one tier, measured against
+    Each bar shows the token range for one level, based on
     {fmtTokens(effectiveCount)} parameters.
   </figcaption>
 </figure>

@@ -1,5 +1,6 @@
 name: "Phi-4 14B"
 slug: "phi4_14b"
+developer: "Microsoft"
 family: "transformer"
 parameter_count: 14000000000
 architecture:

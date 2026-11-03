@@ -1,5 +1,6 @@
 name: "Qwen 2.5 72B"
 slug: "qwen25_72b"
+developer: "Alibaba (Qwen)"
 family: "transformer"
 parameter_count: 72700000000
 architecture:

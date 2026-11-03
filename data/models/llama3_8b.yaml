@@ -1,7 +1,8 @@
-name: "LLaMA 3 8B"
+name: "Llama 3.1 8B"
 slug: "llama3_8b"
+developer: "Meta"
 family: "transformer"
-parameter_count: 8030000000
+parameter_count: 8030261248
 architecture:
   num_layers: 32
   d_model: 4096
@@ -10,5 +11,5 @@ architecture:
   ffn_intermediate: 14336
   ffn_type: "swiglu"
   vocab_size: 128256
-source: "https://huggingface.co/meta-llama/Meta-Llama-3-8B"
-notes: "Meta LLaMA 3 8B. GQA with 8 KV heads."
+source: "https://huggingface.co/meta-llama/Llama-3.1-8B"
+notes: "Meta Llama 3.1 8B (Jul 2024). Same architecture as Llama 3 8B. GQA with 8 KV heads."

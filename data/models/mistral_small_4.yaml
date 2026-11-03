@@ -1,0 +1,22 @@
+name: "Mistral Small 4 119B-A6.5B"
+slug: "mistral_small_4"
+developer: "Mistral AI"
+family: "transformer"
+parameter_count: 119401317376
+architecture:
+  num_layers: 36
+  d_model: 4096
+  num_heads: 32
+  num_kv_heads: 32
+  head_dim: 128
+  ffn_intermediate: 2048
+  ffn_type: "swiglu"
+  vocab_size: 131072
+  moe:
+    num_experts: 128
+    active_experts: 4
+    active_parameter_count: 6500000000
+source: "https://huggingface.co/mistralai/Mistral-Small-4-119B-2603"
+license: "apache-2.0"
+notes: >
+  Mistral Small 4 (Mar 2026). MoE: 128 experts, 4 routed + 1 shared per token, ~6.5B active. Latent (MLA) attention, so LoRA counts on attention modules are approximate. Total includes the vision encoder.

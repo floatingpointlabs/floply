@@ -1,5 +1,6 @@
 name: "Mistral 7B"
 slug: "mistral_7b"
+developer: "Mistral AI"
 family: "transformer"
 parameter_count: 7240000000
 architecture:

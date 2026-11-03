@@ -323,6 +323,27 @@ export function buildEngine(): Payload {
       num_layers: 32,
       lora_rank: 16,
       architecture: { d_model: 4096, num_heads: 32 }
+    },
+    // Explicit head_dim wider than d_model / num_heads (Gemma 2 9B: 16 × 256 = 4096 > 3584),
+    // so q/o_proj are not square. Hand-checked: (7680 + 5632 + 5632 + 7680) × 16 × 42.
+    {
+      ft_method: "LoRA",
+      base_params: 9.24e9,
+      target_modules: ["q_proj", "k_proj", "v_proj", "o_proj"],
+      d_model: 3584,
+      num_layers: 42,
+      lora_rank: 16,
+      architecture: { d_model: 3584, num_heads: 16, num_kv_heads: 8, head_dim: 256 }
+    },
+    // Explicit head_dim narrower than d_model / num_heads (gpt-oss: 64 × 64 = 4096 vs 2880)
+    {
+      ft_method: "LoRA",
+      base_params: 20.9e9,
+      target_modules: ["q_proj", "o_proj"],
+      d_model: 2880,
+      num_layers: 24,
+      lora_rank: 8,
+      architecture: { d_model: 2880, num_heads: 64, num_kv_heads: 8, head_dim: 64 }
     }
   ].map((c) => record("calculate_lora_trainable_params", c));
 

@@ -1,0 +1,22 @@
+name: "Mistral Large 4 1T-A49B"
+slug: "mistral_large_4"
+developer: "Mistral AI"
+family: "transformer"
+parameter_count: 1053225397792
+architecture:
+  num_layers: 72
+  d_model: 6144
+  num_heads: 64
+  num_kv_heads: 64
+  head_dim: 128
+  ffn_intermediate: 6144
+  ffn_type: "swiglu"
+  vocab_size: 204800
+  moe:
+    num_experts: 128
+    active_experts: 4
+    active_parameter_count: 49000000000
+source: "https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B"
+license: "Mistral Ecosystem Open-Weight License"
+notes: >
+  Mistral Large 4 (Sep 2026). MoE: 128 experts, 4 routed + 1 shared per token, ~49B active (52B with embeddings). Total summed from the weight files; includes ~1.7B vision encoder. Latent (MLA) attention, so LoRA counts are approximate.

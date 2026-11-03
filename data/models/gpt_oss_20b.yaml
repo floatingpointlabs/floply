@@ -1,0 +1,22 @@
+name: "gpt-oss 20B"
+slug: "gpt_oss_20b"
+developer: "OpenAI"
+family: "transformer"
+parameter_count: 20914757184
+architecture:
+  num_layers: 24
+  d_model: 2880
+  num_heads: 64
+  num_kv_heads: 8
+  head_dim: 64
+  ffn_intermediate: 2880
+  ffn_type: "swiglu"
+  vocab_size: 201088
+  moe:
+    num_experts: 32
+    active_experts: 4
+    active_parameter_count: 3600000000
+source: "https://huggingface.co/openai/gpt-oss-20b"
+license: "apache-2.0"
+notes: >
+  OpenAI gpt-oss-20b (Aug 2025). MoE: 32 experts, 4 per token, ~3.6B active. ffn_intermediate is the per-expert size. Alternating sliding-window and full attention.

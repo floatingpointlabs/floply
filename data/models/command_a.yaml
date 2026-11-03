@@ -1,0 +1,18 @@
+name: "Command A 111B"
+slug: "command_a"
+developer: "Cohere"
+family: "transformer"
+parameter_count: 111057580032
+architecture:
+  num_layers: 64
+  d_model: 12288
+  num_heads: 96
+  num_kv_heads: 8
+  head_dim: 128
+  ffn_intermediate: 36864
+  ffn_type: "swiglu"
+  vocab_size: 256000
+source: "https://huggingface.co/CohereLabs/c4ai-command-a-03-2025"
+license: "cc-by-nc-4.0"
+notes: >
+  Cohere Command A (Mar 2025). Also covers Command A Reasoning, Translate and Vision, which share this language model. Non-commercial licence. Sliding-window attention, 3 local : 1 global.

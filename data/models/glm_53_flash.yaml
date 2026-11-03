@@ -1,0 +1,22 @@
+name: "GLM-5.3 Flash 320B-A18B"
+slug: "glm_53_flash"
+developer: "Z.ai"
+family: "transformer"
+parameter_count: 321323031390
+architecture:
+  num_layers: 45
+  d_model: 4096
+  num_heads: 64
+  num_kv_heads: 64
+  head_dim: 256
+  ffn_intermediate: 2048
+  ffn_type: "swiglu"
+  vocab_size: 154880
+  moe:
+    num_experts: 288
+    active_experts: 8
+    active_parameter_count: 18000000000
+source: "https://huggingface.co/zai-org/GLM-5.3-Flash"
+license: "mit"
+notes: >
+  Z.ai GLM-5.3 Flash (Aug 2026). MoE: 288 experts, 8 routed + 1 shared per token, ~18B active. Hybrid: 34 linear-attention + 11 sparse latent-attention layers, so LoRA counts are approximate. Total includes vision encoder.

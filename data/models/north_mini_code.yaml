@@ -1,0 +1,22 @@
+name: "North Mini Code 30B-A3B"
+slug: "north_mini_code"
+developer: "Cohere"
+family: "transformer"
+parameter_count: 30484303872
+architecture:
+  num_layers: 49
+  d_model: 2048
+  num_heads: 32
+  num_kv_heads: 4
+  head_dim: 128
+  ffn_intermediate: 768
+  ffn_type: "swiglu"
+  vocab_size: 262144
+  moe:
+    num_experts: 128
+    active_experts: 8
+    active_parameter_count: 3305213952
+source: "https://huggingface.co/CohereLabs/North-Mini-Code-1.0"
+license: "apache-2.0"
+notes: >
+  Cohere North Mini Code 1.0 (Jun 2026). MoE: 128 experts, 8 per token, ~3.3B active. ffn_intermediate is the per-expert size.

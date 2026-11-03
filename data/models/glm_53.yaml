@@ -1,0 +1,22 @@
+name: "GLM-5.3 753B-A40B"
+slug: "glm_53"
+developer: "Z.ai"
+family: "transformer"
+parameter_count: 753329940480
+architecture:
+  num_layers: 78
+  d_model: 6144
+  num_heads: 64
+  num_kv_heads: 64
+  head_dim: 256
+  ffn_intermediate: 2048
+  ffn_type: "swiglu"
+  vocab_size: 154880
+  moe:
+    num_experts: 256
+    active_experts: 8
+    active_parameter_count: 40000000000
+source: "https://huggingface.co/zai-org/GLM-5.3"
+license: "GLM-5.3 License"
+notes: >
+  Z.ai GLM-5.3 (Aug 2026). MoE: 256 experts, 8 routed + 1 shared per token. The 40B active count is from the GLM-5 card (same dimensions); GLM-5.3's card gives none. Sparse latent (MLA) attention, so LoRA counts are approximate.

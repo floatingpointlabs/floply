@@ -182,15 +182,18 @@ export function calculateLoraTrainableParams(
     const d = architecture.d_model ?? dModel;
     const numHeads = architecture.num_heads ?? 0;
     const numKvHeads = architecture.num_kv_heads ?? numHeads;
-    // Floor division, matching Python's `//`. Using `/` silently changes k/v_proj sizing.
-    const headDim = numHeads ? Math.floor(d / numHeads) : d;
+    // An explicit head_dim wins: Gemma, Qwen3 and others use heads wider or narrower than
+    // d_model / num_heads, so q/o_proj are not square. Otherwise floor division, matching
+    // Python's `//`; using `/` silently changes k/v_proj sizing.
+    const headDim = architecture.head_dim ?? (numHeads ? Math.floor(d / numHeads) : d);
+    const qDim = numHeads ? numHeads * headDim : d;
     const kvDim = numKvHeads * headDim;
     const ffn = architecture.ffn_intermediate ?? d * 4;
     const moduleDims: Record<string, [number, number]> = {
-      q_proj: [d, d],
+      q_proj: [d, qDim],
       k_proj: [d, kvDim],
       v_proj: [d, kvDim],
-      o_proj: [d, d],
+      o_proj: [qDim, d],
       up_proj: [d, ffn],
       down_proj: [ffn, d]
     };

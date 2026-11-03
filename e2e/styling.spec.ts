@@ -1,7 +1,16 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+/**
+ * Navigate and wait for hydration. Interacting with server-rendered HTML before Svelte
+ * attaches its handlers silently drops the change, which made these tests flaky.
+ */
+async function open(page: Page, path: string) {
+  await page.goto(path);
+  await page.waitForLoadState("networkidle");
+}
 
 test("the unit select next to a scaled number is not stretched to full width", async ({ page }) => {
-  await page.goto("/budget-optimizer");
+  await open(page, "/budget-optimizer");
   const wrapper = page.locator("#budget").locator("xpath=..");
   const numberBox = await page.locator("#budget").boundingBox();
   const unitBox = await wrapper.locator("select").boundingBox();
@@ -14,7 +23,7 @@ test("the unit select next to a scaled number is not stretched to full width", a
 });
 
 test("figures keep their tabular monospace inside a .control input", async ({ page }) => {
-  await page.goto("/budget-optimizer");
+  await open(page, "/budget-optimizer");
   // `.control` sets `font-family: inherit`; `.num` must still win, or every numeric
   // field silently loses its tabular figures and jitters as values change.
   const family = await page.locator("#budget").evaluate((el) => getComputedStyle(el).fontFamily);
@@ -22,13 +31,13 @@ test("figures keep their tabular monospace inside a .control input", async ({ pa
 });
 
 test("a field hint is announced, not just rendered", async ({ page }) => {
-  await page.goto("/budget-optimizer");
+  await open(page, "/budget-optimizer");
   await expect(page.locator("#budget")).toHaveAttribute("aria-describedby", "budget-hint");
   await expect(page.locator("#budget-hint")).toHaveText(/GPU compute/);
 });
 
 test("the precision selector offers only what the GPU has hardware for", async ({ page }) => {
-  await page.goto("/training-budget");
+  await open(page, "/training-budget");
   await page.locator("#modality").selectOption("Text");
 
   const precision = page.locator("#precision");
@@ -48,7 +57,7 @@ test("the precision selector offers only what the GPU has hardware for", async (
 });
 
 test("a selected LoRA module pill actually looks selected", async ({ page }) => {
-  await page.goto("/");
+  await open(page, "/");
   await page.locator("#training-type").selectOption("Fine-Tuning");
   await page.locator("#ft-method").selectOption("LoRA");
 

@@ -1,0 +1,18 @@
+name: "Qwen3.5 4B"
+slug: "qwen35_4b"
+developer: "Alibaba (Qwen)"
+family: "transformer"
+parameter_count: 4659865088
+architecture:
+  num_layers: 32
+  d_model: 2560
+  num_heads: 16
+  num_kv_heads: 4
+  head_dim: 256
+  ffn_intermediate: 9216
+  ffn_type: "swiglu"
+  vocab_size: 248320
+source: "https://huggingface.co/Qwen/Qwen3.5-4B"
+license: "apache-2.0"
+notes: >
+  Qwen3.5 4B (Feb 2026). Hybrid: 24 Gated DeltaNet linear-attention layers + 8 full-attention layers. Head counts are for the full-attention layers, so LoRA counts on attention modules are approximate.

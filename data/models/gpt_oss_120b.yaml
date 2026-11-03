@@ -1,0 +1,22 @@
+name: "gpt-oss 120B"
+slug: "gpt_oss_120b"
+developer: "OpenAI"
+family: "transformer"
+parameter_count: 116829156672
+architecture:
+  num_layers: 36
+  d_model: 2880
+  num_heads: 64
+  num_kv_heads: 8
+  head_dim: 64
+  ffn_intermediate: 2880
+  ffn_type: "swiglu"
+  vocab_size: 201088
+  moe:
+    num_experts: 128
+    active_experts: 4
+    active_parameter_count: 5100000000
+source: "https://huggingface.co/openai/gpt-oss-120b"
+license: "apache-2.0"
+notes: >
+  OpenAI gpt-oss-120b (Aug 2025). MoE: 128 experts, 4 per token, ~5.1B active. ffn_intermediate is the per-expert size. Alternating sliding-window and full attention.

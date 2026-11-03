@@ -1,0 +1,22 @@
+name: "Command A+ 218B-A25B"
+slug: "command_a_plus"
+developer: "Cohere"
+family: "transformer"
+parameter_count: 218750277872
+architecture:
+  num_layers: 32
+  d_model: 4096
+  num_heads: 128
+  num_kv_heads: 8
+  head_dim: 128
+  ffn_intermediate: 4096
+  ffn_type: "swiglu"
+  vocab_size: 262144
+  moe:
+    num_experts: 128
+    active_experts: 8
+    active_parameter_count: 24981409792
+source: "https://huggingface.co/CohereLabs/command-a-plus-05-2026-bf16"
+license: "apache-2.0"
+notes: >
+  Cohere Command A+ (May 2026). Apache 2.0. MoE: 128 experts, 8 routed + 1 shared per token, ~25B active. ffn_intermediate is the per-expert size. Total includes the vision encoder.
