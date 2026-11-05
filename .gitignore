@@ -25,3 +25,6 @@ blob-report/
 
 # Left over from the Streamlit implementation — safe to delete.
 .venv
+
+# Editor swap files
+*.swp
