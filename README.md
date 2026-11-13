@@ -2,6 +2,8 @@
 
 Floply is an open-source ML training cost estimator. Given a dataset's dimensions, a model architecture, and a compute cluster, it calculates total GPU hours, wall-clock time, memory requirements, storage costs, and full project cost across training runs, hyperparameter trials, and ablations — all without writing any code.
 
+Try it at [floply.floatingpointlabs.ca](https://floply.floatingpointlabs.ca). Floply is built and maintained by [Floating Point Labs](https://floatingpointlabs.ca).
+
 Four tools:
 
 |                      |                                                                        |
@@ -24,6 +26,16 @@ pnpm dev
 
 Then open `http://localhost:5173`.
 
+Prices come live from AWS, so the app needs read-only AWS credentials to show real
+numbers (see [AWS pricing](#aws-pricing)). To try it without an AWS account, use the
+frozen test prices instead:
+
+```bash
+FLOPLY_PRICING_FIXTURE=1 pnpm dev
+```
+
+To set credentials or other options, copy `env.example` to `.env`. `pnpm dev` loads it.
+
 ## Commands
 
 ```bash
@@ -32,6 +44,8 @@ pnpm build      # production build (adapter-node)
 pnpm preview    # serve the production build
 pnpm test       # engine tests against the golden fixtures
 pnpm check      # svelte-check + TypeScript
+pnpm test:e2e   # Playwright browser tests (first run: pnpm exec playwright install chromium)
+pnpm format     # Prettier
 ```
 
 `pnpm build-data` regenerates `lib/data/generated.ts` from the YAML in `data/`. It runs
@@ -94,8 +108,6 @@ The tag is the version; `package.json`'s `version` is not used.
 - **`fixtures/`** — golden test fixtures pinning every engine function's output. `pnpm test` replays them.
 
 The engine is deliberately framework-agnostic: it is exercised by the fixtures with no DOM, so the UI layer can change without touching the maths. It takes the priced `Catalog` as an argument rather than importing one, because pages are server-rendered and a module-level catalog would leak one visitor's region into another's request.
-
-Both paths need AWS credentials — see below.
 
 ## AWS pricing
 
@@ -300,6 +312,12 @@ Low-precision support is declared per GPU in that same file, as
 `precision_multipliers` relative to `peak_flops_fp16`. `null` means "use
 `peak_flops_fp32`"; an **absent** key means the die has no hardware for that
 format, and asking for it raises rather than quietly falling back.
+
+## Contributing
+
+Bug reports, new models, new GPUs and fixes are all welcome. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for how to report a wrong estimate, run the checks,
+and open a pull request.
 
 ## Licence
 
