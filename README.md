@@ -74,8 +74,9 @@ docker run -p 3000:3000 \
 
 ## Releasing
 
-Pushing a `vX.Y.Z` tag builds the image and publishes it to
-`ghcr.io/floatingpointlabs/floply` as `X.Y.Z` and `X.Y`:
+Every pull request and push to `main` builds the Docker image and checks that it serves
+pages. Pushing a `vX.Y.Z` tag also publishes it to `ghcr.io/floatingpointlabs/floply` as
+`X.Y.Z` and `X.Y`:
 
 ```bash
 git tag v0.2.0 && git push origin v0.2.0
