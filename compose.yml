@@ -1,36 +1,18 @@
-name: fpl-floply
+# Local development only. Production runs from the published image and is
+# defined in the infrastructure repo.
+name: floply
 
 services:
   web:
     build: .
     image: floply:latest
-    restart: unless-stopped
-    environment:
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:?}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:?}
-      ORIGIN: https://floply.floatingpointlabs.ca
-      PROTOCOL_HEADER: x-forwarded-proto
-      HOST_HEADER: x-forwarded-host
-      ADDRESS_HEADER: x-forwarded-for
-      XFF_DEPTH: "1"
-      UMAMI_URL: ${UMAMI_URL:-}
-      UMAMI_WEBSITE_ID: ${UMAMI_WEBSITE_ID:-}
+    env_file:
+      - path: .env
+        required: false
     volumes:
       - cache:/app/.cache
-    networks:
-      - traefiknet
     ports:
       - 3000:3000
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.floply.rule=Host(`floply.floatingpointlabs.ca`)
-      - traefik.http.routers.floply.entrypoints=websecure
-      - traefik.http.routers.floply.tls.certresolver=myresolver
-      - traefik.http.services.floply.loadbalancer.server.port=3000
 
 volumes:
   cache:
-
-networks:
-  traefiknet:
-    external: true
