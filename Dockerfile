@@ -52,7 +52,7 @@ USER node
 EXPOSE 3000
 
 # wget ships with alpine, so no extra layer just to install curl.
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --start-interval=1s \
   CMD wget -qO- http://127.0.0.1:3000/api/health || exit 1
 
 CMD ["node", "build/index.js"]

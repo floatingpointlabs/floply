@@ -26,7 +26,7 @@ jobs:
           context: .
           platforms: linux/amd64
           load: true
-          tags: floply:ci
+          tags: floply:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -34,9 +34,9 @@ jobs:
       # dependencies; a missing one only shows up as a 500 here, not at build time.
       - name: Smoke test
         run: |
-          docker run -d --name floply -p 3000:3000 -e FLOPLY_PRICING_FIXTURE=1 floply:ci
-          curl -fsS --retry 30 --retry-delay 1 --retry-all-errors http://localhost:3000/api/health
+          echo FLOPLY_PRICING_FIXTURE=1 > .env
+          docker compose up -d --wait --wait-timeout 60
           curl -fsS -o /dev/null http://localhost:3000/
 
       - if: failure()
-        run: docker logs floply
+        run: docker compose logs
