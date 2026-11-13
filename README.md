@@ -56,6 +56,8 @@ docker run -p 3000:3000 \
 
 Then open `http://localhost:3000`. Health check is at `/api/health`.
 
+`docker compose up --build` does the same, reading credentials from `.env`.
+
 The volume holds the fetched price cache — without it every container replacement
 re-fetches from AWS, and an AWS outage during one leaves the app unable to price.
 To run with no credentials at all, set `FLOPLY_PRICING_FIXTURE=1` (see below).
@@ -69,6 +71,17 @@ docker run -p 3000:3000 \
   -e UMAMI_WEBSITE_ID=your-site-id \
   floply
 ```
+
+## Releasing
+
+Pushing a `vX.Y.Z` tag builds the image and publishes it to
+`ghcr.io/floatingpointlabs/floply` as `X.Y.Z` and `X.Y`:
+
+```bash
+git tag v0.2.0 && git push origin v0.2.0
+```
+
+The tag is the version; `package.json`'s `version` is not used.
 
 ## How it's built
 
