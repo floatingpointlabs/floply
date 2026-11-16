@@ -1,0 +1,42 @@
+name: build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_call:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: floply:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Rendering / runs the layout's server load, which imports the runtime
+      # dependencies; a missing one only shows up as a 500 here, not at build time.
+      - name: Smoke test
+        run: |
+          echo FLOPLY_PRICING_FIXTURE=1 > .env
+          docker compose up -d --wait --wait-timeout 60
+          curl -fsS -o /dev/null http://localhost:3000/
+
+      - if: failure()
+        run: docker compose logs

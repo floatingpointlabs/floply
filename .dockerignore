@@ -12,7 +12,7 @@ lib/data/generated.ts
 # Repo
 .git
 .gitignore
-.gitea
+.github
 compose.yml
 .env
 *.env
